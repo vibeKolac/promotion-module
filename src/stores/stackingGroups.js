@@ -41,6 +41,22 @@ export const useStackingGroupsStore = defineStore('stackingGroups', () => {
     }
   }
 
+  async function update(id, payload) {
+    loading.value = true
+    error.value = null
+    try {
+      const response = await axios.put(`/api/stacking-groups/${id}`, payload)
+      const idx = items.value.findIndex(item => item.id === id)
+      if (idx !== -1) items.value.splice(idx, 1, response.data)
+      return response.data
+    } catch (err) {
+      error.value = err.message
+      return null
+    } finally {
+      loading.value = false
+    }
+  }
+
   async function remove(id) {
     loading.value = true
     error.value = null
@@ -62,6 +78,7 @@ export const useStackingGroupsStore = defineStore('stackingGroups', () => {
     error,
     fetchAll,
     create,
+    update,
     remove
   }
 })

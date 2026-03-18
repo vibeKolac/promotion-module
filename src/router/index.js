@@ -16,7 +16,7 @@ const routes = [
   },
   {
     path: '/stacking-groups',
-    component: { template: '<v-container><h1 class="text-h5 font-weight-bold">Stacking Groups</h1><p class="text-medium-emphasis mt-2">Coming soon.</p></v-container>' },
+    component: () => import('../components/stackingGroups/StackingGroupsPage.vue'),
   },
   {
     path: '/templates',
