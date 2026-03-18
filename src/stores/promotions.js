@@ -34,7 +34,7 @@ export const usePromotionsStore = defineStore('promotions', () => {
 
   async function fetchOne(id) {
     const { data } = await axios.get(`/api/promotions/${id}`)
-    Object.assign(formDraft, data)
+    Object.assign(formDraft, emptyDraft(), data)
   }
 
   async function create(payload) {
