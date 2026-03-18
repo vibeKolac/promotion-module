@@ -102,6 +102,7 @@
     />
     <BulkEditConditionsDialog v-model="bulkDialogOpen" :selected-count="selected.length" @apply="onBulkApply" />
     <CsvImportDialog v-model="csvImportOpen" @import="onCSVImport" />
+    <v-snackbar v-model="errorSnack" color="error" timeout="4000">{{ store.error }}</v-snackbar>
   </v-container>
 </template>
 
@@ -138,13 +139,23 @@ function exportCSV() {
 }
 
 async function onBulkApply(payload) {
-  await store.bulkUpdateConditions(selected.value, payload)
-  selected.value = []
+  try {
+    await store.bulkUpdateConditions(selected.value, payload)
+    selected.value = []
+  } catch {
+    // store.error is set; user will see it via errorSnack
+  }
 }
 
 async function onCSVImport(rules) {
-  await store.importFromCSV(rules)
+  try {
+    await store.importFromCSV(rules)
+  } catch {
+    // store.error is set
+  }
 }
+
+const errorSnack = computed({ get: () => !!store.error, set: () => {} })
 
 const breadcrumbs = [
   { title: 'Promotions', disabled: true },

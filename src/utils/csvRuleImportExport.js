@@ -38,8 +38,8 @@ function splitCSVLine(line) {
 
 export function parseCSVToRules(csv) {
   if (!csv?.trim()) return []
-  const lines = csv.trim().split('\n')
-  const headers = lines[0].split(',')
+  const lines = csv.trim().split(/\r?\n/)
+  const headers = splitCSVLine(lines[0])
   return lines.slice(1).map(line => {
     const values = splitCSVLine(line)
     const obj = {}

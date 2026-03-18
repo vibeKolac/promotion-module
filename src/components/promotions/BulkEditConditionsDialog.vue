@@ -26,7 +26,12 @@
       <v-card-actions class="pa-5 pt-0">
         <v-spacer />
         <v-btn variant="outlined" @click="$emit('update:modelValue', false)">Cancel</v-btn>
-        <v-btn color="primary" variant="flat" @click="apply">Apply to {{ selectedCount }} rules</v-btn>
+        <v-btn
+          color="primary"
+          variant="flat"
+          :disabled="mode === 'replace' && conditions.length === 0"
+          @click="apply"
+        >Apply to {{ selectedCount }} rules</v-btn>
       </v-card-actions>
     </v-card>
 
@@ -39,7 +44,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { v4 as uuid } from 'uuid'
 import ConditionChip from '../promotions/ConditionChip.vue'
 import ConditionBuilderDialog from '../promotions/ConditionBuilderDialog.vue'
@@ -54,6 +59,15 @@ const condDialogOpen = ref(false)
 const editingCondition = ref(null)
 const editingIdx = ref(null)
 
+watch(() => props.modelValue, (isOpen) => {
+  if (isOpen) {
+    mode.value = 'add'
+    conditions.value = []
+    editingCondition.value = null
+    editingIdx.value = null
+  }
+})
+
 function openAdd() { editingCondition.value = null; editingIdx.value = null; condDialogOpen.value = true }
 function openEdit(idx) { editingCondition.value = { ...conditions.value[idx] }; editingIdx.value = idx; condDialogOpen.value = true }
 function onCondSave(c) {
@@ -61,6 +75,9 @@ function onCondSave(c) {
   else conditions.value.push({ ...c, id: uuid() })
 }
 function apply() {
+  if (mode.value === 'replace' && conditions.value.length === 0) {
+    return
+  }
   emit('apply', { mode: mode.value, conditions: conditions.value })
   emit('update:modelValue', false)
 }
