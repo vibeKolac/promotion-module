@@ -3,7 +3,7 @@
   <v-app>
     <AppTopBar />
     <AppSidebar />
-    <!-- AiAssistantPanel added in Task 10 -->
+    <AiAssistantPanel />
     <v-main>
       <router-view />
     </v-main>
@@ -13,4 +13,5 @@
 <script setup>
 import AppTopBar from './components/layout/AppTopBar.vue'
 import AppSidebar from './components/layout/AppSidebar.vue'
+import AiAssistantPanel from './components/ai/AiAssistantPanel.vue'
 </script>
