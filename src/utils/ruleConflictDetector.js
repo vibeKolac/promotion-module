@@ -31,7 +31,7 @@ export function detectConflicts(rules) {
         message: `Overlaps with "${r2.name}"`,
         details: `Both rules target similar products during overlapping periods. Priority: ${r1.priority ?? 'unset'} vs ${r2.priority ?? 'unset'}`,
       }
-      const reverseConflict = { ...conflict, message: `Overlaps with "${r1.name}"` }
+      const reverseConflict = { ...conflict, message: `Overlaps with "${r1.name}"`, details: `Both rules target similar products during overlapping periods. Priority: ${r2.priority ?? 'unset'} vs ${r1.priority ?? 'unset'}` }
       map.set(r1.id, [...(map.get(r1.id) ?? []), conflict])
       map.set(r2.id, [...(map.get(r2.id) ?? []), reverseConflict])
     }
