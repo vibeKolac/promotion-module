@@ -17,6 +17,13 @@
       >
         AI Assistant
       </v-btn>
+      <template v-if="selected.length">
+        <v-btn variant="outlined" size="small" class="mr-2" @click="bulkDialogOpen = true">
+          Edit conditions ({{ selected.length }})
+        </v-btn>
+      </template>
+      <v-btn variant="outlined" size="small" prepend-icon="mdi-download" class="mr-2" @click="exportCSV">Export CSV</v-btn>
+      <v-btn variant="outlined" size="small" prepend-icon="mdi-upload" class="mr-3" @click="csvImportOpen = true">Import CSV</v-btn>
       <v-btn
         color="primary"
         prepend-icon="mdi-plus"
@@ -46,10 +53,12 @@
     <!-- Table -->
     <v-card border elevation="0">
       <v-data-table
+        v-model:selected="selected"
         :headers="headers"
         :items="store.items"
         :loading="store.loading"
         item-value="id"
+        show-select
         hover
       >
         <template #item.name="{ item }">
@@ -91,6 +100,8 @@
       :loading="deleting"
       @confirm="confirmDelete"
     />
+    <BulkEditConditionsDialog v-model="bulkDialogOpen" :selected-count="selected.length" @apply="onBulkApply" />
+    <CsvImportDialog v-model="csvImportOpen" @import="onCSVImport" />
   </v-container>
 </template>
 
@@ -104,6 +115,9 @@ import ConfirmDeleteDialog from '../shared/ConfirmDeleteDialog.vue'
 import { useDebounceFn } from '@vueuse/core'
 import { detectConflicts } from '../../utils/ruleConflictDetector'
 import ConflictBadge from './ConflictBadge.vue'
+import BulkEditConditionsDialog from './BulkEditConditionsDialog.vue'
+import CsvImportDialog from './CsvImportDialog.vue'
+import { downloadCSV, exportRulesToCSV } from '../../utils/csvRuleImportExport'
 
 const store = usePromotionsStore()
 const uiStore = useUiStore()
@@ -115,6 +129,22 @@ const activeFilter = ref('')
 const deleteDialog = ref(false)
 const deletingItem = ref(null)
 const deleting = ref(false)
+const selected = ref([])
+const bulkDialogOpen = ref(false)
+const csvImportOpen = ref(false)
+
+function exportCSV() {
+  downloadCSV(exportRulesToCSV(store.items), 'promotions.csv')
+}
+
+async function onBulkApply(payload) {
+  await store.bulkUpdateConditions(selected.value, payload)
+  selected.value = []
+}
+
+async function onCSVImport(rules) {
+  await store.importFromCSV(rules)
+}
 
 const breadcrumbs = [
   { title: 'Promotions', disabled: true },

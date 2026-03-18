@@ -75,5 +75,26 @@ export const usePromotionsStore = defineStore('promotions', () => {
     Object.assign(formDraft, emptyDraft())
   }
 
-  return { items, loading, error, formDraft, fetchAll, fetchOne, create, update, remove, applyParsedRule, resetDraft }
+  async function bulkUpdateConditions(ids, { mode, conditions }) {
+    for (const id of ids) {
+      const item = items.value.find(i => i.id === id)
+      if (!item) continue
+      const updated = {
+        ...item,
+        conditions: mode === 'replace' ? conditions : [...item.conditions, ...conditions],
+      }
+      await axios.put(`/api/promotions/${id}`, updated)
+      Object.assign(item, updated)
+    }
+  }
+
+  async function importFromCSV(rules) {
+    for (const rule of rules) {
+      const { id, ...payload } = rule
+      const { data } = await axios.post('/api/promotions', payload)
+      items.value.push(data)
+    }
+  }
+
+  return { items, loading, error, formDraft, fetchAll, fetchOne, create, update, remove, applyParsedRule, resetDraft, bulkUpdateConditions, importFromCSV }
 })
