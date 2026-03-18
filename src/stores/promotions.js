@@ -55,6 +55,45 @@ export const usePromotionsStore = defineStore('promotions', () => {
     items.value = items.value.filter(i => i.id !== id)
   }
 
+  async function updateStatus(id, status) {
+    const item = items.value.find(i => i.id === id)
+    if (!item) return
+    loading.value = true
+    error.value = null
+    try {
+      const { data } = await axios.put(`/api/promotions/${id}`, { ...item, status })
+      Object.assign(item, data)
+      return data
+    } catch (err) {
+      error.value = err.message
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+
+  async function duplicate(id) {
+    const source = items.value.find(i => i.id === id)
+    if (!source) return
+    loading.value = true
+    error.value = null
+    try {
+      const { id: _id, ...payload } = source
+      const { data } = await axios.post('/api/promotions', {
+        ...payload,
+        name: `${source.name} (copy)`,
+        status: 'inactive',
+      })
+      items.value.push(data)
+      return data
+    } catch (err) {
+      error.value = err.message
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+
   function applyParsedRule(parsed) {
     if (parsed.type) formDraft.type = parsed.type
     if (parsed.value) formDraft.value = parsed.value
@@ -114,5 +153,5 @@ export const usePromotionsStore = defineStore('promotions', () => {
     }
   }
 
-  return { items, loading, error, formDraft, fetchAll, fetchOne, create, update, remove, applyParsedRule, resetDraft, bulkUpdateConditions, importFromCSV }
+  return { items, loading, error, formDraft, fetchAll, fetchOne, create, update, remove, updateStatus, duplicate, applyParsedRule, resetDraft, bulkUpdateConditions, importFromCSV }
 })
