@@ -21,7 +21,8 @@ module.exports = (db) => {
   router.delete('/:id', (req, res) => {
     const inUse = db.promotions.filter(p => p.stackingGroupId === req.params.id)
     if (inUse.length > 0) return res.status(409).json({ error: `${inUse.length} rule(s) are using this group` })
-    db.stackingGroups = db.stackingGroups.filter(g => g.id !== req.params.id)
+    const idx = db.stackingGroups.findIndex(g => g.id === req.params.id)
+    db.stackingGroups.splice(idx, 1)
     res.status(204).end()
   })
 
