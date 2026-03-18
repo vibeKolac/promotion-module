@@ -53,7 +53,13 @@
         hover
       >
         <template #item.name="{ item }">
-          <span class="font-weight-medium">{{ item.name }}</span>
+          <div class="d-flex align-center gap-2">
+            <span class="font-weight-medium">{{ item.name }}</span>
+            <ConflictBadge
+              v-if="conflictsMap.get(item.id)?.length"
+              :conflicts="conflictsMap.get(item.id)"
+            />
+          </div>
         </template>
 
         <template #item.type="{ item }">
@@ -96,9 +102,13 @@ import StatusBadge from '../shared/StatusBadge.vue'
 import FilterTabs from '../shared/FilterTabs.vue'
 import ConfirmDeleteDialog from '../shared/ConfirmDeleteDialog.vue'
 import { useDebounceFn } from '@vueuse/core'
+import { detectConflicts } from '../../utils/ruleConflictDetector'
+import ConflictBadge from './ConflictBadge.vue'
 
 const store = usePromotionsStore()
 const uiStore = useUiStore()
+
+const conflictsMap = computed(() => detectConflicts(store.items))
 
 const search = ref('')
 const activeFilter = ref('')
