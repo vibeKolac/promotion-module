@@ -1,15 +1,21 @@
 <!-- src/components/shared/StatusBadge.vue -->
 <template>
   <v-chip
-    :color="status === 'active' ? 'success' : undefined"
-    :variant="status === 'active' ? 'tonal' : 'outlined'"
+    :color="config.color"
+    :variant="config.variant"
     size="small"
     label
-  >
-    {{ status === 'active' ? 'Active' : 'Inactive' }}
-  </v-chip>
+  >{{ config.label }}</v-chip>
 </template>
 
 <script setup>
-defineProps({ status: { type: String, required: true } })
+import { computed } from 'vue'
+const props = defineProps({ status: { type: String, required: true } })
+const config = computed(() => ({
+  active:    { color: 'success',  variant: 'tonal',    label: 'Active' },
+  inactive:  { color: 'default',  variant: 'outlined', label: 'Inactive' },
+  scheduled: { color: 'info',     variant: 'tonal',    label: 'Scheduled' },
+  paused:    { color: 'warning',  variant: 'tonal',    label: 'Paused' },
+  expired:   { color: 'default',  variant: 'outlined', label: 'Expired' },
+}[props.status] ?? { color: 'default', variant: 'outlined', label: props.status }))
 </script>

@@ -79,11 +79,28 @@ const promotions = [
     createdAt: '2026-03-01T09:00:00Z',
     updatedAt: '2026-03-01T09:00:00Z',
   },
+  {
+    id: 'promo-5', name: 'Summer Campaign', type: 'discount', value: '25', valueUnit: '%',
+    steps: [], priority: 5, status: 'scheduled',
+    startDate: '2026-06-01', endDate: '2026-08-31',
+    stackingGroupId: 'sg-1', conditions: [], gifts: [],
+    exclusive: false, processingOrder: 1,
+    createdAt: '2026-03-18T10:00:00Z', updatedAt: '2026-03-18T10:00:00Z',
+  },
+  {
+    id: 'promo-6', name: 'Loyalty Bonus (paused)', type: 'discount', value: '10', valueUnit: '%',
+    steps: [], priority: 8, status: 'paused',
+    startDate: null, endDate: null,
+    stackingGroupId: 'sg-2', conditions: [], gifts: [],
+    exclusive: false, processingOrder: 2,
+    createdAt: '2026-03-18T10:00:00Z', updatedAt: '2026-03-18T10:00:00Z',
+  },
 ]
 
 const stackingGroups = [
-  { id: 'sg-1', name: 'Flash Sales', description: 'All flash sale promotions' },
-  { id: 'sg-2', name: 'Loyalty', description: 'Loyalty program discounts' },
+  { id: 'sg-1', name: 'Flash Sales', description: 'All flash sale promotions', color: '#EF4444', priority: 10, isDefault: false, createdAt: '2026-01-01T00:00:00Z', updatedAt: '2026-01-01T00:00:00Z' },
+  { id: 'sg-2', name: 'Loyalty', description: 'Loyalty program discounts', color: '#10B981', priority: 20, isDefault: false, createdAt: '2026-01-01T00:00:00Z', updatedAt: '2026-01-01T00:00:00Z' },
+  { id: 'sg-default', name: 'Default', description: 'System default group', color: '#6B7280', priority: 999, isDefault: true, createdAt: '2026-01-01T00:00:00Z', updatedAt: '2026-01-01T00:00:00Z' },
 ]
 
 const templates = [
