@@ -105,48 +105,40 @@ const stackingGroups = [
 
 const templates = [
   {
-    id: 'tpl-1',
-    label: 'Flash Sale — Electronics',
-    description: 'Time-limited discount on electronics',
-    ruleType: 'discount',
-    defaultValue: '30',
-    defaultValueUnit: '%',
-    defaultConditions: [
-      { field: 'categories', mode: 'include', values: ['Electronics'] },
-    ],
+    id: 'tpl-flash-1', label: 'Weekend Flash Sale', category: 'flash', popularity: 'high',
+    description: 'Time-limited weekend discount', examples: ['20% off everything Sat–Sun'],
+    ruleType: 'discount', defaultValue: '20', defaultValueUnit: '%',
+    defaultConditions: [],
   },
   {
-    id: 'tpl-2',
-    label: 'Brand Discount',
-    description: 'Percentage off a specific brand',
-    ruleType: 'discount',
-    defaultValue: '20',
-    defaultValueUnit: '%',
-    defaultConditions: [
-      { field: 'brands', mode: 'include', values: ['Nike'] },
-    ],
+    id: 'tpl-seasonal-1', label: 'Seasonal Sale', category: 'seasonal', popularity: 'high',
+    description: 'Holiday or seasonal discount', examples: ['Christmas 30% off', 'Summer Sale'],
+    ruleType: 'discount', defaultValue: '30', defaultValueUnit: '%',
+    defaultConditions: [],
   },
   {
-    id: 'tpl-3',
-    label: 'Multi-buy Offer',
-    description: 'Buy multiple items for a discount',
-    ruleType: 'multi_buy',
-    defaultValue: '10',
-    defaultValueUnit: '%',
-    defaultConditions: [
-      { field: 'quantity', mode: 'include', values: ['3'], operator: '>=' },
-    ],
+    id: 'tpl-loyalty-1', label: 'VIP Exclusive', category: 'loyalty', popularity: 'high',
+    description: 'Exclusive discount for loyalty customers', examples: ['VIP 15% off all brands'],
+    ruleType: 'discount', defaultValue: '15', defaultValueUnit: '%',
+    defaultConditions: [{ field: 'customerGroup', mode: 'include', values: ['VIP'] }],
   },
   {
-    id: 'tpl-4',
-    label: 'Free Gift',
-    description: 'Gift item with minimum purchase',
-    ruleType: 'gift',
-    defaultValue: '0',
-    defaultValueUnit: '%',
-    defaultConditions: [
-      { field: 'subtotal', mode: 'include', values: ['150'], operator: '>=' },
-    ],
+    id: 'tpl-bulk-1', label: 'Buy More Save More', category: 'bulk', popularity: 'high',
+    description: 'Tiered discount based on quantity', examples: ['Buy 3+ save 10%'],
+    ruleType: 'step_discount', defaultValue: '10', defaultValueUnit: '%',
+    defaultConditions: [],
+  },
+  {
+    id: 'tpl-gift-1', label: 'Free Gift With Purchase', category: 'gift', popularity: 'medium',
+    description: 'Gift item with minimum spend', examples: ['Free tote bag over €150'],
+    ruleType: 'gift', defaultValue: '0', defaultValueUnit: '%',
+    defaultConditions: [{ field: 'subtotal', mode: 'include', values: ['150'], operator: '>=' }],
+  },
+  {
+    id: 'tpl-brand-1', label: 'Brand Discount', category: 'category', popularity: 'high',
+    description: 'Percentage off a specific brand', examples: ['20% off Nike', '15% off Adidas'],
+    ruleType: 'discount', defaultValue: '20', defaultValueUnit: '%',
+    defaultConditions: [{ field: 'brands', mode: 'include', values: [] }],
   },
 ]
 

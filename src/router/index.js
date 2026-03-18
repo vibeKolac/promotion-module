@@ -20,7 +20,7 @@ const routes = [
   },
   {
     path: '/templates',
-    component: { template: '<v-container><h1 class="text-h5 font-weight-bold">Templates</h1><p class="text-medium-emphasis mt-2">Coming soon.</p></v-container>' },
+    component: () => import('../components/templates/TemplatesPage.vue'),
   },
 ]
 
