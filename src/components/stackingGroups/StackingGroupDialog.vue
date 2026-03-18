@@ -77,35 +77,38 @@ const form = ref(emptyForm())
 const saving = ref(false)
 const nameError = ref('')
 
-watch(
-  () => props.group,
-  (val) => {
-    if (val) {
-      form.value = { name: val.name, priority: val.priority, color: val.color || '#3B82F6', isDefault: val.isDefault || false }
-    } else {
-      form.value = emptyForm()
-    }
-    nameError.value = ''
-  },
-  { immediate: true }
-)
+function seedForm(val) {
+  if (val) {
+    form.value = { name: val.name, priority: val.priority, color: val.color || '#3B82F6', isDefault: val.isDefault || false }
+  } else {
+    form.value = emptyForm()
+  }
+  nameError.value = ''
+}
+
+watch(() => props.group, (val) => seedForm(val), { immediate: true })
+
+watch(() => props.modelValue, (open) => {
+  if (open) seedForm(props.group)
+})
 
 async function handleSave() {
-  nameError.value = ''
   if (!form.value.name.trim()) {
     nameError.value = 'Name is required'
     return
   }
-
   saving.value = true
   try {
+    const payload = { ...form.value }
     if (isEditMode.value) {
-      await store.update(props.group.id, { ...form.value })
+      await store.update(props.group.id, payload)
     } else {
-      await store.create({ ...form.value })
+      await store.create(payload)
     }
     emit('saved')
     emit('update:modelValue', false)
+  } catch {
+    // store already set error.value; dialog stays open
   } finally {
     saving.value = false
   }

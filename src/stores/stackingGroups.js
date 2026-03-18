@@ -35,7 +35,7 @@ export const useStackingGroupsStore = defineStore('stackingGroups', () => {
       return response.data
     } catch (err) {
       error.value = err.message
-      return null
+      throw err
     } finally {
       loading.value = false
     }
@@ -51,7 +51,7 @@ export const useStackingGroupsStore = defineStore('stackingGroups', () => {
       return response.data
     } catch (err) {
       error.value = err.message
-      return null
+      throw err
     } finally {
       loading.value = false
     }
