@@ -1,13 +1,16 @@
 <!-- src/App.vue -->
 <template>
   <v-app>
+    <AppTopBar />
+    <AppSidebar />
+    <!-- AiAssistantPanel added in Task 10 -->
     <v-main>
       <router-view />
     </v-main>
-    <!-- AiAssistantPanel will be wired in Task 10 -->
   </v-app>
 </template>
 
 <script setup>
-// Layout components added in Task 5
+import AppTopBar from './components/layout/AppTopBar.vue'
+import AppSidebar from './components/layout/AppSidebar.vue'
 </script>
