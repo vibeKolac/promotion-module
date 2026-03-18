@@ -43,4 +43,34 @@ describe('PromotionForm', () => {
     await w.vm.$nextTick()
     expect(w.text()).toContain('Add tier')
   })
+
+  it('shows validation errors when saving empty form', async () => {
+    const w = mountForm()
+    const store = w.vm.store
+    store.formDraft.name = ''
+    store.formDraft.value = ''
+    await w.vm.$nextTick()
+    await w.find('[data-testid="save-btn"]').trigger('click')
+    await w.vm.$nextTick()
+    expect(w.text()).toContain('Rule name is required')
+  })
+
+  it('shows stepType field for step_discount type', async () => {
+    const w = mountForm()
+    w.vm.store.formDraft.type = 'step_discount'
+    await w.vm.$nextTick()
+    expect(w.text()).toContain('Step type')
+  })
+
+  it('shows gift step fields for gift type', async () => {
+    const w = mountForm()
+    w.vm.store.formDraft.type = 'gift'
+    await w.vm.$nextTick()
+    expect(w.text()).toContain('Trigger type')
+  })
+
+  it('shows exclusive toggle', () => {
+    const w = mountForm()
+    expect(w.text()).toContain('Exclusive rule')
+  })
 })

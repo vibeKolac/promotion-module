@@ -9,7 +9,7 @@
       <h1 class="text-h5 font-weight-bold">{{ isEdit ? 'Edit promotion rule' : 'New promotion rule' }}</h1>
       <v-spacer />
       <v-btn variant="outlined" to="/promotions" class="text-uppercase">Discard</v-btn>
-      <v-btn color="primary" class="text-uppercase" :loading="saving" @click="save">Save rule</v-btn>
+      <v-btn color="primary" class="text-uppercase" :loading="saving" data-testid="save-btn" @click="save">Save rule</v-btn>
     </div>
 
     <!-- AI Assistant banner -->
@@ -44,6 +44,7 @@
             density="compact"
             class="mb-3"
           />
+          <div v-if="validationErrors.name" class="text-caption text-error mt-1 mb-2">{{ validationErrors.name }}</div>
 
           <v-row dense class="mb-3">
             <v-col cols="6">
@@ -76,6 +77,7 @@
                 variant="outlined"
                 density="compact"
               />
+              <div v-if="validationErrors.value" class="text-caption text-error mt-1">{{ validationErrors.value }}</div>
             </v-col>
             <v-col cols="4">
               <v-select
@@ -89,6 +91,14 @@
 
           <!-- Step discount editor -->
           <div v-if="draft.type === 'step_discount'" class="mb-3">
+            <v-select
+              v-model="draft.stepType"
+              :items="[{ value: 'SPENT', title: 'Amount spent (€)' }, { value: 'QTY', title: 'Quantity' }]"
+              label="Step type"
+              variant="outlined"
+              density="compact"
+              class="mb-3"
+            />
             <div class="text-caption font-weight-bold text-medium-emphasis mb-2">DISCOUNT TIERS</div>
             <StepDiscountEditor v-model="draft.steps" />
           </div>
@@ -130,6 +140,26 @@
               inset
             />
           </div>
+        </v-card>
+
+        <v-card border elevation="0" class="pa-5 mb-4">
+          <div class="text-body-1 font-weight-bold mb-4">Advanced</div>
+          <div class="d-flex align-center justify-space-between mb-3">
+            <div>
+              <div class="text-body-2">Exclusive rule</div>
+              <div class="text-caption text-medium-emphasis">Doesn't stack with any other rule</div>
+            </div>
+            <v-switch v-model="draft.exclusive" color="primary" hide-details density="compact" inset />
+          </div>
+          <v-text-field
+            v-model.number="draft.processingOrder"
+            label="Processing order"
+            type="number"
+            variant="outlined"
+            density="compact"
+            hint="Lower = evaluated first"
+            persistent-hint
+          />
         </v-card>
 
         <v-card border elevation="0" class="pa-5">
@@ -201,6 +231,38 @@
 
     <!-- Gift items (gift type only) -->
     <div v-if="draft.type === 'gift'" class="mb-4">
+      <v-card border elevation="0" class="pa-4 mb-3">
+        <div class="text-body-2 font-weight-bold mb-3">Gift trigger</div>
+        <v-row dense>
+          <v-col cols="5">
+            <v-select
+              v-model="draft.giftStepType"
+              :items="[{ value: 'SPENT', title: 'Amount spent' }, { value: 'QTY', title: 'Quantity' }]"
+              label="Trigger type"
+              variant="outlined"
+              density="compact"
+            />
+          </v-col>
+          <v-col cols="4">
+            <v-text-field
+              v-model="draft.giftStepValue"
+              label="Threshold"
+              type="number"
+              variant="outlined"
+              density="compact"
+            />
+          </v-col>
+          <v-col cols="3">
+            <v-text-field
+              v-model="draft.giftMaxSteps"
+              label="Max gifts"
+              type="number"
+              variant="outlined"
+              density="compact"
+            />
+          </v-col>
+        </v-row>
+      </v-card>
       <GiftItemsSection v-model="draft.gifts" />
       <ConflictWarningBanner :conflicts="giftConflicts" />
     </div>
@@ -237,6 +299,7 @@ const uiStore = useUiStore()
 const isEdit = computed(() => !!route.params.id)
 const saving = ref(false)
 const conditionDialogOpen = ref(false)
+const validationErrors = ref({})
 const editingCondition = ref(null)
 const editingConditionIdx = ref(null)
 
@@ -286,7 +349,16 @@ function onConditionSave(condition) {
   }
 }
 
+function validate() {
+  const errors = {}
+  if (!draft.name?.trim()) errors.name = 'Rule name is required'
+  if (draft.type !== 'step_discount' && !draft.value) errors.value = 'Discount value is required'
+  validationErrors.value = errors
+  return Object.keys(errors).length === 0
+}
+
 async function save() {
+  if (!validate()) return
   saving.value = true
   try {
     const payload = { ...draft }

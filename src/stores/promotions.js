@@ -4,18 +4,14 @@ import axios from 'axios'
 import { v4 as uuid } from 'uuid'
 
 const emptyDraft = () => ({
-  name: '',
-  type: 'discount',
-  value: '',
-  valueUnit: '%',
-  steps: [],
-  priority: 10,
-  status: 'active',
-  startDate: null,
-  endDate: null,
-  stackingGroupId: null,
-  conditions: [],
-  gifts: [],
+  name: '', type: 'discount', value: '', valueUnit: '%',
+  steps: [], priority: 10, status: 'active',
+  startDate: null, endDate: null,
+  stackingGroupId: null, conditions: [], gifts: [],
+  exclusive: false,
+  processingOrder: null,
+  stepType: 'SPENT',
+  giftStepType: 'SPENT', giftStepValue: '', giftMaxSteps: '',
 })
 
 export const usePromotionsStore = defineStore('promotions', () => {
