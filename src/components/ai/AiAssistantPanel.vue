@@ -26,7 +26,9 @@
 
       <!-- Wizard panel (collapsible, above chat) -->
       <v-expand-transition>
-        <WizardPanel v-if="uiStore.wizardActive" />
+        <div v-if="uiStore.wizardActive" data-testid="wizard-panel-wrapper">
+          <WizardPanel />
+        </div>
       </v-expand-transition>
 
       <!-- Template quick actions -->

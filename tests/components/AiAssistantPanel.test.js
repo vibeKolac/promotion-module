@@ -4,6 +4,7 @@ import { createVuetify } from 'vuetify'
 import * as components from 'vuetify/components'
 import * as directives from 'vuetify/directives'
 import { createRouter, createMemoryHistory } from 'vue-router'
+import { nextTick } from 'vue'
 import AiAssistantPanel from '../../src/components/ai/AiAssistantPanel.vue'
 import { useUiStore } from '../../src/stores/ui'
 
@@ -42,8 +43,16 @@ describe('AiAssistantPanel', () => {
   it('clicking Guide me calls uiStore.startWizard(null)', async () => {
     const w = mountPanel()
     const store = useUiStore()
-    const btn = w.findAll('button').find(b => b.text().includes('Guide me'))
-    await btn?.trigger('click')
+    const btn = w.find('[data-testid="guide-me-btn"]')
+    await btn.trigger('click')
     expect(store.startWizard).toHaveBeenCalledWith(null)
+  })
+
+  it('shows wizard panel when wizardActive is true', async () => {
+    const w = mountPanel()
+    const store = useUiStore()
+    store.wizardActive = true
+    await nextTick()
+    expect(w.find('[data-testid="wizard-panel-wrapper"]').exists()).toBe(true)
   })
 })
