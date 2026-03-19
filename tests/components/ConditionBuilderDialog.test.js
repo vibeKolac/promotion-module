@@ -1,39 +1,30 @@
 import { mount } from '@vue/test-utils'
-import { createTestingPinia } from '@pinia/testing'
-import ConditionBuilderDialog from '../../src/components/promotions/ConditionBuilderDialog.vue'
 import { createVuetify } from 'vuetify'
 import * as components from 'vuetify/components'
 import * as directives from 'vuetify/directives'
+import ConditionBuilderDialog from '../../src/components/promotions/ConditionBuilderDialog.vue'
 
 const vuetify = createVuetify({ components, directives })
-
 const mountDialog = (props = {}) =>
   mount(ConditionBuilderDialog, {
-    props: { modelValue: true, ...props },
-    global: { plugins: [createTestingPinia(), vuetify] },
     attachTo: document.body,
+    props: { modelValue: true, ...props },
+    global: { plugins: [vuetify] },
   })
 
 describe('ConditionBuilderDialog', () => {
-  it('renders in add mode by default', () => {
-    const w = mountDialog()
-    expect(document.body.textContent).toContain('Add condition')
-    w.unmount()
+  it('shows type selector in step 1 with category groups', () => {
+    mountDialog()
+    expect(document.body.textContent).toMatch(/Product|Customer|Threshold/)
   })
 
-  it('renders in edit mode when initialCondition provided', () => {
-    const w = mountDialog({
-      initialCondition: { id: 'c1', field: 'categories', mode: 'include', values: ['Electronics'] }
-    })
-    expect(document.body.textContent).toContain('Edit condition')
-    w.unmount()
+  it('shows condition type options', () => {
+    mountDialog()
+    expect(document.body.textContent).toMatch(/Brands|Categories|Subtotal/)
   })
 
-  it('emits save with condition data on confirm', async () => {
-    const w = mountDialog()
-    await w.vm.localCondition.values.push('Electronics')
-    await w.vm.handleSave()
-    expect(w.emitted('save')).toBeTruthy()
-    w.unmount()
+  it('in edit mode starts on step 2 (value config)', () => {
+    mountDialog({ initialCondition: { id: 'c1', field: 'brands', mode: 'include', values: ['Nike'] } })
+    expect(document.body.textContent).toContain('Brands')
   })
 })

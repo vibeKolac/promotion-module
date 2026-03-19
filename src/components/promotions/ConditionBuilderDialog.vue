@@ -1,24 +1,56 @@
 <!-- src/components/promotions/ConditionBuilderDialog.vue -->
 <template>
-  <v-dialog :model-value="modelValue" max-width="520" @update:model-value="$emit('update:modelValue', $event)">
+  <v-dialog :model-value="modelValue" max-width="560" @update:model-value="$emit('update:modelValue', $event)">
     <v-card>
-      <v-card-title class="text-h6 pa-5 pb-2">
+      <v-card-title class="pa-5 pb-2">
         {{ isEditMode ? 'Edit condition' : 'Add condition' }}
+        <span v-if="!isEditMode" class="text-caption text-medium-emphasis ml-2">Step {{ step }} of 2</span>
       </v-card-title>
 
-      <v-card-text class="pa-5 pt-2">
-        <!-- Condition type -->
-        <v-select
-          v-model="localCondition.field"
-          :items="conditionTypeItems"
-          label="Condition type"
-          variant="outlined"
-          density="compact"
-          class="mb-3"
-        />
+      <!-- Step 1: Type selector -->
+      <v-card-text v-if="step === 1" class="pa-5 pt-2">
+        <div v-for="cat in conditionCategories" :key="cat.key" class="mb-4">
+          <div class="d-flex align-center gap-2 mb-2">
+            <v-icon :icon="cat.icon" size="18" color="primary" />
+            <div>
+              <div class="text-body-2 font-weight-bold">{{ cat.label }}</div>
+              <div class="text-caption text-medium-emphasis">{{ cat.description }}</div>
+            </div>
+          </div>
+          <div class="d-flex flex-wrap gap-2">
+            <v-btn
+              v-for="type in cat.types"
+              :key="type.value"
+              variant="outlined"
+              size="small"
+              :color="selectedField === type.value ? 'primary' : undefined"
+              :class="selectedField === type.value ? 'border-primary' : ''"
+              @click="selectType(type.value)"
+            >
+              {{ type.title }}
+              <v-icon v-if="selectedField === type.value" icon="mdi-check" size="14" class="ml-1" />
+            </v-btn>
+          </div>
+        </div>
+      </v-card-text>
 
-        <!-- Mode toggle (only for types that support it) -->
-        <div v-if="supportsMode" class="mb-3">
+      <!-- Step 2: Value configuration -->
+      <v-card-text v-else class="pa-5 pt-2">
+        <div class="d-flex align-center gap-2 mb-4">
+          <v-chip color="primary" variant="tonal" size="small" label>
+            {{ currentTypeDef?.title }}
+          </v-chip>
+          <v-btn
+            v-if="!isEditMode"
+            variant="text"
+            size="x-small"
+            prepend-icon="mdi-arrow-left"
+            @click="step = 1"
+          >Change type</v-btn>
+        </div>
+
+        <!-- Mode toggle -->
+        <div v-if="currentTypeDef?.supportsMode" class="mb-4">
           <div class="text-caption font-weight-bold text-medium-emphasis mb-1">MODE</div>
           <v-btn-toggle v-model="localCondition.mode" mandatory density="compact" variant="outlined" color="primary">
             <v-btn value="include" size="small">Include</v-btn>
@@ -26,9 +58,9 @@
           </v-btn-toggle>
         </div>
 
-        <!-- Operator (quantifiable types only) -->
+        <!-- Operator for quantifiable types -->
         <v-select
-          v-if="isQuantifiable"
+          v-if="currentTypeDef?.quantifiable"
           v-model="localCondition.operator"
           :items="operatorItems"
           label="Operator"
@@ -37,17 +69,47 @@
           class="mb-3"
         />
 
-        <!-- Values -->
+        <!-- Boolean toggle (excludeOnSale) -->
+        <div v-if="currentTypeDef?.boolean" class="d-flex align-center justify-space-between mb-3 pa-3 rounded border">
+          <span class="text-body-2">{{ currentTypeDef.title }}</span>
+          <v-switch
+            :model-value="localCondition.values[0] === 'true'"
+            color="primary"
+            hide-details
+            density="compact"
+            inset
+            @update:model-value="v => localCondition.values = [String(v)]"
+          />
+        </div>
+
+        <!-- Multi-select combobox for list types -->
         <v-combobox
+          v-else-if="!currentTypeDef?.quantifiable"
           v-model="localCondition.values"
-          label="Values"
+          :label="currentTypeDef?.title + ' values'"
+          :items="currentTypeOptions"
           variant="outlined"
           density="compact"
           multiple
           chips
           closable-chips
-          :hint="isQuantifiable ? 'Enter a numeric value' : 'Press Enter to add each value'"
+          hint="Select from the list or type to add custom values"
           persistent-hint
+          class="mb-3"
+        />
+
+        <!-- Numeric input for quantifiable types -->
+        <v-text-field
+          v-else
+          :model-value="localCondition.values[0] ?? ''"
+          :label="currentTypeDef?.title + ' value'"
+          type="number"
+          variant="outlined"
+          density="compact"
+          hint="Enter a numeric threshold"
+          persistent-hint
+          class="mb-3"
+          @update:model-value="v => localCondition.values = [v]"
         />
 
         <!-- Validation errors -->
@@ -56,7 +118,7 @@
           type="error"
           variant="tonal"
           density="compact"
-          class="mt-3"
+          class="mt-2"
         >
           <ul class="ma-0 pl-4">
             <li v-for="e in validationErrors" :key="e">{{ e }}</li>
@@ -67,9 +129,19 @@
       <v-card-actions class="pa-5 pt-0">
         <v-spacer />
         <v-btn variant="text" @click="$emit('update:modelValue', false)">Cancel</v-btn>
-        <v-btn color="primary" variant="flat" @click="handleSave">
-          {{ isEditMode ? 'Update condition' : 'Add condition' }}
-        </v-btn>
+        <v-btn
+          v-if="step === 1"
+          color="primary"
+          variant="flat"
+          :disabled="!selectedField"
+          @click="step = 2"
+        >Next</v-btn>
+        <v-btn
+          v-else
+          color="primary"
+          variant="flat"
+          @click="handleSave"
+        >{{ isEditMode ? 'Update' : 'Add condition' }}</v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -80,58 +152,111 @@ import { ref, computed, watch } from 'vue'
 import { v4 as uuid } from 'uuid'
 import { validateCondition } from '../../utils/conditionValidator'
 
+// --- Type definitions ---
 const CONDITION_TYPES = [
-  { value: 'categories', title: 'Categories', supportsMode: true, quantifiable: false },
-  { value: 'brands', title: 'Brands', supportsMode: true, quantifiable: false },
-  { value: 'skus', title: 'SKUs', supportsMode: true, quantifiable: false },
-  { value: 'product_lines', title: 'Product lines', supportsMode: true, quantifiable: false },
-  { value: 'subtotal', title: 'Subtotal', supportsMode: false, quantifiable: true },
-  { value: 'quantity', title: 'Quantity', supportsMode: false, quantifiable: true },
-  { value: 'weight', title: 'Weight', supportsMode: false, quantifiable: true },
-  { value: 'customer_group', title: 'Customer group', supportsMode: true, quantifiable: false },
-  { value: 'coupon_code', title: 'Coupon code', supportsMode: false, quantifiable: false },
-  { value: 'exclude_on_sale', title: 'Exclude on sale', supportsMode: false, quantifiable: false },
-  { value: 'pim_status', title: 'PIM status', supportsMode: true, quantifiable: false },
-  { value: 'attribute_set', title: 'Attribute set', supportsMode: true, quantifiable: false },
-  { value: 'source', title: 'Source', supportsMode: true, quantifiable: false },
-  { value: 'warehouse_type', title: 'Warehouse type', supportsMode: true, quantifiable: false },
-  { value: 'seller', title: 'Seller', supportsMode: true, quantifiable: false },
+  { value: 'categories',     title: 'Categories',     supportsMode: true,  quantifiable: false },
+  { value: 'brands',         title: 'Brands',         supportsMode: true,  quantifiable: false },
+  { value: 'skus',           title: 'SKUs',           supportsMode: true,  quantifiable: false },
+  { value: 'product_lines',  title: 'Product lines',  supportsMode: true,  quantifiable: false },
+  { value: 'subtotal',       title: 'Subtotal',       supportsMode: false, quantifiable: true  },
+  { value: 'quantity',       title: 'Quantity',       supportsMode: false, quantifiable: true  },
+  { value: 'weight',         title: 'Weight',         supportsMode: false, quantifiable: true  },
+  { value: 'customer_group', title: 'Customer group', supportsMode: true,  quantifiable: false },
+  { value: 'coupon_code',    title: 'Coupon code',    supportsMode: false, quantifiable: false },
+  { value: 'exclude_on_sale',title: 'Exclude on sale',supportsMode: false, quantifiable: false, boolean: true },
+  { value: 'pim_status',     title: 'PIM status',     supportsMode: true,  quantifiable: false },
+  { value: 'attribute_set',  title: 'Attribute set',  supportsMode: true,  quantifiable: false },
+  { value: 'source',         title: 'Source',         supportsMode: true,  quantifiable: false },
+  { value: 'warehouse_type', title: 'Warehouse type', supportsMode: true,  quantifiable: false },
+  { value: 'seller',         title: 'Seller',         supportsMode: true,  quantifiable: false },
 ]
+
+const conditionCategories = [
+  {
+    key: 'product', label: 'Product', icon: 'mdi-package-variant',
+    description: 'Target by product attributes',
+    types: CONDITION_TYPES.filter(t => ['categories', 'brands', 'skus', 'product_lines'].includes(t.value)),
+  },
+  {
+    key: 'customer', label: 'Customer', icon: 'mdi-account-group',
+    description: 'Target by customer attributes',
+    types: CONDITION_TYPES.filter(t => ['customer_group', 'coupon_code'].includes(t.value)),
+  },
+  {
+    key: 'threshold', label: 'Threshold', icon: 'mdi-trending-up',
+    description: 'Minimum purchase requirements',
+    types: CONDITION_TYPES.filter(t => ['subtotal', 'quantity', 'weight'].includes(t.value)),
+  },
+  {
+    key: 'advanced', label: 'Advanced', icon: 'mdi-tune',
+    description: 'PIM, warehouse, and catalog filters',
+    types: CONDITION_TYPES.filter(t => ['pim_status', 'attribute_set', 'source', 'warehouse_type', 'seller', 'exclude_on_sale'].includes(t.value)),
+  },
+]
+
+// Preset options per type
+const TYPE_OPTIONS = {
+  categories:     ['Electronics', 'Clothing', 'Home & Garden', 'Sports & Outdoors', 'Beauty & Health', 'Books', 'Toys & Games'],
+  brands:         ['Nike', 'Adidas', 'Apple', 'Samsung', 'Sony', 'Puma', 'Under Armour'],
+  customer_group: ['VIP', 'Premium', 'New', 'Loyal'],
+  pim_status:     ['Active', 'Draft', 'Archived'],
+  warehouse_type: ['Standard', 'Dropship', 'Express'],
+  source:         ['Web', 'Mobile', 'App'],
+}
 
 const operatorItems = [
   { value: '>=', title: 'At least (≥)' },
-  { value: '>', title: 'More than (>)' },
-  { value: '<=', title: 'At most (≤)' },
-  { value: '<', title: 'Less than (<)' },
+  { value: '>',  title: 'More than (>)'  },
+  { value: '<=', title: 'At most (≤)'   },
+  { value: '<',  title: 'Less than (<)'  },
 ]
 
+// --- Props / emits ---
 const props = defineProps({
   modelValue: Boolean,
   initialCondition: { type: Object, default: null },
 })
 const emit = defineEmits(['update:modelValue', 'save'])
 
+// --- State ---
+const step = ref(props.initialCondition ? 2 : 1)
+const selectedField = ref(props.initialCondition?.field ?? null)
+const localCondition = ref({ field: 'categories', mode: 'include', values: [], operator: '>=' })
+
 const isEditMode = computed(() => !!props.initialCondition)
-const conditionTypeItems = CONDITION_TYPES.map(c => ({ value: c.value, title: c.title }))
-
-const localCondition = ref({ field: 'categories', mode: 'include', values: [], operator: undefined })
-
 const currentTypeDef = computed(() => CONDITION_TYPES.find(t => t.value === localCondition.value.field))
-const supportsMode = computed(() => currentTypeDef.value?.supportsMode ?? true)
-const isQuantifiable = computed(() => currentTypeDef.value?.quantifiable ?? false)
+const currentTypeOptions = computed(() => TYPE_OPTIONS[localCondition.value.field] ?? [])
+const validationErrors = computed(() => validateCondition(localCondition.value).errors)
 
+// --- Watchers ---
 watch(() => props.initialCondition, (val) => {
-  if (val) localCondition.value = { ...val }
-  else localCondition.value = { field: 'categories', mode: 'include', values: [], operator: undefined }
+  if (val) {
+    localCondition.value = { ...val }
+    selectedField.value = val.field
+    step.value = 2
+  } else {
+    localCondition.value = { field: 'categories', mode: 'include', values: [], operator: '>=' }
+    selectedField.value = null
+    step.value = 1
+  }
 }, { immediate: true })
 
-watch(() => localCondition.value.field, () => {
-  localCondition.value.values = []
-  localCondition.value.operator = undefined
-  if (!supportsMode.value) localCondition.value.mode = 'include'
+watch(() => props.modelValue, (open) => {
+  if (open && !props.initialCondition) {
+    step.value = 1
+    selectedField.value = null
+    localCondition.value = { field: 'categories', mode: 'include', values: [], operator: '>=' }
+  }
 })
 
-const validationErrors = computed(() => validateCondition(localCondition.value).errors)
+// --- Methods ---
+function selectType(field) {
+  selectedField.value = field
+  localCondition.value.field = field
+  localCondition.value.values = []
+  localCondition.value.operator = currentTypeDef.value?.quantifiable ? '>=' : undefined
+  if (!currentTypeDef.value?.supportsMode) localCondition.value.mode = 'include'
+}
 
 function handleSave() {
   if (validationErrors.value.length) return
