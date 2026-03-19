@@ -47,15 +47,35 @@
       @update:model-value="onSearch"
     />
 
-    <!-- Filter tabs -->
-    <FilterTabs v-model="activeFilter" :tabs="filterTabs" class="mb-4" />
+    <!-- Stacking group filter + tabs row -->
+    <div class="d-flex align-center gap-4 mb-4">
+      <v-tabs v-model="activeTab" color="primary" density="compact">
+        <v-tab value="active">Active <v-chip size="x-small" class="ml-1">{{ activeItems.length }}</v-chip></v-tab>
+        <v-tab value="paused">Paused <v-chip size="x-small" class="ml-1">{{ pausedItems.length }}</v-chip></v-tab>
+        <v-tab value="performance">Performance</v-tab>
+      </v-tabs>
+      <v-spacer />
+      <v-select
+        v-model="stackingGroupFilter"
+        :items="stackingGroupFilterItems"
+        variant="outlined"
+        density="compact"
+        hide-details
+        style="max-width: 200px"
+      />
+    </div>
 
-    <!-- Table -->
+    <!-- Performance tab banner -->
+    <v-alert v-if="activeTab === 'performance'" type="info" variant="tonal" density="compact" class="mb-3" icon="mdi-chart-bar">
+      Rules sorted by performance score. Revenue figures are estimates.
+    </v-alert>
+
+    <!-- Shared table for all tabs -->
     <v-card border elevation="0">
       <v-data-table
         v-model:selected="selected"
-        :headers="headers"
-        :items="store.items"
+        :headers="activeTab === 'performance' ? performanceHeaders : headers"
+        :items="tabItems"
         :loading="store.loading"
         item-value="id"
         show-select
@@ -75,17 +95,63 @@
           <span class="text-medium-emphasis text-capitalize">{{ item.type.replace('_', ' ') }}</span>
         </template>
 
-        <template #item.updatedAt="{ item }">
-          <span class="text-medium-emphasis text-caption">{{ formatDate(item.updatedAt) }}</span>
-        </template>
-
         <template #item.status="{ item }">
           <StatusBadge :status="item.status" />
         </template>
 
+        <template #item.performance="{ item }">
+          <span v-if="item.performance !== undefined" class="font-weight-bold text-success">{{ item.performance }}%</span>
+          <span v-else class="text-medium-emphasis">—</span>
+        </template>
+
+        <template #item.revenue="{ item }">
+          <span v-if="item.revenue" class="text-success">{{ item.revenue }}</span>
+          <span v-else class="text-medium-emphasis">—</span>
+        </template>
+
+        <template #item.createdBy="{ item }">
+          <span class="text-caption text-medium-emphasis">{{ item.createdBy ?? '—' }}</span>
+        </template>
+
+        <template #item.updatedAt="{ item }">
+          <span class="text-medium-emphasis text-caption">{{ formatDate(item.updatedAt) }}</span>
+        </template>
+
         <template #item.actions="{ item }">
-          <v-btn icon="mdi-pencil" variant="text" size="small" :to="`/promotions/${item.id}/edit`" />
-          <v-btn icon="mdi-delete" variant="text" size="small" color="error" @click="openDelete(item)" />
+          <v-menu>
+            <template #activator="{ props: menuProps }">
+              <v-btn
+                icon="mdi-dots-vertical"
+                variant="text"
+                size="small"
+                data-testid="row-actions"
+                v-bind="menuProps"
+              />
+            </template>
+            <v-list density="compact" min-width="180">
+              <v-list-item prepend-icon="mdi-pencil" title="Edit" :to="`/promotions/${item.id}/edit`" />
+              <v-list-item prepend-icon="mdi-content-copy" title="Duplicate" @click="duplicateRule(item.id)" />
+              <v-list-item
+                v-if="item.status !== 'paused' && item.status !== 'inactive'"
+                prepend-icon="mdi-pause"
+                title="Pause"
+                @click="pauseRule(item.id)"
+              />
+              <v-list-item
+                v-else
+                prepend-icon="mdi-play"
+                title="Resume"
+                @click="resumeRule(item.id)"
+              />
+              <v-divider />
+              <v-list-item
+                prepend-icon="mdi-delete"
+                title="Delete"
+                class="text-error"
+                @click="openDelete(item)"
+              />
+            </v-list>
+          </v-menu>
         </template>
 
         <template #no-data>
@@ -110,8 +176,8 @@
 import { ref, computed, watch, onMounted } from 'vue'
 import { usePromotionsStore } from '../../stores/promotions'
 import { useUiStore } from '../../stores/ui'
+import { useStackingGroupsStore } from '../../stores/stackingGroups'
 import StatusBadge from '../shared/StatusBadge.vue'
-import FilterTabs from '../shared/FilterTabs.vue'
 import ConfirmDeleteDialog from '../shared/ConfirmDeleteDialog.vue'
 import { useDebounceFn } from '@vueuse/core'
 import { detectConflicts } from '../../utils/ruleConflictDetector'
@@ -122,17 +188,52 @@ import { downloadCSV, exportRulesToCSV } from '../../utils/csvRuleImportExport'
 
 const store = usePromotionsStore()
 const uiStore = useUiStore()
+const sgStore = useStackingGroupsStore()
 
 const conflictsMap = computed(() => detectConflicts(store.items))
 
 const search = ref('')
-const activeFilter = ref('')
+const activeTab = ref('active')
+const stackingGroupFilter = ref('all')
 const deleteDialog = ref(false)
 const deletingItem = ref(null)
 const deleting = ref(false)
 const selected = ref([])
 const bulkDialogOpen = ref(false)
 const csvImportOpen = ref(false)
+
+// Tab computed lists
+const activeItems = computed(() =>
+  applyStackingFilter(store.items.filter(r => r.status === 'active' || r.status === 'scheduled'))
+)
+const pausedItems = computed(() =>
+  applyStackingFilter(store.items.filter(r => r.status === 'paused' || r.status === 'inactive'))
+)
+const performanceItems = computed(() =>
+  [...store.items]
+    .filter(r => r.performance !== undefined)
+    .sort((a, b) => (b.performance ?? 0) - (a.performance ?? 0))
+)
+
+function applyStackingFilter(rules) {
+  if (stackingGroupFilter.value === 'all') return rules
+  if (stackingGroupFilter.value === 'exclusive') return rules.filter(r => r.exclusive)
+  if (stackingGroupFilter.value === 'unassigned') return rules.filter(r => !r.exclusive && !r.stackingGroupId)
+  return rules.filter(r => r.stackingGroupId === stackingGroupFilter.value)
+}
+
+const tabItems = computed(() => {
+  if (activeTab.value === 'paused') return pausedItems.value
+  if (activeTab.value === 'performance') return performanceItems.value
+  return activeItems.value
+})
+
+const stackingGroupFilterItems = computed(() => [
+  { value: 'all', title: 'All groups' },
+  { value: 'exclusive', title: 'Exclusive rules' },
+  { value: 'unassigned', title: 'Unassigned' },
+  ...sgStore.items.map(g => ({ value: g.id, title: g.name })),
+])
 
 function exportCSV() {
   downloadCSV(exportRulesToCSV(store.items), 'promotions.csv')
@@ -164,25 +265,22 @@ const breadcrumbs = [
 
 const headers = [
   { title: 'Name', key: 'name', sortable: true },
-  { title: 'Type', key: 'type', sortable: true },
-  { title: 'Priority', key: 'priority', sortable: true, width: '100px' },
-  { title: 'Updated', key: 'updatedAt', sortable: true, width: '140px' },
-  { title: 'Status', key: 'status', sortable: false, width: '100px' },
-  { title: 'Actions', key: 'actions', sortable: false, width: '90px', align: 'end' },
+  { title: 'Type', key: 'type' },
+  { title: 'Status', key: 'status' },
+  { title: 'Priority', key: 'priority' },
+  { title: 'Created by', key: 'createdBy' },
+  { title: 'Updated', key: 'updatedAt' },
+  { title: '', key: 'actions', sortable: false, width: 60 },
 ]
 
-const filterTabs = computed(() => {
-  const all = store.items
-  return [
-    { value: '', label: 'All' },
-    { value: 'active', label: 'Active', count: all.filter(i => i.status === 'active').length },
-    { value: 'inactive', label: 'Inactive' },
-    { value: 'discount', label: 'Discount' },
-    { value: 'gift', label: 'Gift' },
-    { value: 'multi_buy', label: 'Multi-buy' },
-    { value: 'step_discount', label: 'Step discount' },
-  ]
-})
+const performanceHeaders = [
+  { title: 'Name', key: 'name', sortable: true },
+  { title: 'Type', key: 'type' },
+  { title: 'Performance', key: 'performance', sortable: true },
+  { title: 'Revenue', key: 'revenue' },
+  { title: 'Created by', key: 'createdBy' },
+  { title: '', key: 'actions', sortable: false, width: 60 },
+]
 
 function formatDate(iso) {
   if (!iso) return '—'
@@ -194,13 +292,14 @@ const onSearch = useDebounceFn(() => fetchData(), 300)
 function fetchData() {
   const filters = {}
   if (search.value) filters.q = search.value
-  if (['active', 'inactive'].includes(activeFilter.value)) filters.status = activeFilter.value
-  else if (activeFilter.value) filters.type = activeFilter.value
   store.fetchAll(filters)
 }
 
-watch(activeFilter, fetchData)
-onMounted(fetchData)
+watch(search, onSearch)
+onMounted(async () => {
+  await store.fetchAll()
+  await sgStore.fetchAll()
+})
 
 function openDelete(item) {
   deletingItem.value = item
@@ -213,5 +312,15 @@ async function confirmDelete() {
   deleting.value = false
   deleteDialog.value = false
   deletingItem.value = null
+}
+
+async function pauseRule(id) {
+  await store.updateStatus(id, 'paused')
+}
+async function resumeRule(id) {
+  await store.updateStatus(id, 'active')
+}
+async function duplicateRule(id) {
+  await store.duplicate(id)
 }
 </script>
