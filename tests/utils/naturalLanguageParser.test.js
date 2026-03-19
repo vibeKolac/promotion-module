@@ -29,6 +29,13 @@ describe('parseRuleFromNaturalLanguage — type detection', () => {
     expect(r.gifts).toBeDefined()
     expect(r.gifts.length).toBeGreaterThan(0)
   })
+
+  it('detects multi_buy from "3 for 2" format', () => {
+    const r = parseRuleFromNaturalLanguage('3 for 2 deal on sneakers')
+    expect(r.type).toBe('multi_buy')
+    expect(r.buyQty).toBe('3')
+    expect(r.freeQty).toBe('1') // 3 - 2 = 1 free
+  })
 })
 
 describe('parseRuleFromNaturalLanguage — condition extraction', () => {
@@ -67,6 +74,14 @@ describe('parseRuleFromNaturalLanguage — condition extraction', () => {
     expect(cg).toBeDefined()
     expect(cg.values[0]).toMatch(/VIP/i)
   })
+
+  it('extracts quantity condition from "minimum 5 items"', () => {
+    const r = parseRuleFromNaturalLanguage('20% off minimum 5 items')
+    const qty = r.conditions.find(c => c.field === 'quantity')
+    expect(qty).toBeDefined()
+    expect(qty.values[0]).toBe('5')
+    expect(qty.operator).toBe('>=')
+  })
 })
 
 describe('parseRuleFromNaturalLanguage — date extraction', () => {
@@ -90,5 +105,19 @@ describe('parseRuleFromNaturalLanguage — confidence and name', () => {
     const high = parseRuleFromNaturalLanguage('20% discount on clothing for next 30 days')
     const low = parseRuleFromNaturalLanguage('something something vague')
     expect(high.confidence).toBeGreaterThan(low.confidence)
+  })
+})
+
+describe('parseRuleFromNaturalLanguage — gift SKU and date range', () => {
+  it('extracts gift SKU from original-case input', () => {
+    const r = parseRuleFromNaturalLanguage('complimentary gift: TOTE-001, BOTTLE-002')
+    expect(r.type).toBe('gift')
+    expect(r.gifts.some(g => g.sku.includes('TOTE'))).toBe(true)
+  })
+
+  it('extracts ISO date range', () => {
+    const r = parseRuleFromNaturalLanguage('20% off from 2026-04-01 to 2026-04-30')
+    expect(r.startDate).toBe('2026-04-01')
+    expect(r.endDate).toBe('2026-04-30')
   })
 })
