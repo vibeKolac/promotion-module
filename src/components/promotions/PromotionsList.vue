@@ -47,6 +47,8 @@
       @update:model-value="onSearch"
     />
 
+    <RulePriorityPreview :rules="store.items" class="mb-4" />
+
     <!-- Stacking group filter + tabs row -->
     <div class="d-flex align-center gap-4 mb-4">
       <v-tabs v-model="activeTab" color="primary" density="compact">
@@ -185,6 +187,7 @@ import ConflictBadge from './ConflictBadge.vue'
 import BulkEditConditionsDialog from './BulkEditConditionsDialog.vue'
 import CsvImportDialog from './CsvImportDialog.vue'
 import { downloadCSV, exportRulesToCSV } from '../../utils/csvRuleImportExport'
+import RulePriorityPreview from './RulePriorityPreview.vue'
 
 const store = usePromotionsStore()
 const uiStore = useUiStore()

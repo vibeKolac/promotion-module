@@ -1,4 +1,4 @@
-import { detectConflicts, datesOverlap, conditionsOverlap } from '../../src/utils/ruleConflictDetector'
+import { detectConflicts, datesOverlap, conditionsOverlap, simulateRuleApplication } from '../../src/utils/ruleConflictDetector'
 
 describe('datesOverlap', () => {
   it('returns true for overlapping ranges', () => {
@@ -48,5 +48,46 @@ describe('detectConflicts', () => {
       { id: 'r3', name: 'R3', status: 'inactive', type: 'discount', startDate: null, endDate: null, conditions: [{ field: 'brands', mode: 'include', values: ['Nike'] }] },
     ]
     expect(detectConflicts(rules).size).toBe(0)
+  })
+})
+
+describe('simulateRuleApplication', () => {
+  const r = (id, priority, status = 'active', exclusive = false, conditions = []) =>
+    ({ id, name: `Rule ${id}`, status, priority, exclusive, conditions, type: 'discount' })
+
+  it('returns empty applied/skipped for empty input', () => {
+    const result = simulateRuleApplication([])
+    expect(result.applied).toEqual([])
+    expect(result.skipped).toEqual([])
+  })
+
+  it('applies rules sorted by priority (lower first)', () => {
+    const rules = [r('b', 5), r('a', 1), r('c', 10)]
+    const { applied } = simulateRuleApplication(rules)
+    expect(applied.map(r => r.id)).toEqual(['a', 'b', 'c'])
+  })
+
+  it('skips paused and inactive rules', () => {
+    const rules = [r('active', 1, 'active'), r('paused', 2, 'paused'), r('inactive', 3, 'inactive')]
+    const { applied, skipped } = simulateRuleApplication(rules)
+    expect(applied.map(r => r.id)).toEqual(['active'])
+    expect(skipped).toHaveLength(0) // paused/inactive not in output at all
+  })
+
+  it('skips second rule with same condition signature', () => {
+    const cond = [{ field: 'brands', mode: 'include', values: ['Nike'] }]
+    const rules = [r('hi', 1, 'active', false, cond), r('lo', 5, 'active', false, cond)]
+    const { applied, skipped } = simulateRuleApplication(rules)
+    expect(applied.map(r => r.id)).toEqual(['hi'])
+    expect(skipped[0].rule.id).toBe('lo')
+    expect(skipped[0].reason).toMatch(/priority/i)
+  })
+
+  it('does not skip gift rules even with same conditions', () => {
+    const cond = [{ field: 'brands', mode: 'include', values: ['Nike'] }]
+    const discount = { ...r('d', 1, 'active', false, cond), type: 'discount' }
+    const gift = { ...r('g', 2, 'active', false, cond), type: 'gift' }
+    const { applied } = simulateRuleApplication([discount, gift])
+    expect(applied.map(r => r.id)).toContain('g')
   })
 })

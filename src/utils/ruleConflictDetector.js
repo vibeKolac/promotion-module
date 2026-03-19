@@ -38,3 +38,45 @@ export function detectConflicts(rules) {
   }
   return map
 }
+
+function generateConditionSignature(rule) {
+  if (!rule.conditions?.length) return null // no conditions = no deduplication
+  const sig = rule.conditions
+    .filter(c => c.mode === 'include')
+    .map(c => `${c.field}:${[...c.values].sort().join(',')}`)
+    .sort()
+    .join('|')
+  return sig || null // empty after filter = no deduplicate
+}
+
+export function simulateRuleApplication(rules) {
+  if (!rules?.length) return { applied: [], skipped: [] }
+
+  const active = rules
+    .filter(r => r.status === 'active' || r.status === 'scheduled')
+    .sort((a, b) => (a.priority ?? 999) - (b.priority ?? 999))
+
+  const applied = []
+  const skipped = []
+  const usedSignatures = new Set()
+
+  for (const rule of active) {
+    const sig = generateConditionSignature(rule)
+    const isGift = rule.type === 'gift'
+
+    // Exclusive rule already applied → skip everything after
+    if (!rule.exclusive && applied.some(r => r.exclusive)) {
+      skipped.push({ rule, reason: 'Blocked by an exclusive rule with higher priority' })
+      continue
+    }
+
+    if (!isGift && sig !== null && usedSignatures.has(sig)) {
+      skipped.push({ rule, reason: 'Higher priority rule already applies to these conditions' })
+    } else {
+      applied.push(rule)
+      if (sig !== null) usedSignatures.add(sig)
+    }
+  }
+
+  return { applied, skipped }
+}
