@@ -35,7 +35,7 @@ describe('SmartRulePreview', () => {
       type: 'discount', value: null, valueUnit: '%',
       conditions: [], confidence: 0.25, missingFields: ['discount value', 'validity period'],
     })
-    expect(w.text()).toMatch(/Couldn't extract|missing/i)
+    expect(w.text()).toContain("Couldn't extract")
   })
 
   it('emits edit when Edit & Complete clicked', async () => {
@@ -43,8 +43,20 @@ describe('SmartRulePreview', () => {
       type: 'discount', value: '20', valueUnit: '%',
       conditions: [], confidence: 0.9, missingFields: [],
     })
-    const editBtn = w.findAll('button').find(b => b.text().includes('Edit'))
-    await editBtn.trigger('click')
+    await w.find('[data-testid="edit-btn"]').trigger('click')
     expect(w.emitted('edit')).toBeTruthy()
+  })
+
+  it('shows narrow reach for SKU condition', () => {
+    const w = mountPreview({
+      type: 'discount', value: '20', valueUnit: '%',
+      conditions: [
+        { field: 'skus', mode: 'include', values: ['SKU-001'] },
+        { field: 'subtotal', mode: 'include', values: ['200'], operator: '>=' },
+      ],
+      confidence: 0.9, missingFields: [],
+    })
+    // skus=-50, subtotal(200)=-15, total=35 → Moderate
+    expect(w.text()).toMatch(/Narrow|Moderate/)
   })
 })

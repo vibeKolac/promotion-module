@@ -97,6 +97,7 @@
         color="primary"
         :variant="parsed.confidence >= 0.75 && !parsed.missingFields?.length ? 'outlined' : 'flat'"
         size="small"
+        data-testid="edit-btn"
         @click="$emit('edit')"
       >
         <v-icon icon="mdi-pencil" class="mr-1" />
@@ -138,7 +139,7 @@ const valueDisplay = computed(() => {
   const p = props.parsed
   if (p.type === 'step_discount') return `€${p.value} off per €${p.stepValue}`
   if (p.type === 'multi_buy') return `Buy ${p.buyQty} Get ${p.freeQty} Free`
-  if (p.type === 'gift') return p.value
+  if (p.type === 'gift') return p.value ?? 'Free Gift'
   return `${p.value}${p.valueUnit === '%' ? '%' : ' (fixed)'}`
 })
 
@@ -157,9 +158,10 @@ const confidenceColor = computed(() => {
 function formatConditionLabel(c) {
   const label = FIELD_LABELS[c.field] ?? c.field
   if (c.field === 'exclude_on_sale') return 'Exclude on sale'
-  if (c.operator) return `${label} ${OP_LABELS[c.operator] ?? c.operator} ${c.values[0]}`
-  const vals = c.values.length <= 2 ? c.values.join(', ') : `${c.values[0]} +${c.values.length - 1}`
-  return `${label}: ${vals}`
+  const vals = c.values ?? []
+  if (c.operator) return `${label} ${OP_LABELS[c.operator] ?? c.operator} ${vals[0] ?? ''}`
+  const display = vals.length <= 2 ? vals.join(', ') : `${vals[0]} +${vals.length - 1}`
+  return `${label}: ${display}`
 }
 
 // Reach estimate — mirrors React's SmartRulePreview logic
@@ -171,13 +173,15 @@ const reach = computed(() => {
     else if (c.field === 'brands') score -= 30
     else if (c.field === 'skus') score -= 50
     else if (c.field === 'subtotal') {
-      const v = parseFloat(c.values[0])
+      const v = parseFloat(c.values?.[0])
       score -= v > 1000 ? 40 : v > 500 ? 25 : 15
     } else if (c.field === 'quantity') {
-      const v = parseFloat(c.values[0])
+      const v = parseFloat(c.values?.[0])
       score -= v > 10 ? 35 : v > 5 ? 20 : 10
     } else if (c.field === 'customer_group') score -= 30
-    else if (c.field === 'exclude_on_sale' || c.mode === 'exclude') score -= 15
+    else if (c.field === 'exclude_on_sale') score -= 15
+    // exclude mode on any field adds a small additional reduction
+    if (c.mode === 'exclude' && c.field !== 'exclude_on_sale') score -= 5
   }
   score = Math.max(5, Math.min(100, score))
 

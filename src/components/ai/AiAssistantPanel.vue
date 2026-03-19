@@ -110,7 +110,6 @@ function editParsedRule() {
 
 function applyTemplate(tpl) {
   uiStore.selectTemplate(tpl)
-  uiStore.applyPendingRule()
 }
 
 watch(
