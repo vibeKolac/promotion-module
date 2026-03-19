@@ -117,6 +117,9 @@ function applyWizardDraft() {
   } else if (d.target.startsWith('brand:')) {
     const brandName = d.target.slice(6).trim()
     parsed.conditions = [{ field: 'brands', mode: 'include', values: [brandName] }]
+  } else if (d.target.startsWith('subtotal:')) {
+    const amount = d.target.slice(9).trim()
+    parsed.conditions = [{ field: 'subtotal', mode: 'include', values: [amount], operator: '>=' }]
   } else {
     parsed.conditions = [{ field: 'categories', mode: 'include', values: [d.target] }]
   }
@@ -131,6 +134,8 @@ function applyWizardDraft() {
 ```
 
 `calculateDatesFromDuration` is already implemented in `src/utils/wizardStateManager.js` (ported from React in Phase 5 — see Task 1 below).
+
+**Limitation — `step_discount` and `multi_buy` via "Edit Details":** `formDraft` has no `stepValue` or `buyQty`/`freeQty` fields — it uses `steps[]` (tier array) for step_discount and `value` string for multi_buy. `applyParsedRule` does not populate these. For these two types, the "Edit Details" flow pre-fills `type`, `name`, `startDate`, `endDate`, and `conditions` correctly, but the value/tier fields require manual completion in PromotionForm. This is acceptable for a prototype — the form is pre-opened with the right type and targeting context.
 
 Duration string values match the chip labels: `'day'`, `'weekend'`, `'week'`, `'two-weeks'`, `'month'`, `'season'`.
 
