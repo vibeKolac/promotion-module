@@ -199,6 +199,7 @@
             <!-- Step 5: Confirm -->
             <div v-if="uiStore.wizardStep === 5" data-testid="confirm-step">
               <ConfirmView :summary="summary" :creating="creating" @create="confirmCreate" @edit="confirmEdit" @back="uiStore.wizardBack()" />
+              <v-alert v-if="createError" type="error" density="compact" class="mt-2">{{ createError }}</v-alert>
             </div>
           </template>
 
@@ -249,6 +250,7 @@
             <!-- Step 3: Confirm -->
             <div v-if="uiStore.wizardStep === 3" data-testid="confirm-step">
               <ConfirmView :summary="summary" :creating="creating" @create="confirmCreate" @edit="confirmEdit" @back="uiStore.wizardBack()" />
+              <v-alert v-if="createError" type="error" density="compact" class="mt-2">{{ createError }}</v-alert>
             </div>
           </template>
 
@@ -309,6 +311,7 @@ const customValueInput = ref('')
 const stepValueAmount = ref('')
 const stepValueThreshold = ref('')
 const creating = ref(false)
+const createError = ref(null)
 
 const TYPE_CHIPS = [
   { label: 'Discount', value: 'discount', icon: 'mdi-percent' },
@@ -428,7 +431,7 @@ function selectTemplate(tpl) {
     value: tpl.defaultValue,
     valueUnit: tpl.defaultValueUnit,
   })
-  uiStore.wizardNext('_template', tpl.id)
+  uiStore.wizardNext('template', tpl.id)
 }
 
 function handleCustomizeTextInput() {
@@ -437,6 +440,8 @@ function handleCustomizeTextInput() {
     uiStore.wizardNext('target', 'brand:' + customValueInput.value.trim())
   } else if (field === 'subtotal') {
     uiStore.wizardNext('target', 'subtotal:' + customValueInput.value.trim())
+  } else {
+    uiStore.wizardNext('value', customValueInput.value.trim())
   }
   customValueInput.value = ''
 }
@@ -492,18 +497,21 @@ function buildPayload() {
 
 function autoName(d) {
   const typeLabel = TYPE_CHIPS.find(c => c.value === d.type)?.label ?? 'Promotion'
-  const val = d.value ? ` ${d.value}%` : ''
+  const val = d.value && (d.type === 'discount' || d.type === 'step_discount') ? ` ${d.value}%` : ''
   return `${typeLabel}${val}`
 }
 
 async function confirmCreate() {
   creating.value = true
+  createError.value = null
   try {
     const payload = buildPayload()
     await promotionsStore.create(payload)
     promotionsStore.resetDraft()
     uiStore.wizardReset()
     router.push('/promotions')
+  } catch (e) {
+    createError.value = e?.message || 'Failed to create promotion'
   } finally {
     creating.value = false
   }
