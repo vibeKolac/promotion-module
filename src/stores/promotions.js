@@ -5,13 +5,17 @@ import { v4 as uuid } from 'uuid'
 
 const emptyDraft = () => ({
   name: '', type: 'discount', value: '', valueUnit: '%',
+  amountType: 'PERCENT_CART',
   steps: [], priority: 10, status: 'active',
   startDate: null, endDate: null,
   stackingGroupId: null, conditions: [], gifts: [],
   exclusive: false,
   processingOrder: null,
   stepType: 'SPENT',
+  stepMaxSteps: '',
   giftStepType: 'SPENT', giftStepValue: '', giftMaxSteps: '',
+  multiBuyQty: '', multiFreeQty: '', multiFreePrice: 0.01,
+  multiSelectionMode: 'CHEAPEST', multiMaxSteps: '',
 })
 
 export const usePromotionsStore = defineStore('promotions', () => {

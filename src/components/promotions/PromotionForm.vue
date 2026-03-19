@@ -67,12 +67,12 @@
             </v-col>
           </v-row>
 
-          <!-- Discount value (hidden for step_discount) -->
-          <v-row v-if="draft.type !== 'step_discount'" dense class="mb-3">
+          <!-- Discount value (discount type only) -->
+          <v-row v-if="draft.type === 'discount'" dense class="mb-3">
             <v-col cols="8">
               <v-text-field
                 v-model="draft.value"
-                label="Discount value *"
+                label="Discount amount *"
                 type="number"
                 variant="outlined"
                 density="compact"
@@ -81,27 +81,14 @@
             </v-col>
             <v-col cols="4">
               <v-select
-                v-model="draft.valueUnit"
-                :items="[{ value: '%', title: '%' }, { value: 'fixed', title: '$ fixed' }]"
+                v-model="draft.amountType"
+                :items="amountTypeItems"
+                label="Amount type"
                 variant="outlined"
                 density="compact"
               />
             </v-col>
           </v-row>
-
-          <!-- Step discount editor -->
-          <div v-if="draft.type === 'step_discount'" class="mb-3">
-            <v-select
-              v-model="draft.stepType"
-              :items="[{ value: 'SPENT', title: 'Amount spent (€)' }, { value: 'QTY', title: 'Quantity' }]"
-              label="Step type"
-              variant="outlined"
-              density="compact"
-              class="mb-3"
-            />
-            <div class="text-caption font-weight-bold text-medium-emphasis mb-2">DISCOUNT TIERS</div>
-            <StepDiscountEditor v-model="draft.steps" />
-          </div>
 
           <v-row dense>
             <v-col cols="6">
@@ -169,6 +156,205 @@
       </v-col>
     </v-row>
 
+    <!-- Step Discount configuration (green) -->
+    <div v-if="draft.type === 'step_discount'" class="mb-4">
+      <v-card border elevation="0" class="pa-5" style="background-color: #f0fdf4; border-color: #86efac;">
+        <div class="d-flex align-center mb-4">
+          <v-icon color="green-darken-2" class="mr-2">mdi-stairs</v-icon>
+          <span class="text-body-1 font-weight-bold text-green-darken-2">Step Discount Configuration</span>
+        </div>
+        <v-row dense class="mb-3">
+          <v-col cols="6">
+            <v-select
+              v-model="draft.stepType"
+              :items="[{ value: 'SPENT', title: 'Amount spent (€)' }, { value: 'QTY', title: 'Quantity' }]"
+              label="Step type"
+              variant="outlined"
+              density="compact"
+              bg-color="white"
+            />
+          </v-col>
+          <v-col cols="6">
+            <v-text-field
+              v-model.number="draft.stepMaxSteps"
+              label="Max steps"
+              type="number"
+              variant="outlined"
+              density="compact"
+              hint="0 = unlimited"
+              persistent-hint
+              bg-color="white"
+            />
+          </v-col>
+        </v-row>
+        <v-row dense class="mb-3">
+          <v-col cols="8">
+            <v-text-field
+              v-model="draft.value"
+              label="Discount amount per step *"
+              type="number"
+              variant="outlined"
+              density="compact"
+              bg-color="white"
+            />
+          </v-col>
+          <v-col cols="4">
+            <v-select
+              v-model="draft.amountType"
+              :items="amountTypeItems"
+              label="Amount type"
+              variant="outlined"
+              density="compact"
+              bg-color="white"
+            />
+          </v-col>
+        </v-row>
+        <div class="text-caption font-weight-bold text-medium-emphasis mb-2">DISCOUNT TIERS</div>
+        <StepDiscountEditor v-model="draft.steps" />
+        <v-alert
+          v-if="draft.value && draft.stepType"
+          color="green-lighten-4"
+          variant="flat"
+          density="compact"
+          icon="mdi-information-outline"
+          class="mt-3 text-caption"
+        >
+          Example: {{ draft.stepType === 'SPENT' ? 'Spend €X' : 'Buy X items' }}, get
+          {{ draft.amountType?.startsWith('PERCENT') ? draft.value + '%' : '€' + draft.value }} off
+          {{ draft.amountType?.endsWith('LINE') ? 'each line' : 'cart total' }}.
+          Repeats up to {{ draft.stepMaxSteps || '∞' }} time(s).
+        </v-alert>
+      </v-card>
+    </div>
+
+    <!-- Multi-buy configuration (blue) -->
+    <div v-if="draft.type === 'multi_buy'" class="mb-4">
+      <v-card border elevation="0" class="pa-5" style="background-color: #eff6ff; border-color: #93c5fd;">
+        <div class="d-flex align-center mb-4">
+          <v-icon color="blue-darken-2" class="mr-2">mdi-cart-plus</v-icon>
+          <span class="text-body-1 font-weight-bold text-blue-darken-2">Multi-buy Configuration</span>
+        </div>
+        <v-row dense class="mb-3">
+          <v-col cols="4">
+            <v-text-field
+              v-model.number="draft.multiBuyQty"
+              label="Buy quantity *"
+              type="number"
+              variant="outlined"
+              density="compact"
+              hint="Items customer must buy"
+              persistent-hint
+              bg-color="white"
+            />
+          </v-col>
+          <v-col cols="4">
+            <v-text-field
+              v-model.number="draft.multiFreeQty"
+              label="Free quantity *"
+              type="number"
+              variant="outlined"
+              density="compact"
+              hint="Items given free"
+              persistent-hint
+              bg-color="white"
+            />
+          </v-col>
+          <v-col cols="4">
+            <v-text-field
+              v-model.number="draft.multiFreePrice"
+              label="Free item price"
+              type="number"
+              variant="outlined"
+              density="compact"
+              hint="Accounting price (€0.01)"
+              persistent-hint
+              bg-color="white"
+            />
+          </v-col>
+        </v-row>
+        <v-row dense class="mb-3">
+          <v-col cols="6">
+            <v-select
+              v-model="draft.multiSelectionMode"
+              :items="[{ value: 'CHEAPEST', title: 'Cheapest items free' }, { value: 'MOST_EXPENSIVE', title: 'Most expensive items free' }]"
+              label="Free item selection"
+              variant="outlined"
+              density="compact"
+              bg-color="white"
+            />
+          </v-col>
+          <v-col cols="6">
+            <v-text-field
+              v-model.number="draft.multiMaxSteps"
+              label="Max steps"
+              type="number"
+              variant="outlined"
+              density="compact"
+              hint="0 = unlimited"
+              persistent-hint
+              bg-color="white"
+            />
+          </v-col>
+        </v-row>
+        <v-alert
+          v-if="draft.multiBuyQty && draft.multiFreeQty"
+          color="blue-lighten-4"
+          variant="flat"
+          density="compact"
+          icon="mdi-information-outline"
+          class="mt-2 text-caption"
+        >
+          Buy {{ draft.multiBuyQty }}, get {{ draft.multiFreeQty }} free
+          ({{ draft.multiSelectionMode === 'CHEAPEST' ? 'cheapest' : 'most expensive' }}).
+          Repeats up to {{ draft.multiMaxSteps || '∞' }} time(s).
+        </v-alert>
+      </v-card>
+    </div>
+
+    <!-- Gift configuration (purple) -->
+    <div v-if="draft.type === 'gift'" class="mb-4">
+      <v-card border elevation="0" class="pa-5 mb-3" style="background-color: #faf5ff; border-color: #c4b5fd;">
+        <div class="d-flex align-center mb-4">
+          <v-icon color="purple-darken-2" class="mr-2">mdi-gift</v-icon>
+          <span class="text-body-1 font-weight-bold text-purple-darken-2">Gift Trigger</span>
+        </div>
+        <v-row dense>
+          <v-col cols="5">
+            <v-select
+              v-model="draft.giftStepType"
+              :items="[{ value: 'SPENT', title: 'Amount spent' }, { value: 'QTY', title: 'Quantity' }]"
+              label="Trigger type"
+              variant="outlined"
+              density="compact"
+              bg-color="white"
+            />
+          </v-col>
+          <v-col cols="4">
+            <v-text-field
+              v-model="draft.giftStepValue"
+              label="Threshold"
+              type="number"
+              variant="outlined"
+              density="compact"
+              bg-color="white"
+            />
+          </v-col>
+          <v-col cols="3">
+            <v-text-field
+              v-model="draft.giftMaxSteps"
+              label="Max gifts"
+              type="number"
+              variant="outlined"
+              density="compact"
+              bg-color="white"
+            />
+          </v-col>
+        </v-row>
+      </v-card>
+      <GiftItemsSection v-model="draft.gifts" />
+      <ConflictWarningBanner :conflicts="giftConflicts" />
+    </div>
+
     <!-- Conditions -->
     <v-card border elevation="0" class="pa-5 mb-4">
       <div class="d-flex align-center mb-4">
@@ -229,44 +415,6 @@
       </template>
     </v-card>
 
-    <!-- Gift items (gift type only) -->
-    <div v-if="draft.type === 'gift'" class="mb-4">
-      <v-card border elevation="0" class="pa-4 mb-3">
-        <div class="text-body-2 font-weight-bold mb-3">Gift trigger</div>
-        <v-row dense>
-          <v-col cols="5">
-            <v-select
-              v-model="draft.giftStepType"
-              :items="[{ value: 'SPENT', title: 'Amount spent' }, { value: 'QTY', title: 'Quantity' }]"
-              label="Trigger type"
-              variant="outlined"
-              density="compact"
-            />
-          </v-col>
-          <v-col cols="4">
-            <v-text-field
-              v-model="draft.giftStepValue"
-              label="Threshold"
-              type="number"
-              variant="outlined"
-              density="compact"
-            />
-          </v-col>
-          <v-col cols="3">
-            <v-text-field
-              v-model="draft.giftMaxSteps"
-              label="Max gifts"
-              type="number"
-              variant="outlined"
-              density="compact"
-            />
-          </v-col>
-        </v-row>
-      </v-card>
-      <GiftItemsSection v-model="draft.gifts" />
-      <ConflictWarningBanner :conflicts="giftConflicts" />
-    </div>
-
     <!-- Condition builder dialog -->
     <ConditionBuilderDialog
       v-model="conditionDialogOpen"
@@ -317,6 +465,13 @@ const ruleTypeItems = [
   { value: 'gift', title: 'Gift' },
 ]
 
+const amountTypeItems = [
+  { value: 'PERCENT_CART', title: '% off cart' },
+  { value: 'FIXED_CART', title: '€ off cart' },
+  { value: 'PERCENT_LINE', title: '% off line' },
+  { value: 'FIXED_LINE', title: '€ off line' },
+]
+
 const breadcrumbs = computed(() => [
   { title: 'Promotions', to: '/promotions' },
   { title: isEdit.value ? 'Edit rule' : 'New promotion rule', disabled: true },
@@ -352,7 +507,7 @@ function onConditionSave(condition) {
 function validate() {
   const errors = {}
   if (!draft.name?.trim()) errors.name = 'Rule name is required'
-  if (draft.type !== 'step_discount' && !draft.value) errors.value = 'Discount value is required'
+  if (draft.type === 'discount' && !draft.value) errors.value = 'Discount value is required'
   validationErrors.value = errors
   return Object.keys(errors).length === 0
 }
