@@ -15,13 +15,14 @@ export function calculateDatesFromDuration(duration) {
       // Start and end are the same day
       break
 
-    case 'weekend':
+    case 'weekend': {
       // Find next Saturday and Sunday
       const dayOfWeek = today.getDay()
       const daysUntilSaturday = (6 - dayOfWeek + 7) % 7 || 7
       startDate.setDate(today.getDate() + daysUntilSaturday)
       endDate.setDate(today.getDate() + daysUntilSaturday + 1)
       break
+    }
 
     case 'week':
       // 7 days from today
