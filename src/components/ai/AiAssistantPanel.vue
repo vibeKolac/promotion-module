@@ -54,6 +54,7 @@
             :parsed="msg.parsedRule"
             class="mt-2 mr-8"
             @apply="uiStore.applyPendingRule()"
+            @edit="editParsedRule()"
             @dismiss="uiStore.clearPendingRule()"
           />
         </div>
@@ -83,12 +84,14 @@
 
 <script setup>
 import { ref, watch, nextTick, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { useUiStore } from '../../stores/ui'
 import { useTemplatesStore } from '../../stores/templates'
 import SmartRulePreview from './SmartRulePreview.vue'
 
 const uiStore = useUiStore()
 const templatesStore = useTemplatesStore()
+const router = useRouter()
 const inputText = ref('')
 const messagesEl = ref(null)
 
@@ -98,6 +101,11 @@ function send() {
   if (!inputText.value.trim()) return
   uiStore.sendMessage(inputText.value.trim())
   inputText.value = ''
+}
+
+function editParsedRule() {
+  uiStore.applyPendingRule()
+  router.push('/promotions/new')
 }
 
 function applyTemplate(tpl) {
