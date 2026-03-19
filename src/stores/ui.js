@@ -74,7 +74,7 @@ export const useUiStore = defineStore('ui', () => {
   }
 
   function wizardGoToStep(n) {
-    if (n < wizardStep.value) wizardStep.value = n
+    if (n >= 1 && n < wizardStep.value) wizardStep.value = n
   }
 
   function wizardReset() {
@@ -102,7 +102,7 @@ export const useUiStore = defineStore('ui', () => {
 
     if (d.type === 'multi_buy') {
       const [buy, free] = (d.value ?? '2+1').split('+')
-      parsed.buyQty = buy; parsed.freeQty = free
+      parsed.buyQty = Number(buy); parsed.freeQty = Number(free)
       parsed.value = d.value; parsed.valueUnit = '%'
     } else if (d.type === 'gift') {
       parsed.value = 'Free Gift'; parsed.valueUnit = '%'

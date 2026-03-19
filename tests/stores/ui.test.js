@@ -10,6 +10,10 @@ vi.mock('../../src/utils/naturalLanguageParser', () => ({
   })),
 }))
 
+vi.mock('../../src/utils/wizardStateManager', () => ({
+  calculateDatesFromDuration: vi.fn(() => ({ startDate: '2026-04-01', endDate: '2026-04-08' })),
+}))
+
 beforeEach(() => setActivePinia(createPinia()))
 
 describe('ui store', () => {
@@ -119,5 +123,37 @@ describe('uiStore — wizard actions', () => {
     expect(store.wizardCollapsed).toBe(true)
     store.toggleWizardCollapsed()
     expect(store.wizardCollapsed).toBe(false)
+  })
+
+  it('wizardSetData merges into wizardData', () => {
+    const store = useUiStore()
+    store.startWizard('custom')
+    store.wizardNext('type', 'discount')
+    store.wizardSetData({ name: 'Test Sale' })
+    expect(store.wizardData.type).toBe('discount')
+    expect(store.wizardData.name).toBe('Test Sale')
+  })
+
+  it('applyWizardDraft: discount type maps to correct parsed shape', () => {
+    const store = useUiStore()
+    store.startWizard('custom')
+    store.wizardNext('type', 'discount')
+    store.wizardNext('duration', 'week')
+    store.wizardNext('target', 'brand:Nike')
+    store.wizardSetData({ value: '20' })
+    const promotionsStore = usePromotionsStore()
+    const spy = vi.spyOn(promotionsStore, 'applyParsedRule')
+    store.applyWizardDraft()
+    expect(spy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'discount',
+        value: '20',
+        valueUnit: '%',
+        startDate: '2026-04-01',
+        endDate: '2026-04-08',
+        conditions: [{ field: 'brands', mode: 'include', values: ['Nike'] }],
+        confidence: 1.0,
+      })
+    )
   })
 })
