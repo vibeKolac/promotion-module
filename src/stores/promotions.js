@@ -140,6 +140,63 @@ export const usePromotionsStore = defineStore('promotions', () => {
     }
   }
 
+  async function bulkUpdateStatus(ids, status) {
+    loading.value = true
+    error.value = null
+    try {
+      for (const id of ids) {
+        const item = items.value.find(i => i.id === id)
+        if (!item) continue
+        const { data } = await axios.put(`/api/promotions/${id}`, { ...item, status })
+        Object.assign(item, data)
+      }
+    } catch (err) {
+      error.value = err.message
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+
+  async function bulkDuplicate(ids) {
+    loading.value = true
+    error.value = null
+    try {
+      for (const id of ids) {
+        const source = items.value.find(i => i.id === id)
+        if (!source) continue
+        const { id: _id, ...payload } = source
+        const { data } = await axios.post('/api/promotions', {
+          ...payload,
+          name: `${source.name} (copy)`,
+          status: 'inactive',
+        })
+        items.value.push(data)
+      }
+    } catch (err) {
+      error.value = err.message
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+
+  async function bulkRemove(ids) {
+    loading.value = true
+    error.value = null
+    try {
+      for (const id of ids) {
+        await axios.delete(`/api/promotions/${id}`)
+      }
+      items.value = items.value.filter(i => !ids.includes(i.id))
+    } catch (err) {
+      error.value = err.message
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+
   async function importFromCSV(rules) {
     loading.value = true
     error.value = null
@@ -157,5 +214,5 @@ export const usePromotionsStore = defineStore('promotions', () => {
     }
   }
 
-  return { items, loading, error, formDraft, fetchAll, fetchOne, create, update, remove, updateStatus, duplicate, applyParsedRule, resetDraft, bulkUpdateConditions, importFromCSV }
+  return { items, loading, error, formDraft, fetchAll, fetchOne, create, update, remove, updateStatus, duplicate, applyParsedRule, resetDraft, bulkUpdateConditions, bulkUpdateStatus, bulkDuplicate, bulkRemove, importFromCSV }
 })

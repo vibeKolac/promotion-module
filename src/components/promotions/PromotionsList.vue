@@ -17,11 +17,6 @@
       >
         AI Assistant
       </v-btn>
-      <template v-if="selected.length">
-        <v-btn variant="outlined" size="small" class="mr-2" @click="bulkDialogOpen = true">
-          Edit conditions ({{ selected.length }})
-        </v-btn>
-      </template>
       <v-btn variant="outlined" size="small" prepend-icon="mdi-download" class="mr-2" @click="exportCSV">Export CSV</v-btn>
       <v-btn variant="outlined" size="small" prepend-icon="mdi-upload" class="mr-3" @click="csvImportOpen = true">Import CSV</v-btn>
       <v-btn
@@ -68,6 +63,42 @@
         style="max-width: 200px"
       />
     </div>
+
+    <!-- Bulk actions toolbar -->
+    <v-card
+      v-if="selected.length"
+      border
+      elevation="0"
+      class="pa-3 mb-3"
+      style="background-color: #f0fdf4; border-color: #86efac;"
+    >
+      <div class="d-flex align-center justify-space-between flex-wrap gap-2">
+        <div class="d-flex align-center gap-2">
+          <v-icon color="green-darken-2" size="20">mdi-check-circle</v-icon>
+          <span class="font-weight-medium text-green-darken-2">{{ selected.length }} rule{{ selected.length > 1 ? 's' : '' }} selected</span>
+          <v-btn variant="text" size="small" color="green-darken-2" @click="selected = []">
+            <v-icon size="16" class="mr-1">mdi-close</v-icon>Clear
+          </v-btn>
+        </div>
+        <div class="d-flex align-center gap-2 flex-wrap">
+          <v-btn size="small" color="success" @click="bulkActivate">
+            <v-icon size="16" class="mr-1">mdi-play</v-icon>Activate
+          </v-btn>
+          <v-btn size="small" variant="outlined" color="warning" @click="bulkPause">
+            <v-icon size="16" class="mr-1">mdi-pause</v-icon>Pause
+          </v-btn>
+          <v-btn size="small" variant="outlined" @click="bulkDuplicate">
+            <v-icon size="16" class="mr-1">mdi-content-copy</v-icon>Duplicate
+          </v-btn>
+          <v-btn size="small" variant="outlined" color="primary" @click="bulkDialogOpen = true">
+            <v-icon size="16" class="mr-1">mdi-filter</v-icon>Edit Conditions
+          </v-btn>
+          <v-btn size="small" variant="outlined" color="error" @click="bulkDeleteOpen = true">
+            <v-icon size="16" class="mr-1">mdi-delete</v-icon>Delete
+          </v-btn>
+        </div>
+      </div>
+    </v-card>
 
     <!-- Performance tab banner -->
     <v-alert v-if="activeTab === 'performance'" type="info" variant="tonal" density="compact" class="mb-3" icon="mdi-chart-bar">
@@ -172,8 +203,15 @@
     />
     <BulkEditConditionsDialog v-model="bulkDialogOpen" :selected-count="selected.length" @apply="onBulkApply" />
     <CsvImportDialog v-model="csvImportOpen" @import="onCSVImport" />
+    <ConfirmDeleteDialog
+      v-model="bulkDeleteOpen"
+      :item-name="`${selected.length} selected rule${selected.length > 1 ? 's' : ''}`"
+      :loading="store.loading"
+      @confirm="confirmBulkDelete"
+    />
     <v-snackbar v-model="errorSnack" color="error" timeout="4000">{{ store.error }}</v-snackbar>
     <v-snackbar v-model="duplicateSnack" color="success" timeout="3000">Rule duplicated — added to Paused tab</v-snackbar>
+    <v-snackbar v-model="bulkSnack" color="success" timeout="3000">{{ bulkSnackText }}</v-snackbar>
   </v-container>
 </template>
 
@@ -209,6 +247,9 @@ const selected = ref([])
 const bulkDialogOpen = ref(false)
 const csvImportOpen = ref(false)
 const duplicateSnack = ref(false)
+const bulkDeleteOpen = ref(false)
+const bulkSnack = ref(false)
+const bulkSnackText = ref('')
 
 // Tab computed lists
 const activeItems = computed(() =>
@@ -332,5 +373,39 @@ async function duplicateRule(id) {
   await store.duplicate(id)
   activeTab.value = 'paused'
   duplicateSnack.value = true
+}
+
+async function bulkActivate() {
+  await store.bulkUpdateStatus(selected.value, 'active')
+  bulkSnackText.value = `${selected.value.length} rule${selected.value.length > 1 ? 's' : ''} activated`
+  selected.value = []
+  activeTab.value = 'active'
+  bulkSnack.value = true
+}
+
+async function bulkPause() {
+  await store.bulkUpdateStatus(selected.value, 'paused')
+  bulkSnackText.value = `${selected.value.length} rule${selected.value.length > 1 ? 's' : ''} paused`
+  selected.value = []
+  activeTab.value = 'paused'
+  bulkSnack.value = true
+}
+
+async function bulkDuplicate() {
+  const count = selected.value.length
+  await store.bulkDuplicate(selected.value)
+  bulkSnackText.value = `${count} rule${count > 1 ? 's' : ''} duplicated — added to Paused tab`
+  selected.value = []
+  activeTab.value = 'paused'
+  bulkSnack.value = true
+}
+
+async function confirmBulkDelete() {
+  const count = selected.value.length
+  await store.bulkRemove(selected.value)
+  bulkSnackText.value = `${count} rule${count > 1 ? 's' : ''} deleted`
+  selected.value = []
+  bulkDeleteOpen.value = false
+  bulkSnack.value = true
 }
 </script>
