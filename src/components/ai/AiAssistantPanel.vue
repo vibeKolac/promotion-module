@@ -11,8 +11,23 @@
       <div class="d-flex align-center pa-4 border-b">
         <v-icon color="primary" class="mr-2">mdi-creation</v-icon>
         <span class="text-body-1 font-weight-bold flex-grow-1">AI Assistant</span>
+        <v-btn
+          variant="outlined"
+          color="primary"
+          size="small"
+          class="text-caption mr-1"
+          data-testid="guide-me-btn"
+          @click="uiStore.startWizard(null)"
+        >
+          <v-icon icon="mdi-auto-fix" size="14" class="mr-1" />Guide me
+        </v-btn>
         <v-btn icon="mdi-close" variant="text" size="small" @click="uiStore.closeAiPanel()" />
       </div>
+
+      <!-- Wizard panel (collapsible, above chat) -->
+      <v-expand-transition>
+        <WizardPanel v-if="uiStore.wizardActive" />
+      </v-expand-transition>
 
       <!-- Template quick actions -->
       <div class="pa-3 border-b">
@@ -88,6 +103,7 @@ import { useRouter } from 'vue-router'
 import { useUiStore } from '../../stores/ui'
 import { useTemplatesStore } from '../../stores/templates'
 import SmartRulePreview from './SmartRulePreview.vue'
+import WizardPanel from './WizardPanel.vue'
 
 const uiStore = useUiStore()
 const templatesStore = useTemplatesStore()
