@@ -173,6 +173,7 @@
     <BulkEditConditionsDialog v-model="bulkDialogOpen" :selected-count="selected.length" @apply="onBulkApply" />
     <CsvImportDialog v-model="csvImportOpen" @import="onCSVImport" />
     <v-snackbar v-model="errorSnack" color="error" timeout="4000">{{ store.error }}</v-snackbar>
+    <v-snackbar v-model="duplicateSnack" color="success" timeout="3000">Rule duplicated — added to Paused tab</v-snackbar>
   </v-container>
 </template>
 
@@ -207,6 +208,7 @@ const deleting = ref(false)
 const selected = ref([])
 const bulkDialogOpen = ref(false)
 const csvImportOpen = ref(false)
+const duplicateSnack = ref(false)
 
 // Tab computed lists
 const activeItems = computed(() =>
@@ -328,5 +330,7 @@ async function resumeRule(id) {
 }
 async function duplicateRule(id) {
   await store.duplicate(id)
+  activeTab.value = 'paused'
+  duplicateSnack.value = true
 }
 </script>
