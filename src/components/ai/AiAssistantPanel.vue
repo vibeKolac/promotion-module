@@ -113,7 +113,7 @@ const router = useRouter()
 const inputText = ref('')
 const messagesEl = ref(null)
 
-onMounted(() => templatesStore.fetchAll())
+onMounted(() => { if (!templatesStore.items.length) templatesStore.fetchAll() })
 
 function send() {
   if (!inputText.value.trim()) return
