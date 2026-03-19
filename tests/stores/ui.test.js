@@ -50,3 +50,74 @@ describe('ui store', () => {
     expect(uiStore.pendingParsedRule).toBeNull()
   })
 })
+
+describe('uiStore — wizard actions', () => {
+  it('startWizard(null) sets wizardActive and step 0', () => {
+    const store = useUiStore()
+    store.startWizard(null)
+    expect(store.wizardActive).toBe(true)
+    expect(store.wizardStep).toBe(0)
+    expect(store.wizardMode).toBeNull()
+  })
+
+  it('startWizard("custom") sets mode and step 1', () => {
+    const store = useUiStore()
+    store.startWizard('custom')
+    expect(store.wizardActive).toBe(true)
+    expect(store.wizardStep).toBe(1)
+    expect(store.wizardMode).toBe('custom')
+  })
+
+  it('wizardNext records data and increments step', () => {
+    const store = useUiStore()
+    store.startWizard('custom')
+    store.wizardNext('type', 'discount')
+    expect(store.wizardData.type).toBe('discount')
+    expect(store.wizardStep).toBe(2)
+  })
+
+  it('wizardBack decrements step and no-ops at step 1', () => {
+    const store = useUiStore()
+    store.startWizard('custom')
+    store.wizardNext('type', 'discount')
+    expect(store.wizardStep).toBe(2)
+    store.wizardBack()
+    expect(store.wizardStep).toBe(1)
+    store.wizardBack() // no-op
+    expect(store.wizardStep).toBe(1)
+  })
+
+  it('wizardGoToStep jumps back but not forward', () => {
+    const store = useUiStore()
+    store.startWizard('custom')
+    store.wizardNext('type', 'discount')
+    store.wizardNext('duration', 'week')
+    store.wizardNext('target', 'all')
+    expect(store.wizardStep).toBe(4)
+    store.wizardGoToStep(2)
+    expect(store.wizardStep).toBe(2)
+    store.wizardGoToStep(4) // forward — no-op
+    expect(store.wizardStep).toBe(2)
+  })
+
+  it('wizardReset clears all wizard state', () => {
+    const store = useUiStore()
+    store.startWizard('custom')
+    store.wizardNext('type', 'discount')
+    store.wizardReset()
+    expect(store.wizardActive).toBe(false)
+    expect(store.wizardStep).toBe(0)
+    expect(store.wizardMode).toBeNull()
+    expect(store.wizardData).toEqual({})
+    expect(store.wizardCollapsed).toBe(false)
+  })
+
+  it('toggleWizardCollapsed flips the flag', () => {
+    const store = useUiStore()
+    expect(store.wizardCollapsed).toBe(false)
+    store.toggleWizardCollapsed()
+    expect(store.wizardCollapsed).toBe(true)
+    store.toggleWizardCollapsed()
+    expect(store.wizardCollapsed).toBe(false)
+  })
+})
