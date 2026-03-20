@@ -108,7 +108,7 @@
     <!-- Shared table for all tabs -->
     <v-card border elevation="0">
       <v-data-table
-        v-model:selected="selected"
+        v-model="selected"
         :headers="activeTab === 'performance' ? performanceHeaders : headers"
         :items="tabItems"
         :loading="store.loading"
