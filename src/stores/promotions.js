@@ -197,6 +197,24 @@ export const usePromotionsStore = defineStore('promotions', () => {
     }
   }
 
+  async function updateMany(updates) {
+    loading.value = true
+    error.value = null
+    try {
+      for (const { id, ...fields } of updates) {
+        const item = items.value.find(i => i.id === id)
+        if (!item) continue
+        const { data } = await axios.put(`/api/promotions/${id}`, { ...item, ...fields })
+        Object.assign(item, data)
+      }
+    } catch (err) {
+      error.value = err.message
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+
   async function importFromCSV(rules) {
     loading.value = true
     error.value = null
@@ -214,5 +232,5 @@ export const usePromotionsStore = defineStore('promotions', () => {
     }
   }
 
-  return { items, loading, error, formDraft, fetchAll, fetchOne, create, update, remove, updateStatus, duplicate, applyParsedRule, resetDraft, bulkUpdateConditions, bulkUpdateStatus, bulkDuplicate, bulkRemove, importFromCSV }
+  return { items, loading, error, formDraft, fetchAll, fetchOne, create, update, remove, updateStatus, duplicate, applyParsedRule, resetDraft, bulkUpdateConditions, bulkUpdateStatus, bulkDuplicate, bulkRemove, importFromCSV, updateMany }
 })

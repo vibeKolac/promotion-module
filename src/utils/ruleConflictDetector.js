@@ -49,12 +49,31 @@ function generateConditionSignature(rule) {
   return sig || null // empty after filter = no deduplicate
 }
 
-export function simulateRuleApplication(rules) {
-  if (!rules?.length) return { applied: [], skipped: [] }
+export function simulateRuleApplication(rules, groups = []) {
+  if (!rules?.length) return { applied: [], skipped: [], inactive: [] }
 
-  const active = rules
-    .filter(r => r.status === 'active' || r.status === 'scheduled')
-    .sort((a, b) => (a.priority ?? 999) - (b.priority ?? 999))
+  // Build group priority lookup (lower = higher priority)
+  const groupPriority = new Map(groups.map(g => [g.id, g.priority ?? 999]))
+
+  // Separate out rules that won't run due to status
+  const inactive = []
+  const candidates = []
+  for (const rule of rules) {
+    if (rule.status === 'paused') {
+      inactive.push({ rule, reason: 'Paused' })
+    } else if (rule.status === 'inactive') {
+      inactive.push({ rule, reason: 'Inactive' })
+    } else if (rule.status === 'active' || rule.status === 'scheduled') {
+      candidates.push(rule)
+    }
+  }
+
+  const active = candidates.sort((a, b) => {
+    const gpa = groupPriority.get(a.stackingGroupId) ?? 999
+    const gpb = groupPriority.get(b.stackingGroupId) ?? 999
+    if (gpa !== gpb) return gpa - gpb
+    return (a.priority ?? 999) - (b.priority ?? 999)
+  })
 
   const applied = []
   const skipped = []
@@ -78,5 +97,5 @@ export function simulateRuleApplication(rules) {
     }
   }
 
-  return { applied, skipped }
+  return { applied, skipped, inactive }
 }

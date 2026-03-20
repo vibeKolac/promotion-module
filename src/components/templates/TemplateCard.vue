@@ -1,7 +1,12 @@
 <template>
   <v-card border elevation="0" class="pa-4 h-100 d-flex flex-column" style="cursor:pointer" @click="$emit('select', template)">
+    <div class="mb-3">
+      <v-avatar :color="typeColor" variant="tonal" size="40">
+        <v-icon :color="typeColor" size="22">{{ categoryIcon }}</v-icon>
+      </v-avatar>
+    </div>
     <div class="d-flex align-center mb-2 gap-2">
-      <v-chip :color="categoryColor" variant="tonal" size="x-small" label>{{ template.category }}</v-chip>
+      <v-chip :color="typeColor" variant="tonal" size="x-small" label>{{ template.ruleType?.replace('_', ' ') }}</v-chip>
       <v-chip v-if="template.popularity === 'high'" color="primary" variant="tonal" size="x-small" label>Popular</v-chip>
     </div>
     <div class="text-body-1 font-weight-bold mb-1">{{ template.label }}</div>
@@ -19,8 +24,17 @@
 import { computed } from 'vue'
 const props = defineProps({ template: { type: Object, required: true } })
 defineEmits(['select'])
-const categoryColor = computed(() => ({
-  flash: 'error', seasonal: 'info', loyalty: 'success',
-  bulk: 'warning', category: 'purple', gift: 'teal',
-}[props.template.category] ?? 'default'))
+const typeColor = computed(() => ({
+  discount: 'primary',
+  step_discount: 'success',
+  multi_buy: 'warning',
+  gift: 'purple',
+}[props.template.ruleType] ?? 'default'))
+
+const categoryIcon = computed(() => ({
+  discount: 'mdi-tag-outline',
+  step_discount: 'mdi-stairs',
+  multi_buy: 'mdi-package-variant',
+  gift: 'mdi-gift',
+}[props.template.ruleType] ?? 'mdi-tag-outline'))
 </script>

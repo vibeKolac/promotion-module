@@ -44,7 +44,7 @@
 
     <AiRecommendationsPanel class="mb-4" />
 
-    <RulePriorityPreview :rules="store.items" class="mb-4" />
+    <RulePriorityPreview :rules="store.items" :groups="sgStore.items" class="mb-4" />
 
     <!-- Stacking group filter + tabs row -->
     <div class="d-flex align-center gap-4 mb-4">
