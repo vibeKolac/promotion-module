@@ -1,4 +1,9 @@
 // src/main.js
+import { installMock } from './mock/index.js'
+if (import.meta.env.VITE_USE_MOCK === 'true') {
+  installMock()
+}
+
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import vuetify from './plugins/vuetify'
