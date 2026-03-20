@@ -266,8 +266,6 @@ const performanceItems = computed(() =>
 
 function applyStackingFilter(rules) {
   if (stackingGroupFilter.value === 'all') return rules
-  if (stackingGroupFilter.value === 'exclusive') return rules.filter(r => r.exclusive)
-  if (stackingGroupFilter.value === 'unassigned') return rules.filter(r => !r.exclusive && !r.stackingGroupId)
   return rules.filter(r => r.stackingGroupId === stackingGroupFilter.value)
 }
 
@@ -279,8 +277,6 @@ const tabItems = computed(() => {
 
 const stackingGroupFilterItems = computed(() => [
   { value: 'all', title: 'All groups' },
-  { value: 'exclusive', title: 'Exclusive rules' },
-  { value: 'unassigned', title: 'Unassigned' },
   ...sgStore.items.map(g => ({ value: g.id, title: g.name })),
 ])
 
