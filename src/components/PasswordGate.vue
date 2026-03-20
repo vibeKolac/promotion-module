@@ -7,7 +7,7 @@
         <v-card border elevation="0" width="360" class="pa-8">
           <div class="text-center mb-6">
             <v-icon size="40" color="primary" class="mb-3">mdi-shield-lock-outline</v-icon>
-            <div class="text-h6 font-weight-bold">Promotions prototype</div>
+            <div class="text-h6 font-weight-bold">Promotions wireframe</div>
             <div class="text-caption text-medium-emphasis mt-1">Enter password to continue</div>
           </div>
 
