@@ -1,11 +1,11 @@
 <!-- src/components/promotions/PromotionForm.vue -->
 <template>
-  <v-container fluid class="pa-6">
+  <v-container fluid class="pa-3 pa-sm-6">
     <!-- Breadcrumb -->
     <v-breadcrumbs :items="breadcrumbs" density="compact" class="pa-0 mb-2" />
 
     <!-- Title + actions -->
-    <div class="d-flex align-center mb-5 gap-3">
+    <div class="d-flex align-center flex-wrap mb-5 gap-3">
       <h1 class="text-h5 font-weight-bold">{{ isEdit ? 'Edit promotion rule' : 'New promotion rule' }}</h1>
       <v-spacer />
       <v-btn variant="outlined" to="/promotions" class="text-uppercase">Discard</v-btn>

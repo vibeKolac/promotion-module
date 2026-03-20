@@ -1,31 +1,32 @@
 <!-- src/components/promotions/PromotionsList.vue -->
 <template>
-  <v-container fluid class="pa-6">
+  <v-container fluid class="pa-3 pa-sm-6">
     <!-- Breadcrumb -->
     <v-breadcrumbs :items="breadcrumbs" density="compact" class="pa-0 mb-2" />
 
     <!-- Title row -->
-    <div class="d-flex align-center mb-5">
+    <div class="d-flex align-center flex-wrap gap-2 mb-5">
       <h1 class="text-h5 font-weight-bold">Promotion rules overview</h1>
       <v-spacer />
       <v-btn
+        v-if="!mobile"
         color="primary"
         prepend-icon="mdi-robot"
-        class="text-uppercase mr-3"
+        class="text-uppercase"
         variant="outlined"
         @click="uiStore.openAiPanel()"
       >
         AI Assistant
       </v-btn>
-      <v-btn variant="outlined" size="small" prepend-icon="mdi-download" class="mr-2" @click="exportCSV">Export CSV</v-btn>
-      <v-btn variant="outlined" size="small" prepend-icon="mdi-upload" class="mr-3" @click="csvImportOpen = true">Import CSV</v-btn>
+      <v-btn v-if="!mobile" variant="outlined" size="small" prepend-icon="mdi-download" @click="exportCSV">Export CSV</v-btn>
+      <v-btn v-if="!mobile" variant="outlined" size="small" prepend-icon="mdi-upload" @click="csvImportOpen = true">Import CSV</v-btn>
       <v-btn
         color="primary"
         prepend-icon="mdi-plus"
         class="text-uppercase"
         to="/promotions/new"
       >
-        New Promotion Rule
+        New Rule
       </v-btn>
     </div>
 
@@ -38,7 +39,7 @@
       density="compact"
       hide-details
       class="mb-4"
-      style="max-width: 480px"
+      :style="mobile ? '' : 'max-width: 480px'"
       @update:model-value="onSearch"
     />
 
@@ -47,11 +48,11 @@
     <RulePriorityPreview :rules="store.items" :groups="sgStore.items" class="mb-4" />
 
     <!-- Stacking group filter + tabs row -->
-    <div class="d-flex align-center gap-4 mb-4">
+    <div class="d-flex flex-wrap align-center gap-2 mb-4">
       <v-tabs v-model="activeTab" color="primary" density="compact">
         <v-tab value="active">Active <v-chip size="x-small" class="ml-1">{{ activeItems.length }}</v-chip></v-tab>
         <v-tab value="paused">Paused <v-chip size="x-small" class="ml-1">{{ pausedItems.length }}</v-chip></v-tab>
-        <v-tab value="performance">Performance</v-tab>
+        <v-tab v-if="!mobile" value="performance">Performance</v-tab>
       </v-tabs>
       <v-spacer />
       <v-select
@@ -60,7 +61,7 @@
         variant="outlined"
         density="compact"
         hide-details
-        style="max-width: 200px"
+        style="max-width: 200px; min-width: 140px"
       />
     </div>
 
@@ -217,6 +218,7 @@
 
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue'
+import { useDisplay } from 'vuetify'
 import { usePromotionsStore } from '../../stores/promotions'
 import { useUiStore } from '../../stores/ui'
 import { useStackingGroupsStore } from '../../stores/stackingGroups'
@@ -234,6 +236,7 @@ import AiRecommendationsPanel from '../ai/AiRecommendationsPanel.vue'
 const store = usePromotionsStore()
 const uiStore = useUiStore()
 const sgStore = useStackingGroupsStore()
+const { mobile } = useDisplay()
 
 const conflictsMap = computed(() => detectConflicts(store.items))
 
@@ -308,24 +311,28 @@ const breadcrumbs = [
   { title: 'Promotion rules overview', disabled: true },
 ]
 
-const headers = [
+const headers = computed(() => [
   { title: 'Name', key: 'name', sortable: true },
-  { title: 'Type', key: 'type' },
+  ...(mobile.value ? [] : [
+    { title: 'Type', key: 'type' },
+    { title: 'Priority', key: 'priority' },
+    { title: 'Created by', key: 'createdBy' },
+    { title: 'Updated', key: 'updatedAt' },
+  ]),
   { title: 'Status', key: 'status' },
-  { title: 'Priority', key: 'priority' },
-  { title: 'Created by', key: 'createdBy' },
-  { title: 'Updated', key: 'updatedAt' },
   { title: '', key: 'actions', sortable: false, width: 60 },
-]
+])
 
-const performanceHeaders = [
+const performanceHeaders = computed(() => [
   { title: 'Name', key: 'name', sortable: true },
-  { title: 'Type', key: 'type' },
-  { title: 'Performance', key: 'performance', sortable: true },
-  { title: 'Revenue', key: 'revenue' },
-  { title: 'Created by', key: 'createdBy' },
+  ...(mobile.value ? [] : [
+    { title: 'Type', key: 'type' },
+    { title: 'Performance', key: 'performance', sortable: true },
+    { title: 'Revenue', key: 'revenue' },
+    { title: 'Created by', key: 'createdBy' },
+  ]),
   { title: '', key: 'actions', sortable: false, width: 60 },
-]
+])
 
 function formatDate(iso) {
   if (!iso) return '—'

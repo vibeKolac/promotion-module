@@ -1,8 +1,8 @@
 <template>
-  <v-container fluid class="pa-6">
+  <v-container fluid class="pa-3 pa-sm-6">
     <v-breadcrumbs :items="[{ title: 'Templates', disabled: true }]" density="compact" class="pa-0 mb-2" />
 
-    <div class="d-flex align-center mb-5">
+    <div class="d-flex flex-wrap align-center gap-2 mb-5">
       <h1 class="text-h5 font-weight-bold">Templates</h1>
       <v-spacer />
       <v-text-field
@@ -24,7 +24,7 @@
     </v-chip-group>
 
     <div v-if="filtered.length" class="d-flex flex-wrap gap-4">
-      <div v-for="tpl in filtered" :key="tpl.id" style="width: 280px">
+      <div v-for="tpl in filtered" :key="tpl.id" :style="mobile ? 'width: 100%' : 'width: 280px'">
         <TemplateCard :template="tpl" @select="applyTemplate" />
       </div>
     </div>
@@ -34,6 +34,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import { useDisplay } from 'vuetify'
 import { useRouter } from 'vue-router'
 import { useTemplatesStore } from '../../stores/templates'
 import { usePromotionsStore } from '../../stores/promotions'
@@ -42,6 +43,7 @@ import TemplateCard from './TemplateCard.vue'
 const store = useTemplatesStore()
 const promoStore = usePromotionsStore()
 const router = useRouter()
+const { mobile } = useDisplay()
 const search = ref('')
 const selectedCategory = ref('all')
 

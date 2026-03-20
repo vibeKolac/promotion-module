@@ -1,24 +1,24 @@
 <!-- src/components/promotions/RulePriorityPreview.vue -->
 <template>
   <v-card v-if="result.applied.length || result.skipped.length || result.inactive.length" border elevation="0" class="pa-4 mb-4" color="success" variant="tonal">
-    <div class="d-flex align-center justify-space-between">
-      <div class="d-flex align-center gap-2">
+    <div class="d-flex align-center flex-wrap gap-2">
+      <div class="d-flex align-center gap-2 flex-grow-1">
         <v-icon icon="mdi-arrow-right-circle" color="success" />
         <div>
           <div class="text-body-2 font-weight-bold">Priority-based application preview</div>
           <div class="text-caption text-medium-emphasis">
             {{ result.applied.length }} rule{{ result.applied.length !== 1 ? 's' : '' }} will apply
-            <span v-if="result.skipped.length"> · {{ result.skipped.length }} skipped by priority</span>
-            <span v-if="result.inactive.length"> · {{ result.inactive.length }} not active (paused / inactive)</span>
+            <span v-if="result.skipped.length"> · {{ result.skipped.length }} skipped</span>
+            <span v-if="result.inactive.length"> · {{ result.inactive.length }} not active</span>
           </div>
         </div>
       </div>
-      <div class="d-flex align-center gap-2">
+      <div class="d-flex align-center gap-1">
         <v-btn v-if="!onStackingGroupsPage" variant="text" size="small" color="primary" to="/stacking-groups" prepend-icon="mdi-tune">
           Change priority
         </v-btn>
         <v-btn variant="text" size="small" @click="expanded = !expanded">
-          {{ expanded ? 'Hide' : 'Show' }} details
+          {{ expanded ? 'Hide' : 'Show' }}
           <v-icon :icon="expanded ? 'mdi-chevron-up' : 'mdi-chevron-down'" class="ml-1" />
         </v-btn>
       </div>
