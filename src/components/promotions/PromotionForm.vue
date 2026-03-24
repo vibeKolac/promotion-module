@@ -440,19 +440,29 @@ const editingConditionIdx = ref(null)
 
 const draft = store.formDraft
 
+const today = new Date(new Date().toDateString())
+
 function isFutureDate(dateStr) {
-  if (!dateStr) return false
-  return new Date(dateStr) > new Date(new Date().toDateString())
+  return !!dateStr && new Date(dateStr) > today
 }
 
-function resolveStatus(currentStatus, startDate) {
+function isPastDate(dateStr) {
+  return !!dateStr && new Date(dateStr) < today
+}
+
+function resolveStatus(currentStatus, startDate, endDate) {
+  if (isPastDate(endDate)) return 'inactive'
   if (isFutureDate(startDate)) return 'scheduled'
   if (currentStatus === 'scheduled') return 'active'
   return currentStatus
 }
 
-watch(() => draft.startDate, (newDate) => {
-  draft.status = resolveStatus(draft.status, newDate)
+watch(() => draft.startDate, () => {
+  draft.status = resolveStatus(draft.status, draft.startDate, draft.endDate)
+})
+
+watch(() => draft.endDate, () => {
+  draft.status = resolveStatus(draft.status, draft.startDate, draft.endDate)
 })
 
 const isActive = computed({
@@ -520,7 +530,7 @@ async function save() {
   saveError.value = null
   try {
     const payload = JSON.parse(JSON.stringify(toRaw(draft)))
-    payload.status = resolveStatus(payload.status, payload.startDate)
+    payload.status = resolveStatus(payload.status, payload.startDate, payload.endDate)
     if (isEdit.value) {
       await store.update(route.params.id, payload)
     } else {
