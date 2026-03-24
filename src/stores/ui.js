@@ -36,7 +36,7 @@ export const useUiStore = defineStore('ui', () => {
   }
 
   function selectTemplate(template) {
-    pendingParsedRule.value = {
+    const parsed = {
       type: template.ruleType,
       value: template.defaultValue,
       valueUnit: template.defaultValueUnit,
@@ -44,6 +44,13 @@ export const useUiStore = defineStore('ui', () => {
       confidence: 1.0,
       missingFields: [],
     }
+    pendingParsedRule.value = parsed
+    aiMessages.value.push({
+      id: uuid(),
+      role: 'assistant',
+      text: `Template "${template.label}" ready. Review and apply below.`,
+      parsedRule: parsed,
+    })
   }
 
   function applyPendingRule() {
