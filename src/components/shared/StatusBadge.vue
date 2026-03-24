@@ -14,7 +14,6 @@ const props = defineProps({ status: { type: String, required: true } })
 const config = computed(() => ({
   active:    { color: 'success',  variant: 'tonal',    label: 'Active' },
   draft:     { color: 'secondary', variant: 'tonal',   label: 'Draft' },
-  inactive:  { color: 'default',  variant: 'outlined', label: 'Inactive' },
   scheduled: { color: 'info',     variant: 'tonal',    label: 'Scheduled' },
   paused:    { color: 'warning',  variant: 'tonal',    label: 'Paused' },
   expired:   { color: 'default',  variant: 'outlined', label: 'Expired' },

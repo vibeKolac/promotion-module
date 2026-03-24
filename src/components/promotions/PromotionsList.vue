@@ -174,7 +174,7 @@
               <v-list-item prepend-icon="mdi-pencil" title="Edit" :to="`/promotions/${item.id}/edit`" />
               <v-list-item prepend-icon="mdi-content-copy" title="Duplicate" @click="duplicateRule(item.id)" />
               <v-list-item
-                v-if="item.status !== 'paused' && item.status !== 'inactive'"
+                v-if="item.status !== 'paused' && item.status !== 'draft'"
                 prepend-icon="mdi-pause"
                 title="Pause"
                 @click="pauseRule(item.id)"
@@ -268,7 +268,7 @@ const activeItems = computed(() =>
   applyStackingFilter(store.items.filter(r => r.status === 'active' || r.status === 'scheduled'))
 )
 const pausedItems = computed(() =>
-  applyStackingFilter(store.items.filter(r => r.status === 'paused' || r.status === 'draft' || r.status === 'inactive'))
+  applyStackingFilter(store.items.filter(r => r.status === 'paused' || r.status === 'draft'))
 )
 const performanceItems = computed(() =>
   [...store.items]

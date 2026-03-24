@@ -53,7 +53,7 @@ const promotions = [
     valueUnit: '%',
     steps: [],
     priority: 8,
-    status: 'inactive',
+    status: 'draft',
     startDate: null,
     endDate: null,
     stackingGroupId: null,

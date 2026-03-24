@@ -70,7 +70,7 @@
 
         <!-- Not active -->
         <div v-if="result.inactive.length" class="mb-3">
-          <div class="text-caption font-weight-bold text-medium-emphasis mb-2">NOT ACTIVE (paused / inactive)</div>
+          <div class="text-caption font-weight-bold text-medium-emphasis mb-2">NOT ACTIVE (paused / draft)</div>
           <div
             v-for="{ rule, reason } in result.inactive"
             :key="rule.id"

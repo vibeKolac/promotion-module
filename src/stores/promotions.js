@@ -86,7 +86,7 @@ export const usePromotionsStore = defineStore('promotions', () => {
       const { data } = await axios.post('/api/promotions', {
         ...payload,
         name: `${source.name} (copy)`,
-        status: 'inactive',
+        status: 'draft',
       })
       items.value.push(data)
       return data
@@ -169,7 +169,7 @@ export const usePromotionsStore = defineStore('promotions', () => {
         const { data } = await axios.post('/api/promotions', {
           ...payload,
           name: `${source.name} (copy)`,
-          status: 'inactive',
+          status: 'draft',
         })
         items.value.push(data)
       }

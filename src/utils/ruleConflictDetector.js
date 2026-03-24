@@ -61,8 +61,8 @@ export function simulateRuleApplication(rules, groups = []) {
   for (const rule of rules) {
     if (rule.status === 'paused') {
       inactive.push({ rule, reason: 'Paused' })
-    } else if (rule.status === 'inactive') {
-      inactive.push({ rule, reason: 'Inactive' })
+    } else if (rule.status === 'draft') {
+      inactive.push({ rule, reason: 'Draft' })
     } else if (rule.status === 'active' || rule.status === 'scheduled') {
       candidates.push(rule)
     }

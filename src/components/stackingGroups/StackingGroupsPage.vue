@@ -156,7 +156,7 @@ const deleting = ref(false)
 const savedSnack = ref(false)
 const errorSnack = ref(false)
 
-const VISIBLE_STATUSES = ['active', 'paused', 'inactive']
+const VISIBLE_STATUSES = ['active', 'paused', 'draft']
 
 // Groups sorted by priority; default group always last
 const orderedGroups = computed(() =>
@@ -295,6 +295,6 @@ function onSaved() {}
 }
 .status-dot--active   { background: #22c55e; }
 .status-dot--paused   { background: #f59e0b; }
-.status-dot--inactive { background: #94a3b8; }
+.status-dot--draft    { background: #94a3b8; }
 .status-dot--scheduled { background: #3b82f6; }
 </style>

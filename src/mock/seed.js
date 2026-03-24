@@ -23,7 +23,7 @@ export const promotions = [
   },
   {
     id: 'promo-3', name: 'Buy 3 Get 1 Free', type: 'multi_buy',
-    value: '25', valueUnit: '%', steps: [], priority: 8, status: 'inactive',
+    value: '25', valueUnit: '%', steps: [], priority: 8, status: 'draft',
     startDate: null, endDate: null, stackingGroupId: null,
     conditions: [{ id: 'c4', field: 'quantity', mode: 'include', values: ['3'], operator: '>=' }],
     gifts: [], performance: 45, revenue: '€8,100',
