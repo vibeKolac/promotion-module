@@ -410,6 +410,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { usePromotionsStore } from '../../stores/promotions'
+import { useStackingGroupsStore } from '../../stores/stackingGroups'
 import { useUiStore } from '../../stores/ui'
 import { validateConditions } from '../../utils/conditionValidator'
 import { detectGiftConflicts } from '../../utils/giftConflictDetector'
@@ -424,6 +425,7 @@ import StackingGroupSelect from './StackingGroupSelect.vue'
 const route = useRoute()
 const router = useRouter()
 const store = usePromotionsStore()
+const sgStore = useStackingGroupsStore()
 const uiStore = useUiStore()
 
 const isEdit = computed(() => !!route.params.id)
@@ -511,6 +513,7 @@ async function save() {
 }
 
 onMounted(async () => {
+  await sgStore.fetchAll()
   if (isEdit.value) {
     await store.fetchOne(route.params.id)
   } else if (!route.query.fromTemplate) {
