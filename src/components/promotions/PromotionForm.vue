@@ -409,7 +409,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, toRaw } from 'vue'
+import { ref, computed, watch, onMounted, toRaw } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { usePromotionsStore } from '../../stores/promotions'
 import { useStackingGroupsStore } from '../../stores/stackingGroups'
@@ -439,6 +439,21 @@ const editingCondition = ref(null)
 const editingConditionIdx = ref(null)
 
 const draft = store.formDraft
+
+function isFutureDate(dateStr) {
+  if (!dateStr) return false
+  return new Date(dateStr) > new Date(new Date().toDateString())
+}
+
+function resolveStatus(currentStatus, startDate) {
+  if (isFutureDate(startDate)) return 'scheduled'
+  if (currentStatus === 'scheduled') return 'active'
+  return currentStatus
+}
+
+watch(() => draft.startDate, (newDate) => {
+  draft.status = resolveStatus(draft.status, newDate)
+})
 
 const isActive = computed({
   get: () => draft.status === 'active',
@@ -505,6 +520,7 @@ async function save() {
   saveError.value = null
   try {
     const payload = JSON.parse(JSON.stringify(toRaw(draft)))
+    payload.status = resolveStatus(payload.status, payload.startDate)
     if (isEdit.value) {
       await store.update(route.params.id, payload)
     } else {
