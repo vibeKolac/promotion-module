@@ -520,7 +520,7 @@ async function save() {
 onMounted(async () => {
   if (isEdit.value) {
     await store.fetchOne(route.params.id)
-  } else {
+  } else if (!route.query.fromTemplate) {
     store.resetDraft()
   }
 })

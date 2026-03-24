@@ -76,6 +76,6 @@ function applyTemplate(tpl) {
     conditions: tpl.defaultConditions ? [...tpl.defaultConditions] : [],
     name: tpl.label,
   })
-  router.push('/promotions/new')
+  router.push({ path: '/promotions/new', query: { fromTemplate: '1' } })
 }
 </script>
