@@ -451,9 +451,9 @@ function isPastDate(dateStr) {
 }
 
 function resolveStatus(currentStatus, startDate, endDate) {
-  if (isPastDate(endDate)) return 'inactive'
+  if (isPastDate(endDate)) return 'ended'
   if (isFutureDate(startDate)) return 'scheduled'
-  if (currentStatus === 'scheduled') return 'active'
+  if (currentStatus === 'scheduled' || currentStatus === 'ended') return 'active'
   return currentStatus
 }
 

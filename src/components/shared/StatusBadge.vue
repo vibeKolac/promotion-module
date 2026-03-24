@@ -17,5 +17,6 @@ const config = computed(() => ({
   scheduled: { color: 'info',     variant: 'tonal',    label: 'Scheduled' },
   paused:    { color: 'warning',  variant: 'tonal',    label: 'Paused' },
   expired:   { color: 'default',  variant: 'outlined', label: 'Expired' },
+  ended:     { color: 'default',  variant: 'outlined', label: 'Ended' },
 }[props.status] ?? { color: 'default', variant: 'outlined', label: props.status }))
 </script>

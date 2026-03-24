@@ -260,21 +260,15 @@ const bulkDeleteOpen = ref(false)
 const bulkSnack = ref(false)
 const bulkSnackText = ref('')
 
-const today = new Date(new Date().toDateString())
-
 // Tab computed lists
 const endedItems = computed(() =>
-  applyStackingFilter(store.items.filter(r => r.endDate && new Date(r.endDate) < today))
+  applyStackingFilter(store.items.filter(r => r.status === 'ended'))
 )
 const activeItems = computed(() =>
-  applyStackingFilter(store.items.filter(r =>
-    (r.status === 'active' || r.status === 'scheduled') && !endedItems.value.includes(r)
-  ))
+  applyStackingFilter(store.items.filter(r => r.status === 'active' || r.status === 'scheduled'))
 )
 const pausedItems = computed(() =>
-  applyStackingFilter(store.items.filter(r =>
-    (r.status === 'paused' || r.status === 'inactive') && !endedItems.value.includes(r)
-  ))
+  applyStackingFilter(store.items.filter(r => r.status === 'paused' || r.status === 'inactive'))
 )
 const performanceItems = computed(() =>
   [...store.items]
