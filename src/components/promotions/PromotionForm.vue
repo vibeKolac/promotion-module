@@ -397,6 +397,8 @@
       </template>
     </v-card>
 
+    <v-snackbar :model-value="!!saveError" color="error" timeout="6000" @update:model-value="saveError = null">{{ saveError }}</v-snackbar>
+
     <!-- Condition builder dialog -->
     <ConditionBuilderDialog
       v-model="conditionDialogOpen"
@@ -407,7 +409,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, toRaw } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { usePromotionsStore } from '../../stores/promotions'
 import { useStackingGroupsStore } from '../../stores/stackingGroups'
@@ -430,6 +432,7 @@ const uiStore = useUiStore()
 
 const isEdit = computed(() => !!route.params.id)
 const saving = ref(false)
+const saveError = ref(null)
 const conditionDialogOpen = ref(false)
 const validationErrors = ref({})
 const editingCondition = ref(null)
@@ -499,14 +502,17 @@ function validate() {
 async function save() {
   if (!validate()) return
   saving.value = true
+  saveError.value = null
   try {
-    const payload = { ...draft }
+    const payload = JSON.parse(JSON.stringify(toRaw(draft)))
     if (isEdit.value) {
       await store.update(route.params.id, payload)
     } else {
       await store.create(payload)
     }
     router.push('/promotions')
+  } catch (e) {
+    saveError.value = e?.response?.data?.error ?? e?.message ?? 'Failed to save rule'
   } finally {
     saving.value = false
   }
