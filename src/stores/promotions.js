@@ -6,7 +6,7 @@ import { v4 as uuid } from 'uuid'
 const emptyDraft = () => ({
   name: '', type: 'discount', value: '', valueUnit: '%',
   amountType: 'PERCENT_CART',
-  steps: [], priority: 10, status: 'active',
+  steps: [], priority: 10, status: 'draft',
   startDate: null, endDate: null,
   stackingGroupId: 'sg-default', conditions: [], gifts: [],
   exclusive: false,

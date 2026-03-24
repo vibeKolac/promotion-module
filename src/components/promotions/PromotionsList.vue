@@ -268,7 +268,7 @@ const activeItems = computed(() =>
   applyStackingFilter(store.items.filter(r => r.status === 'active' || r.status === 'scheduled'))
 )
 const pausedItems = computed(() =>
-  applyStackingFilter(store.items.filter(r => r.status === 'paused' || r.status === 'inactive'))
+  applyStackingFilter(store.items.filter(r => r.status === 'paused' || r.status === 'draft' || r.status === 'inactive'))
 )
 const performanceItems = computed(() =>
   [...store.items]

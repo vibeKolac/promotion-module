@@ -305,15 +305,19 @@
       <v-col cols="12" md="5">
         <v-card border elevation="0" class="pa-5 mb-4">
           <div class="text-body-1 font-weight-bold mb-4">Status</div>
-          <div class="d-flex align-center justify-space-between">
-            <span class="text-body-2">Rule is active</span>
-            <v-switch
-              v-model="isActive"
-              color="primary"
-              hide-details
-              density="compact"
-              inset
-            />
+          <v-select
+            v-model="draft.status"
+            :items="statusItems"
+            :disabled="draft.status === 'scheduled' || draft.status === 'ended'"
+            variant="outlined"
+            density="compact"
+            hide-details
+          />
+          <div v-if="draft.status === 'scheduled'" class="text-caption text-medium-emphasis mt-2">
+            Status is controlled by start date.
+          </div>
+          <div v-if="draft.status === 'ended'" class="text-caption text-medium-emphasis mt-2">
+            Rule has ended. Clear the end date to reactivate.
           </div>
         </v-card>
 
@@ -465,10 +469,11 @@ watch(() => draft.endDate, () => {
   draft.status = resolveStatus(draft.status, draft.startDate, draft.endDate)
 })
 
-const isActive = computed({
-  get: () => draft.status === 'active',
-  set: (v) => { draft.status = v ? 'active' : 'inactive' },
-})
+const statusItems = [
+  { value: 'active', title: 'Active' },
+  { value: 'draft',  title: 'Draft' },
+  { value: 'paused', title: 'Paused' },
+]
 
 const ruleTypeItems = [
   { value: 'discount', title: 'Discount' },
