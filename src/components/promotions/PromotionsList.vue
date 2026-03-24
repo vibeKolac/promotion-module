@@ -52,6 +52,7 @@
       <v-tabs v-model="activeTab" color="primary" density="compact">
         <v-tab value="active">Active <v-chip size="x-small" class="ml-1">{{ activeItems.length }}</v-chip></v-tab>
         <v-tab value="paused">Paused <v-chip size="x-small" class="ml-1">{{ pausedItems.length }}</v-chip></v-tab>
+        <v-tab value="ended">Ended <v-chip size="x-small" class="ml-1">{{ endedItems.length }}</v-chip></v-tab>
         <v-tab v-if="!mobile" value="performance">Performance</v-tab>
       </v-tabs>
       <v-spacer />
@@ -100,6 +101,11 @@
         </div>
       </div>
     </v-card>
+
+    <!-- Ended tab banner -->
+    <v-alert v-if="activeTab === 'ended'" type="info" variant="tonal" density="compact" class="mb-3" icon="mdi-history">
+      Rules whose end date has passed. These rules are no longer applied at checkout.
+    </v-alert>
 
     <!-- Performance tab banner -->
     <v-alert v-if="activeTab === 'performance'" type="info" variant="tonal" density="compact" class="mb-3" icon="mdi-chart-bar">
@@ -254,12 +260,21 @@ const bulkDeleteOpen = ref(false)
 const bulkSnack = ref(false)
 const bulkSnackText = ref('')
 
+const today = new Date(new Date().toDateString())
+
 // Tab computed lists
+const endedItems = computed(() =>
+  applyStackingFilter(store.items.filter(r => r.endDate && new Date(r.endDate) < today))
+)
 const activeItems = computed(() =>
-  applyStackingFilter(store.items.filter(r => r.status === 'active' || r.status === 'scheduled'))
+  applyStackingFilter(store.items.filter(r =>
+    (r.status === 'active' || r.status === 'scheduled') && !endedItems.value.includes(r)
+  ))
 )
 const pausedItems = computed(() =>
-  applyStackingFilter(store.items.filter(r => r.status === 'paused' || r.status === 'inactive'))
+  applyStackingFilter(store.items.filter(r =>
+    (r.status === 'paused' || r.status === 'inactive') && !endedItems.value.includes(r)
+  ))
 )
 const performanceItems = computed(() =>
   [...store.items]
@@ -274,6 +289,7 @@ function applyStackingFilter(rules) {
 
 const tabItems = computed(() => {
   if (activeTab.value === 'paused') return pausedItems.value
+  if (activeTab.value === 'ended') return endedItems.value
   if (activeTab.value === 'performance') return performanceItems.value
   return activeItems.value
 })
