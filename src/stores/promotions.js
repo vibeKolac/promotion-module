@@ -8,7 +8,7 @@ const emptyDraft = () => ({
   amountType: 'PERCENT_CART',
   steps: [], priority: 10, status: 'active',
   startDate: null, endDate: null,
-  stackingGroupId: null, conditions: [], gifts: [],
+  stackingGroupId: 'sg-default', conditions: [], gifts: [],
   exclusive: false,
   processingOrder: null,
   stepType: 'SPENT',

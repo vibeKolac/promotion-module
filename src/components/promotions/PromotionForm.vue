@@ -319,13 +319,6 @@
 
         <v-card border elevation="0" class="pa-5 mb-4">
           <div class="text-body-1 font-weight-bold mb-4">Advanced</div>
-          <div class="d-flex align-center justify-space-between mb-3">
-            <div>
-              <div class="text-body-2">Exclusive rule</div>
-              <div class="text-caption text-medium-emphasis">Doesn't stack with any other rule</div>
-            </div>
-            <v-switch v-model="draft.exclusive" color="primary" hide-details density="compact" inset />
-          </div>
           <v-text-field
             v-model.number="draft.processingOrder"
             label="Processing order"

@@ -8,7 +8,6 @@
       label="Assign to stacking group"
       variant="outlined"
       density="compact"
-      clearable
       hint="Rules in the same group stack together."
       persistent-hint
       @update:model-value="$emit('update:modelValue', $event)"
