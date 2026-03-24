@@ -3,8 +3,10 @@ import { ref } from 'vue'
 import axios from 'axios'
 import { v4 as uuidv4 } from 'uuid'
 
+const UNASSIGNED = { id: 'sg-default', name: 'Unassigned', color: '#6B7280', priority: 999, isDefault: true }
+
 export const useStackingGroupsStore = defineStore('stackingGroups', () => {
-  const items = ref([])
+  const items = ref([UNASSIGNED])
   const loading = ref(false)
   const error = ref(null)
 
