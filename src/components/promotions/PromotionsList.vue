@@ -43,8 +43,31 @@
       @update:model-value="onSearch"
     />
 
+    <AiRecommendationsPanel class="mb-4" />
+
+    <RulePriorityPreview :rules="store.items" :groups="sgStore.items" class="mb-4" />
+
+    <!-- Stacking group filter + tabs row -->
+    <div class="d-flex flex-wrap align-center gap-2 mb-4">
+      <v-tabs v-model="activeTab" color="primary" density="compact">
+        <v-tab value="active">Active <v-chip size="x-small" class="ml-1">{{ activeItems.length }}</v-chip></v-tab>
+        <v-tab value="paused">Paused <v-chip size="x-small" class="ml-1">{{ pausedItems.length }}</v-chip></v-tab>
+        <v-tab value="ended">Ended <v-chip size="x-small" class="ml-1">{{ endedItems.length }}</v-chip></v-tab>
+        <v-tab v-if="!mobile" value="performance">Performance</v-tab>
+      </v-tabs>
+      <v-spacer />
+      <v-select
+        v-model="stackingGroupFilter"
+        :items="stackingGroupFilterItems"
+        variant="outlined"
+        density="compact"
+        hide-details
+        style="max-width: 200px; min-width: 140px"
+      />
+    </div>
+
     <!-- Filter bar -->
-    <div class="d-flex align-center flex-wrap gap-2 mb-4">
+    <div class="d-flex align-center flex-wrap gap-2 mb-3">
       <span class="text-caption text-medium-emphasis mr-1">Type:</span>
       <v-chip
         v-for="t in availableTypes"
@@ -89,29 +112,6 @@
         Clear filters
         <v-chip size="x-small" color="primary" class="ml-1">{{ activeFilterCount }}</v-chip>
       </v-btn>
-    </div>
-
-    <AiRecommendationsPanel class="mb-4" />
-
-    <RulePriorityPreview :rules="store.items" :groups="sgStore.items" class="mb-4" />
-
-    <!-- Stacking group filter + tabs row -->
-    <div class="d-flex flex-wrap align-center gap-2 mb-4">
-      <v-tabs v-model="activeTab" color="primary" density="compact">
-        <v-tab value="active">Active <v-chip size="x-small" class="ml-1">{{ activeItems.length }}</v-chip></v-tab>
-        <v-tab value="paused">Paused <v-chip size="x-small" class="ml-1">{{ pausedItems.length }}</v-chip></v-tab>
-        <v-tab value="ended">Ended <v-chip size="x-small" class="ml-1">{{ endedItems.length }}</v-chip></v-tab>
-        <v-tab v-if="!mobile" value="performance">Performance</v-tab>
-      </v-tabs>
-      <v-spacer />
-      <v-select
-        v-model="stackingGroupFilter"
-        :items="stackingGroupFilterItems"
-        variant="outlined"
-        density="compact"
-        hide-details
-        style="max-width: 200px; min-width: 140px"
-      />
     </div>
 
     <!-- Bulk actions toolbar -->
