@@ -43,6 +43,54 @@
       @update:model-value="onSearch"
     />
 
+    <!-- Filter bar -->
+    <div class="d-flex align-center flex-wrap gap-2 mb-4">
+      <span class="text-caption text-medium-emphasis mr-1">Type:</span>
+      <v-chip
+        v-for="t in availableTypes"
+        :key="t"
+        :color="typeFilter.includes(t) ? 'primary' : undefined"
+        :variant="typeFilter.includes(t) ? 'flat' : 'outlined'"
+        size="small"
+        style="cursor:pointer"
+        @click="toggleType(t)"
+      >{{ typeLabel(t) }}</v-chip>
+
+      <v-divider v-if="!mobile" vertical class="mx-1" style="align-self:stretch; opacity:.3" />
+
+      <v-select
+        v-model="createdByFilter"
+        :items="createdByFilterItems"
+        label="Created by"
+        variant="outlined"
+        density="compact"
+        hide-details
+        style="max-width: 160px; min-width: 130px"
+      />
+
+      <v-select
+        v-model="dateFilter"
+        :items="dateFilterItems"
+        label="Date"
+        variant="outlined"
+        density="compact"
+        hide-details
+        style="max-width: 175px; min-width: 145px"
+      />
+
+      <v-btn
+        v-if="hasActiveFilters"
+        variant="text"
+        size="small"
+        color="primary"
+        @click="clearFilters"
+      >
+        <v-icon size="16" class="mr-1">mdi-close-circle</v-icon>
+        Clear filters
+        <v-chip size="x-small" color="primary" class="ml-1">{{ activeFilterCount }}</v-chip>
+      </v-btn>
+    </div>
+
     <AiRecommendationsPanel class="mb-4" />
 
     <RulePriorityPreview :rules="store.items" :groups="sgStore.items" class="mb-4" />
@@ -249,6 +297,9 @@ const conflictsMap = computed(() => detectConflicts(store.items))
 const search = ref('')
 const activeTab = ref('active')
 const stackingGroupFilter = ref('all')
+const typeFilter = ref([])
+const createdByFilter = ref('')
+const dateFilter = ref('any')
 const deleteDialog = ref(false)
 const deletingItem = ref(null)
 const deleting = ref(false)
@@ -262,23 +313,26 @@ const bulkSnackText = ref('')
 
 // Tab computed lists
 const endedItems = computed(() =>
-  applyStackingFilter(store.items.filter(r => r.status === 'ended'))
+  applyFiltersAll(store.items.filter(r => r.status === 'ended'))
 )
 const activeItems = computed(() =>
-  applyStackingFilter(store.items.filter(r => r.status === 'active' || r.status === 'scheduled'))
+  applyFiltersAll(store.items.filter(r => r.status === 'active' || r.status === 'scheduled'))
 )
 const pausedItems = computed(() =>
-  applyStackingFilter(store.items.filter(r => r.status === 'paused' || r.status === 'draft'))
+  applyFiltersAll(store.items.filter(r => r.status === 'paused' || r.status === 'draft'))
 )
 const performanceItems = computed(() =>
-  [...store.items]
-    .filter(r => r.performance !== undefined)
+  applyFilters([...store.items].filter(r => r.performance !== undefined))
     .sort((a, b) => (b.performance ?? 0) - (a.performance ?? 0))
 )
 
 function applyStackingFilter(rules) {
   if (stackingGroupFilter.value === 'all') return rules
   return rules.filter(r => r.stackingGroupId === stackingGroupFilter.value)
+}
+
+function applyFiltersAll(rules) {
+  return applyFilters(applyStackingFilter(rules))
 }
 
 const tabItems = computed(() => {
@@ -292,6 +346,85 @@ const stackingGroupFilterItems = computed(() => [
   { value: 'all', title: 'All groups' },
   ...sgStore.items.map(g => ({ value: g.id, title: g.name })),
 ])
+
+// ── Extra filters ──────────────────────────────────────────────────────────
+
+const TYPE_LABELS = {
+  discount: 'Discount',
+  gift: 'Gift',
+  multi_buy: 'Multi-buy',
+  step_discount: 'Step discount',
+}
+function typeLabel(t) { return TYPE_LABELS[t] ?? t }
+
+const availableTypes = computed(() =>
+  [...new Set(store.items.map(r => r.type))].sort()
+)
+
+const createdByFilterItems = computed(() => [
+  { value: '', title: 'All creators' },
+  ...[...new Set(store.items.map(r => r.createdBy).filter(Boolean))].sort()
+    .map(c => ({ value: c, title: c })),
+])
+
+const dateFilterItems = [
+  { value: 'any', title: 'Any date' },
+  { value: 'active_now', title: 'Active now' },
+  { value: 'no_end_date', title: 'No end date' },
+  { value: 'expiring_soon', title: 'Expiring in 7 days' },
+]
+
+function toggleType(t) {
+  const idx = typeFilter.value.indexOf(t)
+  if (idx === -1) typeFilter.value.push(t)
+  else typeFilter.value.splice(idx, 1)
+}
+
+const hasActiveFilters = computed(() =>
+  typeFilter.value.length > 0 || createdByFilter.value !== '' || dateFilter.value !== 'any'
+)
+
+const activeFilterCount = computed(() => {
+  let n = 0
+  if (typeFilter.value.length) n++
+  if (createdByFilter.value) n++
+  if (dateFilter.value !== 'any') n++
+  return n
+})
+
+function clearFilters() {
+  typeFilter.value = []
+  createdByFilter.value = ''
+  dateFilter.value = 'any'
+}
+
+function applyFilters(rules) {
+  let result = rules
+  if (typeFilter.value.length) {
+    result = result.filter(r => typeFilter.value.includes(r.type))
+  }
+  if (createdByFilter.value) {
+    result = result.filter(r => r.createdBy === createdByFilter.value)
+  }
+  if (dateFilter.value !== 'any') {
+    const now = new Date()
+    const soon = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000)
+    if (dateFilter.value === 'active_now') {
+      result = result.filter(r => {
+        const start = r.startDate ? new Date(r.startDate) : null
+        const end = r.endDate ? new Date(r.endDate) : null
+        return (!start || start <= now) && (!end || end >= now)
+      })
+    } else if (dateFilter.value === 'no_end_date') {
+      result = result.filter(r => !r.endDate)
+    } else if (dateFilter.value === 'expiring_soon') {
+      result = result.filter(r =>
+        r.endDate && new Date(r.endDate) >= now && new Date(r.endDate) <= soon
+      )
+    }
+  }
+  return result
+}
 
 function exportCSV() {
   downloadCSV(exportRulesToCSV(store.items), 'promotions.csv')

@@ -23,7 +23,7 @@
             :key="rec.id"
             border
             elevation="0"
-            class="pa-3 flex-grow-1"
+            class="pa-3 flex-grow-1 d-flex flex-column"
             style="min-width:240px;max-width:320px"
           >
             <div class="d-flex align-center gap-2 mb-2">
@@ -59,7 +59,7 @@
               size="small"
               :disabled="appliedIds.includes(rec.id)"
               :loading="applyingId === rec.id"
-              class="text-uppercase w-100"
+              class="text-uppercase w-100 mt-auto"
               @click="applyRecommendation(rec)"
             >
               <v-icon icon="mdi-check" class="mr-1" />
