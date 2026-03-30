@@ -203,8 +203,12 @@
           <span class="text-caption text-medium-emphasis">{{ item.createdBy ?? '—' }}</span>
         </template>
 
-        <template #item.updatedAt="{ item }">
-          <span class="text-medium-emphasis text-caption">{{ formatDate(item.updatedAt) }}</span>
+        <template #item.startDate="{ item }">
+          <span class="text-caption" :class="item.startDate ? '' : 'text-medium-emphasis'">{{ item.startDate ? formatDate(item.startDate) : '—' }}</span>
+        </template>
+
+        <template #item.endDate="{ item }">
+          <span class="text-caption" :class="item.endDate ? '' : 'text-medium-emphasis'">{{ item.endDate ? formatDate(item.endDate) : '—' }}</span>
         </template>
 
         <template #item.actions="{ item }">
@@ -460,7 +464,8 @@ const headers = computed(() => [
     { title: 'Type', key: 'type' },
     { title: 'Priority', key: 'priority' },
     { title: 'Created by', key: 'createdBy' },
-    { title: 'Updated', key: 'updatedAt' },
+    { title: 'Starts', key: 'startDate' },
+    { title: 'Ends', key: 'endDate' },
   ]),
   { title: 'Status', key: 'status' },
   { title: '', key: 'actions', sortable: false, width: 60 },
