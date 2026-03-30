@@ -5,25 +5,25 @@
     <v-breadcrumbs :items="breadcrumbs" density="compact" class="pa-0 mb-2" />
 
     <!-- Title row -->
-    <div class="d-flex align-center flex-wrap gap-4 mb-6 py-2">
+    <div class="d-flex align-center flex-wrap mb-6 py-2" style="gap: 12px">
       <h1 class="text-h5 font-weight-bold">Promotion rules overview</h1>
       <v-spacer />
       <v-btn
         v-if="!mobile"
         color="primary"
         prepend-icon="mdi-robot"
-        class="text-uppercase"
+        class="text-uppercase px-5"
         variant="outlined"
         @click="uiStore.openAiPanel()"
       >
         AI Assistant
       </v-btn>
-      <v-btn v-if="!mobile" variant="outlined" prepend-icon="mdi-download" @click="exportCSV">Export CSV</v-btn>
-      <v-btn v-if="!mobile" variant="outlined" prepend-icon="mdi-upload" @click="csvImportOpen = true">Import CSV</v-btn>
+      <v-btn v-if="!mobile" variant="outlined" class="px-5" prepend-icon="mdi-download" @click="exportCSV">Export CSV</v-btn>
+      <v-btn v-if="!mobile" variant="outlined" class="px-5" prepend-icon="mdi-upload" @click="csvImportOpen = true">Import CSV</v-btn>
       <v-btn
         color="primary"
         prepend-icon="mdi-plus"
-        class="text-uppercase"
+        class="text-uppercase px-5"
         to="/promotions/new"
       >
         New Rule
