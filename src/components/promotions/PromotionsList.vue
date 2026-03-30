@@ -462,7 +462,6 @@ const headers = computed(() => [
   { title: 'Name', key: 'name', sortable: true },
   ...(mobile.value ? [] : [
     { title: 'Type', key: 'type' },
-    { title: 'Priority', key: 'priority' },
     { title: 'Created by', key: 'createdBy' },
     { title: 'Starts', key: 'startDate' },
     { title: 'Ends', key: 'endDate' },
