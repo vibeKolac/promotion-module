@@ -52,6 +52,7 @@
       <v-tabs v-model="activeTab" color="primary" density="compact">
         <v-tab value="active">Active <v-chip size="x-small" class="ml-1">{{ activeItems.length }}</v-chip></v-tab>
         <v-tab value="paused">Paused <v-chip size="x-small" class="ml-1">{{ pausedItems.length }}</v-chip></v-tab>
+        <v-tab value="draft">Draft <v-chip size="x-small" class="ml-1">{{ draftItems.length }}</v-chip></v-tab>
         <v-tab value="ended">Ended <v-chip size="x-small" class="ml-1">{{ endedItems.length }}</v-chip></v-tab>
         <v-tab v-if="!mobile" value="performance">Performance</v-tab>
       </v-tabs>
@@ -149,6 +150,11 @@
         </div>
       </div>
     </v-card>
+
+    <!-- Draft tab banner -->
+    <v-alert v-if="activeTab === 'draft'" type="warning" variant="tonal" density="compact" class="mb-3" icon="mdi-pencil-outline">
+      Rules in draft are not applied at checkout. Activate them when ready to go live.
+    </v-alert>
 
     <!-- Ended tab banner -->
     <v-alert v-if="activeTab === 'ended'" type="info" variant="tonal" density="compact" class="mb-3" icon="mdi-history">
@@ -269,7 +275,7 @@
       @confirm="confirmBulkDelete"
     />
     <v-snackbar v-model="errorSnack" color="error" timeout="4000">{{ store.error }}</v-snackbar>
-    <v-snackbar v-model="duplicateSnack" color="success" timeout="3000">Rule duplicated — added to Paused tab</v-snackbar>
+    <v-snackbar v-model="duplicateSnack" color="success" timeout="3000">Rule duplicated — added to Draft tab</v-snackbar>
     <v-snackbar v-model="bulkSnack" color="success" timeout="3000">{{ bulkSnackText }}</v-snackbar>
   </v-container>
 </template>
@@ -323,7 +329,10 @@ const activeItems = computed(() =>
   applyFiltersAll(store.items.filter(r => r.status === 'active' || r.status === 'scheduled'))
 )
 const pausedItems = computed(() =>
-  applyFiltersAll(store.items.filter(r => r.status === 'paused' || r.status === 'draft'))
+  applyFiltersAll(store.items.filter(r => r.status === 'paused'))
+)
+const draftItems = computed(() =>
+  applyFiltersAll(store.items.filter(r => r.status === 'draft'))
 )
 const performanceItems = computed(() =>
   applyFilters([...store.items].filter(r => r.performance !== undefined))
@@ -341,6 +350,7 @@ function applyFiltersAll(rules) {
 
 const tabItems = computed(() => {
   if (activeTab.value === 'paused') return pausedItems.value
+  if (activeTab.value === 'draft') return draftItems.value
   if (activeTab.value === 'ended') return endedItems.value
   if (activeTab.value === 'performance') return performanceItems.value
   return activeItems.value
@@ -521,7 +531,7 @@ async function resumeRule(id) {
 }
 async function duplicateRule(id) {
   await store.duplicate(id)
-  activeTab.value = 'paused'
+  activeTab.value = 'draft'
   duplicateSnack.value = true
 }
 
@@ -544,9 +554,9 @@ async function bulkPause() {
 async function bulkDuplicate() {
   const count = selected.value.length
   await store.bulkDuplicate(selected.value)
-  bulkSnackText.value = `${count} rule${count > 1 ? 's' : ''} duplicated — added to Paused tab`
+  bulkSnackText.value = `${count} rule${count > 1 ? 's' : ''} duplicated — added to Draft tab`
   selected.value = []
-  activeTab.value = 'paused'
+  activeTab.value = 'draft'
   bulkSnack.value = true
 }
 
