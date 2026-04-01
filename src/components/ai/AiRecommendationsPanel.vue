@@ -17,14 +17,13 @@
 
     <v-expand-transition>
       <div v-if="expanded">
-        <div class="d-flex flex-wrap gap-3">
+        <div class="rec-grid">
           <v-card
             v-for="rec in recommendations"
             :key="rec.id"
             border
             elevation="0"
-            class="pa-3 flex-grow-1 d-flex flex-column"
-            style="min-width:240px;max-width:320px"
+            class="pa-4 d-flex flex-column"
           >
             <div class="d-flex align-center gap-2 mb-2">
               <v-chip
@@ -138,3 +137,11 @@ async function applyRecommendation(rec) {
   }
 }
 </script>
+
+<style scoped>
+.rec-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 16px;
+}
+</style>
