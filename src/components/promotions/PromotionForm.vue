@@ -299,6 +299,66 @@
           <GiftItemsSection v-model="draft.gifts" />
           <ConflictWarningBanner :conflicts="giftConflicts" />
         </div>
+
+        <!-- Conditions -->
+        <v-card border elevation="0" class="pa-5 mt-4">
+          <div class="d-flex align-center mb-4">
+            <span class="text-body-1 font-weight-bold flex-grow-1">Targeting conditions</span>
+            <v-btn
+              prepend-icon="mdi-plus"
+              variant="outlined"
+              color="primary"
+              size="small"
+              class="text-uppercase"
+              @click="openAddCondition"
+            >
+              Add condition
+            </v-btn>
+          </div>
+
+          <div v-if="draft.conditions.length" class="d-flex flex-wrap gap-2 mb-4">
+            <ConditionChip
+              v-for="(cond, idx) in draft.conditions"
+              :key="cond.id"
+              :condition="cond"
+              @edit="openEditCondition(idx)"
+              @remove="removeCondition(idx)"
+            />
+          </div>
+
+          <v-alert v-else type="info" variant="tonal" density="compact" icon="mdi-information">
+            No conditions set — this rule applies to all products.
+          </v-alert>
+
+          <ReachEstimateBar :conditions="draft.conditions" class="mt-3" />
+
+          <!-- Validation feedback -->
+          <template v-if="conditionValidation.warnings.length || conditionValidation.suggestions.length">
+            <v-alert
+              v-if="conditionValidation.warnings.length"
+              type="warning"
+              variant="tonal"
+              density="compact"
+              class="mt-3"
+            >
+              <ul class="ma-0 pl-4">
+                <li v-for="w in conditionValidation.warnings" :key="w">{{ w }}</li>
+              </ul>
+            </v-alert>
+            <v-alert
+              v-if="conditionValidation.suggestions.length"
+              color="purple"
+              variant="tonal"
+              density="compact"
+              icon="mdi-lightbulb"
+              class="mt-2"
+            >
+              <ul class="ma-0 pl-4">
+                <li v-for="s in conditionValidation.suggestions" :key="s">{{ s }}</li>
+              </ul>
+            </v-alert>
+          </template>
+        </v-card>
       </v-col>
 
       <!-- Right: Status + Stacking -->
@@ -348,66 +408,6 @@
         </v-card>
       </v-col>
     </v-row>
-
-    <!-- Conditions -->
-    <v-card border elevation="0" class="pa-5 mb-4">
-      <div class="d-flex align-center mb-4">
-        <span class="text-body-1 font-weight-bold flex-grow-1">Targeting conditions</span>
-        <v-btn
-          prepend-icon="mdi-plus"
-          variant="outlined"
-          color="primary"
-          size="small"
-          class="text-uppercase"
-          @click="openAddCondition"
-        >
-          Add condition
-        </v-btn>
-      </div>
-
-      <div v-if="draft.conditions.length" class="d-flex flex-wrap gap-2 mb-4">
-        <ConditionChip
-          v-for="(cond, idx) in draft.conditions"
-          :key="cond.id"
-          :condition="cond"
-          @edit="openEditCondition(idx)"
-          @remove="removeCondition(idx)"
-        />
-      </div>
-
-      <v-alert v-else type="info" variant="tonal" density="compact" icon="mdi-information">
-        No conditions set — this rule applies to all products.
-      </v-alert>
-
-      <ReachEstimateBar :conditions="draft.conditions" class="mt-3" />
-
-      <!-- Validation feedback -->
-      <template v-if="conditionValidation.warnings.length || conditionValidation.suggestions.length">
-        <v-alert
-          v-if="conditionValidation.warnings.length"
-          type="warning"
-          variant="tonal"
-          density="compact"
-          class="mt-3"
-        >
-          <ul class="ma-0 pl-4">
-            <li v-for="w in conditionValidation.warnings" :key="w">{{ w }}</li>
-          </ul>
-        </v-alert>
-        <v-alert
-          v-if="conditionValidation.suggestions.length"
-          color="purple"
-          variant="tonal"
-          density="compact"
-          icon="mdi-lightbulb"
-          class="mt-2"
-        >
-          <ul class="ma-0 pl-4">
-            <li v-for="s in conditionValidation.suggestions" :key="s">{{ s }}</li>
-          </ul>
-        </v-alert>
-      </template>
-    </v-card>
 
     <v-snackbar :model-value="!!saveError" color="error" timeout="6000" @update:model-value="saveError = null">{{ saveError }}</v-snackbar>
 
