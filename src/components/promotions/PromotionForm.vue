@@ -334,9 +334,17 @@
           />
         </v-card>
 
-        <v-card border elevation="0" class="pa-5">
+        <v-card border elevation="0" class="pa-5 mb-4">
           <div class="text-body-1 font-weight-bold mb-4">Stacking group</div>
           <StackingGroupSelect v-model="draft.stackingGroupId" />
+        </v-card>
+
+        <v-card border elevation="0" class="pa-5">
+          <div class="text-body-1 font-weight-bold mb-1">Non-combinable rules</div>
+          <p class="text-caption text-medium-emphasis mb-4">
+            Rules and groups listed here cannot apply together with this rule in the same cart.
+          </p>
+          <NonCombinableRulesSection v-model="draft.nonCombinableRules" />
         </v-card>
       </v-col>
     </v-row>
@@ -427,6 +435,7 @@ import StepDiscountEditor from './StepDiscountEditor.vue'
 import GiftItemsSection from './GiftItemsSection.vue'
 import ConflictWarningBanner from './ConflictWarningBanner.vue'
 import StackingGroupSelect from './StackingGroupSelect.vue'
+import NonCombinableRulesSection from './NonCombinableRulesSection.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -550,7 +559,10 @@ async function save() {
 }
 
 onMounted(async () => {
-  await sgStore.fetchAll()
+  await Promise.all([
+    sgStore.fetchAll(),
+    store.fetchAll(),
+  ])
   if (isEdit.value) {
     await store.fetchOne(route.params.id)
   } else if (!route.query.fromTemplate) {

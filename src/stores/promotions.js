@@ -16,6 +16,7 @@ const emptyDraft = () => ({
   giftStepType: 'SPENT', giftStepValue: '', giftMaxSteps: '',
   multiBuyQty: '', multiFreeQty: '', multiFreePrice: 0.01,
   multiSelectionMode: 'CHEAPEST', multiMaxSteps: '',
+  nonCombinableRules: [],
 })
 
 export const usePromotionsStore = defineStore('promotions', () => {
