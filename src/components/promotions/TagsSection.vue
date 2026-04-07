@@ -34,6 +34,23 @@
         >
           <v-icon v-if="modelValue.includes(tag.id)" start size="14">mdi-check</v-icon>
           {{ tag.name }}
+          <v-tooltip v-if="modelValue.includes(tag.id)" location="top">
+            <template #activator="{ props: tp }">
+              <v-icon
+                v-bind="tp"
+                end
+                size="14"
+                style="pointer-events: auto"
+                @click.stop="toggleVisibility(tag)"
+              >
+                {{ tag.visibleOnFrontend ? 'mdi-eye-outline' : 'mdi-eye-off-outline' }}
+              </v-icon>
+            </template>
+            <span>
+              {{ tag.visibleOnFrontend ? 'Visible on frontend' : 'Internal only' }} — click to
+              {{ tag.visibleOnFrontend ? 'make internal only' : 'make visible on frontend' }}
+            </span>
+          </v-tooltip>
         </v-chip>
       </div>
 
@@ -133,6 +150,10 @@ function toggle(id) {
   if (idx === -1) current.push(id)
   else current.splice(idx, 1)
   emit('update:modelValue', current)
+}
+
+async function toggleVisibility(tag) {
+  await tagsStore.update(tag.id, { ...tag, visibleOnFrontend: !tag.visibleOnFrontend })
 }
 
 // Inline create
