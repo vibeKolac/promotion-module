@@ -27,7 +27,18 @@
               <div class="tag-dot mr-3" :style="`background: ${tag.color}`" />
             </template>
 
-            <v-list-item-title class="font-weight-medium">{{ tag.name }}</v-list-item-title>
+            <v-list-item-title class="font-weight-medium d-flex align-center gap-2">
+              {{ tag.name }}
+              <v-chip
+                size="x-small"
+                :color="tag.visibleOnFrontend ? 'primary' : 'default'"
+                :variant="tag.visibleOnFrontend ? 'tonal' : 'outlined'"
+                label
+              >
+                <v-icon start size="11">{{ tag.visibleOnFrontend ? 'mdi-eye-outline' : 'mdi-eye-off-outline' }}</v-icon>
+                {{ tag.visibleOnFrontend ? 'Visible on frontend' : 'Internal only' }}
+              </v-chip>
+            </v-list-item-title>
             <v-list-item-subtitle>
               <span v-if="usageMap[tag.id]?.total">
                 {{ usageMap[tag.id].total }} rule{{ usageMap[tag.id].total > 1 ? 's' : '' }}
@@ -81,17 +92,36 @@
             variant="outlined"
             density="compact"
             autofocus
-            class="mb-3"
+            class="mb-4"
             :error-messages="formError ? [formError] : []"
           />
+
           <div class="text-caption text-medium-emphasis mb-2">Color</div>
-          <div class="d-flex flex-wrap gap-2">
+          <div class="d-flex flex-wrap gap-2 mb-4">
             <div
               v-for="c in PALETTE"
               :key="c"
               class="color-swatch cursor-pointer"
               :style="`background: ${c}; outline: ${form.color === c ? '3px solid #1e293b' : '2px solid transparent'}; outline-offset: 2px`"
               @click="form.color = c"
+            />
+          </div>
+
+          <v-divider class="mb-4" />
+
+          <div class="d-flex align-center justify-space-between">
+            <div>
+              <div class="text-body-2 font-weight-medium">Visible on frontend</div>
+              <div class="text-caption text-medium-emphasis">
+                {{ form.visibleOnFrontend ? 'Tag is shown to customers in the storefront.' : 'Internal use only — not shown to customers.' }}
+              </div>
+            </div>
+            <v-switch
+              v-model="form.visibleOnFrontend"
+              color="primary"
+              hide-details
+              density="compact"
+              inset
             />
           </div>
         </v-card-text>
@@ -157,12 +187,13 @@ const formDialog = ref(false)
 const editingTag = ref(null)
 const saving = ref(false)
 const formError = ref(null)
-const form = reactive({ name: '', color: PALETTE[0] })
+const form = reactive({ name: '', color: PALETTE[0], visibleOnFrontend: true })
 
 function openCreate() {
   editingTag.value = null
   form.name = ''
   form.color = PALETTE[0]
+  form.visibleOnFrontend = true
   formError.value = null
   formDialog.value = true
 }
@@ -171,6 +202,7 @@ function openEdit(tag) {
   editingTag.value = tag
   form.name = tag.name
   form.color = tag.color ?? PALETTE[0]
+  form.visibleOnFrontend = tag.visibleOnFrontend ?? true
   formError.value = null
   formDialog.value = true
 }
@@ -188,10 +220,11 @@ async function submitForm() {
   formError.value = null
   saving.value = true
   try {
+    const payload = { name: form.name.trim(), color: form.color, visibleOnFrontend: form.visibleOnFrontend }
     if (editingTag.value) {
-      await tagsStore.update(editingTag.value.id, { name: form.name.trim(), color: form.color })
+      await tagsStore.update(editingTag.value.id, payload)
     } else {
-      await tagsStore.create({ name: form.name.trim(), color: form.color })
+      await tagsStore.create(payload)
     }
     savedSnack.value = true
     closeForm()

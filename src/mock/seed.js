@@ -2,10 +2,10 @@
 // Kept in sync manually. Switch VITE_USE_MOCK to toggle between this and the real API.
 
 export const tags = [
-  { id: 'tag-1', name: 'Flash Sale', color: '#EF4444' },
-  { id: 'tag-2', name: 'Loyalty', color: '#10B981' },
-  { id: 'tag-3', name: 'Seasonal', color: '#F59E0B' },
-  { id: 'tag-4', name: 'Brand Deal', color: '#6366F1' },
+  { id: 'tag-1', name: 'Flash Sale', color: '#EF4444', visibleOnFrontend: true },
+  { id: 'tag-2', name: 'Loyalty', color: '#10B981', visibleOnFrontend: true },
+  { id: 'tag-3', name: 'Seasonal', color: '#F59E0B', visibleOnFrontend: true },
+  { id: 'tag-4', name: 'Brand Deal', color: '#6366F1', visibleOnFrontend: false },
 ]
 
 export const promotions = [
