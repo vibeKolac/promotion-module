@@ -6,13 +6,14 @@
 import MockAdapter from 'axios-mock-adapter'
 import axios from 'axios'
 import { v4 as uuid } from 'uuid'
-import { promotions as seedPromotions, stackingGroups as seedGroups, templates as seedTemplates } from './seed.js'
+import { promotions as seedPromotions, stackingGroups as seedGroups, templates as seedTemplates, tags as seedTags } from './seed.js'
 
 // Mutable in-memory copies — survive the session, reset on hard reload
 const db = {
   promotions: structuredClone(seedPromotions),
   stackingGroups: structuredClone(seedGroups),
   templates: structuredClone(seedTemplates),
+  tags: structuredClone(seedTags),
 }
 
 function now() { return new Date().toISOString() }
@@ -87,6 +88,41 @@ export function installMock() {
   // ── Templates ───────────────────────────────────────────────────────────────
 
   mock.onGet('/api/templates').reply(() => [200, db.templates])
+
+  // ── Tags ────────────────────────────────────────────────────────────────────
+
+  mock.onGet('/api/tags').reply(() => [200, db.tags])
+
+  mock.onPost('/api/tags').reply(config => {
+    const body = JSON.parse(config.data)
+    const item = { id: uuid(), ...body }
+    db.tags.push(item)
+    return [201, item]
+  })
+
+  mock.onPut(/\/api\/tags\/(.+)/).reply(config => {
+    const id = config.url.split('/').pop()
+    const idx = db.tags.findIndex(t => t.id === id)
+    if (idx === -1) return [404, { error: 'Not found' }]
+    const activeRules = db.promotions.filter(p => p.status === 'active' && (p.tags ?? []).includes(id))
+    if (activeRules.length) {
+      return [409, { error: `Tag is applied on ${activeRules.length} active rule(s): ${activeRules.map(r => r.name).join(', ')}` }]
+    }
+    db.tags[idx] = { ...db.tags[idx], ...JSON.parse(config.data) }
+    return [200, db.tags[idx]]
+  })
+
+  mock.onDelete(/\/api\/tags\/(.+)/).reply(config => {
+    const id = config.url.split('/').pop()
+    const activeRules = db.promotions.filter(p => p.status === 'active' && (p.tags ?? []).includes(id))
+    if (activeRules.length) {
+      return [409, { error: `Tag is applied on ${activeRules.length} active rule(s): ${activeRules.map(r => r.name).join(', ')}` }]
+    }
+    db.tags = db.tags.filter(t => t.id !== id)
+    // Remove tag from all promotions
+    db.promotions.forEach(p => { p.tags = (p.tags ?? []).filter(t => t !== id) })
+    return [204]
+  })
 
   // ── Passthrough anything else ───────────────────────────────────────────────
   mock.onAny().passThrough()

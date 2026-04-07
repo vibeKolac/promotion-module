@@ -399,13 +399,15 @@
           <StackingGroupSelect v-model="draft.stackingGroupId" />
         </v-card>
 
-        <v-card border elevation="0" class="pa-5">
+        <v-card border elevation="0" class="pa-5 mb-4">
           <div class="text-body-1 font-weight-bold mb-1">Non-combinable rules</div>
           <p class="text-caption text-medium-emphasis mb-4">
             Rules and groups listed here cannot apply together with this rule in the same cart.
           </p>
           <NonCombinableRulesSection v-model="draft.nonCombinableRules" />
         </v-card>
+
+        <TagsSection v-model="draft.tags" />
       </v-col>
     </v-row>
 
@@ -436,6 +438,7 @@ import GiftItemsSection from './GiftItemsSection.vue'
 import ConflictWarningBanner from './ConflictWarningBanner.vue'
 import StackingGroupSelect from './StackingGroupSelect.vue'
 import NonCombinableRulesSection from './NonCombinableRulesSection.vue'
+import TagsSection from './TagsSection.vue'
 
 const route = useRoute()
 const router = useRouter()

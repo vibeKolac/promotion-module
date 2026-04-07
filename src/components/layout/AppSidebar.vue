@@ -40,5 +40,6 @@ const navItems = [
   { to: '/promotions', icon: 'mdi-tag-multiple', title: 'Promotion Rules' },
   { to: '/stacking-groups', icon: 'mdi-layers', title: 'Stacking Groups' },
   { to: '/templates', icon: 'mdi-file-document-outline', title: 'Templates' },
+  { to: '/tags', icon: 'mdi-label-outline', title: 'Tags' },
 ]
 </script>

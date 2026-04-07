@@ -11,6 +11,7 @@ const emptyDraft = () => ({
   stackingGroupId: 'sg-default', conditions: [], gifts: [],
   exclusive: false,
   processingOrder: null,
+  tags: [],
   stepType: 'SPENT',
   stepMaxSteps: '',
   giftStepType: 'SPENT', giftStepValue: '', giftMaxSteps: '',

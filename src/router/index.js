@@ -22,6 +22,10 @@ const routes = [
     path: '/templates',
     component: () => import('../components/templates/TemplatesPage.vue'),
   },
+  {
+    path: '/tags',
+    component: () => import('../components/tags/TagsPage.vue'),
+  },
 ]
 
 export default createRouter({ history: createWebHistory(), routes })
