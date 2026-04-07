@@ -20,7 +20,7 @@
         class="mb-3"
       />
 
-      <!-- Tag chips -->
+      <!-- Tag chips — click to apply / remove -->
       <div v-if="filteredTags.length" class="d-flex flex-wrap gap-2 mb-3">
         <v-chip
           v-for="tag in filteredTags"
@@ -34,23 +34,6 @@
         >
           <v-icon v-if="modelValue.includes(tag.id)" start size="14">mdi-check</v-icon>
           {{ tag.name }}
-          <v-tooltip v-if="modelValue.includes(tag.id)" location="top">
-            <template #activator="{ props: tp }">
-              <v-icon
-                v-bind="tp"
-                end
-                size="14"
-                style="pointer-events: auto"
-                @click.stop="toggleVisibility(tag)"
-              >
-                {{ tag.visibleOnFrontend ? 'mdi-eye-outline' : 'mdi-eye-off-outline' }}
-              </v-icon>
-            </template>
-            <span>
-              {{ tag.visibleOnFrontend ? 'Visible on frontend' : 'Internal only' }} — click to
-              {{ tag.visibleOnFrontend ? 'make internal only' : 'make visible on frontend' }}
-            </span>
-          </v-tooltip>
         </v-chip>
       </div>
 
@@ -61,7 +44,38 @@
         No tags match "{{ search }}".
       </p>
 
+      <!-- Applied tags — visibility control -->
+      <template v-if="appliedTags.length">
+        <v-divider class="my-3" />
+        <div class="text-caption font-weight-medium text-medium-emphasis mb-2 text-uppercase">Applied tags</div>
+        <div class="d-flex flex-column gap-1">
+          <div
+            v-for="tag in appliedTags"
+            :key="tag.id"
+            class="d-flex align-center gap-2"
+          >
+            <div class="tag-dot flex-shrink-0" :style="`background: ${tag.color}`" />
+            <span class="text-body-2 flex-grow-1">{{ tag.name }}</span>
+            <v-tooltip location="left">
+              <template #activator="{ props: tp }">
+                <v-btn
+                  v-bind="tp"
+                  :icon="tag.visibleOnFrontend ? 'mdi-eye-outline' : 'mdi-eye-off-outline'"
+                  :color="tag.visibleOnFrontend ? 'primary' : 'default'"
+                  variant="text"
+                  size="x-small"
+                  :loading="togglingId === tag.id"
+                  @click="toggleVisibility(tag)"
+                />
+              </template>
+              {{ tag.visibleOnFrontend ? 'Visible on frontend — click to make internal only' : 'Internal only — click to make visible on frontend' }}
+            </v-tooltip>
+          </div>
+        </div>
+      </template>
+
       <!-- Inline create -->
+      <v-divider class="my-3" />
       <template v-if="!creatingNew">
         <v-btn
           variant="text"
@@ -75,7 +89,7 @@
         </v-btn>
       </template>
 
-      <div v-else class="mt-2 pa-3 rounded border create-inline">
+      <div v-else class="pa-3 rounded border create-inline">
         <div class="text-caption font-weight-medium mb-2">New tag</div>
         <v-text-field
           v-model="newName"
@@ -103,13 +117,9 @@
         <div v-if="createError" class="text-caption text-error mt-1">{{ createError }}</div>
       </div>
 
-      <!-- Footer hint -->
-      <div v-if="modelValue.length && !creatingNew" class="text-caption text-medium-emphasis mt-2">
-        {{ modelValue.length }} tag{{ modelValue.length > 1 ? 's' : '' }} applied
-        — <router-link to="/tags" class="text-decoration-none text-primary">Manage tags</router-link>
-      </div>
-      <div v-else-if="tagsStore.items.length && !creatingNew" class="text-caption text-medium-emphasis mt-1">
-        <router-link to="/tags" class="text-decoration-none text-primary">Manage tags</router-link>
+      <!-- Footer -->
+      <div v-if="!creatingNew" class="text-caption text-medium-emphasis mt-2">
+        <router-link to="/tags" class="text-decoration-none text-primary">Manage all tags</router-link>
       </div>
     </template>
   </v-card>
@@ -131,7 +141,6 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue'])
 
 const tagsStore = useTagsStore()
-
 const search = ref('')
 
 const filteredTags = computed(() => {
@@ -144,6 +153,10 @@ const exactMatch = computed(() =>
   tagsStore.items.some(t => t.name.toLowerCase() === search.value.toLowerCase())
 )
 
+const appliedTags = computed(() =>
+  tagsStore.items.filter(t => props.modelValue.includes(t.id))
+)
+
 function toggle(id) {
   const current = [...props.modelValue]
   const idx = current.indexOf(id)
@@ -152,8 +165,15 @@ function toggle(id) {
   emit('update:modelValue', current)
 }
 
+const togglingId = ref(null)
+
 async function toggleVisibility(tag) {
-  await tagsStore.update(tag.id, { ...tag, visibleOnFrontend: !tag.visibleOnFrontend })
+  togglingId.value = tag.id
+  try {
+    await tagsStore.update(tag.id, { ...tag, visibleOnFrontend: !tag.visibleOnFrontend })
+  } finally {
+    togglingId.value = null
+  }
 }
 
 // Inline create
@@ -201,6 +221,12 @@ onMounted(() => {
 </script>
 
 <style scoped>
+.tag-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+}
 .color-swatch {
   width: 22px;
   height: 22px;
