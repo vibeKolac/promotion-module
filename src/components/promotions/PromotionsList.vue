@@ -80,6 +80,24 @@
         @click="toggleType(t)"
       >{{ typeLabel(t) }}</v-chip>
 
+      <v-divider v-if="!mobile && tagsStore.items.length" vertical class="mx-1" style="align-self:stretch; opacity:.3" />
+
+      <template v-if="tagsStore.items.length">
+        <span class="text-caption text-medium-emphasis mr-1">Tags:</span>
+        <v-chip
+          v-for="tag in tagsStore.items"
+          :key="tag.id"
+          :color="tagFilter.includes(tag.id) ? tag.color : undefined"
+          :variant="tagFilter.includes(tag.id) ? 'flat' : 'outlined'"
+          size="small"
+          style="cursor:pointer"
+          @click="toggleTag(tag.id)"
+        >
+          <v-icon v-if="tagFilter.includes(tag.id)" start size="12">mdi-check</v-icon>
+          {{ tag.name }}
+        </v-chip>
+      </template>
+
       <v-divider v-if="!mobile" vertical class="mx-1" style="align-self:stretch; opacity:.3" />
 
       <v-select
@@ -209,6 +227,24 @@
           <span class="text-caption text-medium-emphasis">{{ item.createdBy ?? '—' }}</span>
         </template>
 
+        <template #item.tags="{ item }">
+          <div class="d-flex flex-wrap gap-1 py-1">
+            <template v-if="(item.tags ?? []).length">
+              <v-chip
+                v-for="tagId in item.tags"
+                :key="tagId"
+                :color="tagsStore.items.find(t => t.id === tagId)?.color"
+                size="x-small"
+                label
+                variant="flat"
+              >
+                {{ tagsStore.items.find(t => t.id === tagId)?.name ?? tagId }}
+              </v-chip>
+            </template>
+            <span v-else class="text-caption text-medium-emphasis">—</span>
+          </div>
+        </template>
+
         <template #item.startDate="{ item }">
           <span class="text-caption" :class="item.startDate ? '' : 'text-medium-emphasis'">{{ item.startDate ? formatDate(item.startDate) : '—' }}</span>
         </template>
@@ -286,6 +322,7 @@ import { useDisplay } from 'vuetify'
 import { usePromotionsStore } from '../../stores/promotions'
 import { useUiStore } from '../../stores/ui'
 import { useStackingGroupsStore } from '../../stores/stackingGroups'
+import { useTagsStore } from '../../stores/tags'
 import StatusBadge from '../shared/StatusBadge.vue'
 import ConfirmDeleteDialog from '../shared/ConfirmDeleteDialog.vue'
 import { useDebounceFn } from '@vueuse/core'
@@ -300,6 +337,7 @@ import AiRecommendationsPanel from '../ai/AiRecommendationsPanel.vue'
 const store = usePromotionsStore()
 const uiStore = useUiStore()
 const sgStore = useStackingGroupsStore()
+const tagsStore = useTagsStore()
 const { mobile } = useDisplay()
 
 const conflictsMap = computed(() => detectConflicts(store.items))
@@ -308,6 +346,7 @@ const search = ref('')
 const activeTab = ref('active')
 const stackingGroupFilter = ref('all')
 const typeFilter = ref([])
+const tagFilter = ref([])
 const createdByFilter = ref('')
 const dateFilter = ref('any')
 const deleteDialog = ref(false)
@@ -394,13 +433,20 @@ function toggleType(t) {
   else typeFilter.value.splice(idx, 1)
 }
 
+function toggleTag(id) {
+  const idx = tagFilter.value.indexOf(id)
+  if (idx === -1) tagFilter.value.push(id)
+  else tagFilter.value.splice(idx, 1)
+}
+
 const hasActiveFilters = computed(() =>
-  typeFilter.value.length > 0 || createdByFilter.value !== '' || dateFilter.value !== 'any'
+  typeFilter.value.length > 0 || tagFilter.value.length > 0 || createdByFilter.value !== '' || dateFilter.value !== 'any'
 )
 
 const activeFilterCount = computed(() => {
   let n = 0
   if (typeFilter.value.length) n++
+  if (tagFilter.value.length) n++
   if (createdByFilter.value) n++
   if (dateFilter.value !== 'any') n++
   return n
@@ -408,6 +454,7 @@ const activeFilterCount = computed(() => {
 
 function clearFilters() {
   typeFilter.value = []
+  tagFilter.value = []
   createdByFilter.value = ''
   dateFilter.value = 'any'
 }
@@ -416,6 +463,9 @@ function applyFilters(rules) {
   let result = rules
   if (typeFilter.value.length) {
     result = result.filter(r => typeFilter.value.includes(r.type))
+  }
+  if (tagFilter.value.length) {
+    result = result.filter(r => tagFilter.value.every(tid => (r.tags ?? []).includes(tid)))
   }
   if (createdByFilter.value) {
     result = result.filter(r => r.createdBy === createdByFilter.value)
@@ -473,6 +523,7 @@ const headers = computed(() => [
   ...(mobile.value ? [] : [
     { title: 'Type', key: 'type' },
     { title: 'Created by', key: 'createdBy' },
+    { title: 'Tags', key: 'tags', sortable: false },
     { title: 'Starts', key: 'startDate' },
     { title: 'Ends', key: 'endDate' },
   ]),
@@ -487,6 +538,7 @@ const performanceHeaders = computed(() => [
     { title: 'Performance', key: 'performance', sortable: true },
     { title: 'Revenue', key: 'revenue' },
     { title: 'Created by', key: 'createdBy' },
+    { title: 'Tags', key: 'tags', sortable: false },
   ]),
   { title: '', key: 'actions', sortable: false, width: 60 },
 ])
@@ -506,8 +558,7 @@ function fetchData() {
 
 watch(search, onSearch)
 onMounted(async () => {
-  await store.fetchAll()
-  await sgStore.fetchAll()
+  await Promise.all([store.fetchAll(), sgStore.fetchAll(), tagsStore.fetchAll()])
 })
 
 function openDelete(item) {
