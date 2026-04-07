@@ -110,6 +110,21 @@
             @click="newColor = c"
           />
         </div>
+        <div class="d-flex align-center justify-space-between mb-3">
+          <div>
+            <div class="text-caption font-weight-medium">Visible on frontend</div>
+            <div class="text-caption text-medium-emphasis">
+              {{ newVisibleOnFrontend ? 'Shown to customers in the storefront' : 'Internal use only' }}
+            </div>
+          </div>
+          <v-switch
+            v-model="newVisibleOnFrontend"
+            color="primary"
+            hide-details
+            density="compact"
+            inset
+          />
+        </div>
         <div class="d-flex gap-2 justify-end">
           <v-btn variant="text" size="small" @click="cancelCreate">Cancel</v-btn>
           <v-btn color="primary" variant="flat" size="small" :loading="creating" @click="submitCreate">Create</v-btn>
@@ -180,12 +195,14 @@ async function toggleVisibility(tag) {
 const creatingNew = ref(false)
 const newName = ref('')
 const newColor = ref(PALETTE[0])
+const newVisibleOnFrontend = ref(true)
 const creating = ref(false)
 const createError = ref(null)
 
 function openCreate() {
   newName.value = search.value
   newColor.value = PALETTE[0]
+  newVisibleOnFrontend.value = true
   createError.value = null
   creatingNew.value = true
 }
@@ -204,7 +221,7 @@ async function submitCreate() {
   createError.value = null
   creating.value = true
   try {
-    const tag = await tagsStore.create({ name: newName.value.trim(), color: newColor.value, visibleOnFrontend: true })
+    const tag = await tagsStore.create({ name: newName.value.trim(), color: newColor.value, visibleOnFrontend: newVisibleOnFrontend.value })
     emit('update:modelValue', [...props.modelValue, tag.id])
     search.value = ''
     cancelCreate()
