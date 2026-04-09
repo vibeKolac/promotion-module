@@ -26,17 +26,6 @@
             style="max-width: 80px"
             @update:model-value="update(idx, 'quantity', Number($event))"
           />
-          <v-text-field
-            :model-value="gift.price"
-            label="Price"
-            prefix="$"
-            type="number"
-            variant="outlined"
-            density="compact"
-            hide-details
-            style="max-width: 100px"
-            @update:model-value="update(idx, 'price', Number($event))"
-          />
           <v-btn icon="mdi-delete" variant="text" color="error" size="small" @click="remove(idx)" />
         </div>
         <v-btn prepend-icon="mdi-plus" variant="text" color="primary" size="small" @click="add">
@@ -66,6 +55,6 @@ function remove(idx) {
 }
 
 function add() {
-  emit('update:modelValue', [...props.modelValue, { id: uuid(), sku: '', quantity: 1, price: 0 }])
+  emit('update:modelValue', [...props.modelValue, { id: uuid(), sku: '', quantity: 1 }])
 }
 </script>

@@ -8,6 +8,8 @@ const emptyDraft = () => ({
   amountType: 'PERCENT_CART',
   steps: [], priority: 10, status: 'draft',
   startDate: null, endDate: null,
+  description: '',
+  labelDescription: '',
   stackingGroupId: 'sg-default', conditions: [], gifts: [],
   exclusive: false,
   processingOrder: null,
@@ -15,7 +17,8 @@ const emptyDraft = () => ({
   stepType: 'SPENT',
   stepMaxSteps: '',
   giftStepType: 'SPENT', giftStepValue: '', giftMaxSteps: '',
-  multiBuyQty: '', multiFreeQty: '', multiFreePrice: 0.01,
+  channels: ['web', 'mobile_app'],
+  multiBuyQty: '', multiFreeQty: '',
   multiSelectionMode: 'CHEAPEST', multiMaxSteps: '',
   nonCombinableRules: [],
 })

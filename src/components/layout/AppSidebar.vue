@@ -24,6 +24,22 @@
         active-color="primary"
         @click="mobile && $emit('update:modelValue', false)"
       />
+
+      <v-divider class="my-2" />
+      <v-list-subheader class="text-uppercase text-caption font-weight-bold">
+        Settings
+      </v-list-subheader>
+
+      <v-list-item
+        v-for="item in settingsItems"
+        :key="item.to"
+        :to="item.to"
+        :prepend-icon="item.icon"
+        :title="item.title"
+        rounded="sm"
+        active-color="primary"
+        @click="mobile && $emit('update:modelValue', false)"
+      />
     </v-list>
   </v-navigation-drawer>
 </template>
@@ -41,5 +57,9 @@ const navItems = [
   { to: '/stacking-groups', icon: 'mdi-layers', title: 'Stacking Groups' },
   { to: '/templates', icon: 'mdi-file-document-outline', title: 'Templates' },
   { to: '/tags', icon: 'mdi-label-outline', title: 'Tags' },
+]
+
+const settingsItems = [
+  { to: '/settings/accounting', icon: 'mdi-calculator', title: 'Accounting' },
 ]
 </script>

@@ -26,6 +26,10 @@ const routes = [
     path: '/tags',
     component: () => import('../components/tags/TagsPage.vue'),
   },
+  {
+    path: '/settings/accounting',
+    component: () => import('../components/settings/AccountingPage.vue'),
+  },
 ]
 
 export default createRouter({ history: createWebHistory(), routes })

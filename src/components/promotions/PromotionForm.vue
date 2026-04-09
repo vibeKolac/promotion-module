@@ -111,6 +111,54 @@
             </v-col>
           </v-row>
 
+          <!-- Channels -->
+          <div class="mt-4">
+            <div class="text-caption font-weight-bold text-medium-emphasis mb-2">SALES CHANNELS</div>
+            <div class="d-flex flex-wrap gap-2">
+              <v-chip
+                v-for="ch in channelOptions"
+                :key="ch.value"
+                :color="draft.channels.includes(ch.value) ? 'primary' : undefined"
+                :variant="draft.channels.includes(ch.value) ? 'flat' : 'outlined'"
+                size="small"
+                label
+                class="cursor-pointer"
+                @click="toggleChannel(ch.value)"
+              >
+                <v-icon v-if="draft.channels.includes(ch.value)" start size="14">mdi-check</v-icon>
+                <v-icon v-else start size="14">{{ ch.icon }}</v-icon>
+                {{ ch.title }}
+              </v-chip>
+            </div>
+            <div v-if="!draft.channels.length" class="text-caption text-error mt-1">
+              At least one channel must be selected.
+            </div>
+          </div>
+
+          <!-- Descriptions -->
+          <v-divider class="my-4" />
+          <v-textarea
+            v-model="draft.description"
+            label="Internal Description"
+            variant="outlined"
+            density="compact"
+            rows="2"
+            auto-grow
+            hint="What the promotion does (for internal use only)"
+            persistent-hint
+            class="mb-3"
+          />
+          <v-textarea
+            v-model="draft.labelDescription"
+            label="Customer-Facing Description"
+            variant="outlined"
+            density="compact"
+            rows="2"
+            auto-grow
+            hint="This will be displayed to customers in the frontend"
+            persistent-hint
+          />
+
           <!-- Step Discount configuration (green) -->
           <template v-if="draft.type === 'step_discount'">
             <v-divider class="my-4" />
@@ -185,7 +233,7 @@
               <span class="text-body-2 font-weight-bold text-blue-darken-2">Multi-buy Configuration</span>
             </div>
             <v-row dense class="mb-3">
-              <v-col cols="4">
+              <v-col cols="6">
                 <v-text-field
                   v-model.number="draft.multiBuyQty"
                   label="Buy quantity *"
@@ -196,7 +244,7 @@
                   persistent-hint
                 />
               </v-col>
-              <v-col cols="4">
+              <v-col cols="6">
                 <v-text-field
                   v-model.number="draft.multiFreeQty"
                   label="Free quantity *"
@@ -204,17 +252,6 @@
                   variant="outlined"
                   density="compact"
                   hint="Items given free"
-                  persistent-hint
-                />
-              </v-col>
-              <v-col cols="4">
-                <v-text-field
-                  v-model.number="draft.multiFreePrice"
-                  label="Free item price"
-                  type="number"
-                  variant="outlined"
-                  density="compact"
-                  hint="Accounting price (€0.01)"
                   persistent-hint
                 />
               </v-col>
@@ -253,6 +290,14 @@
               ({{ draft.multiSelectionMode === 'CHEAPEST' ? 'cheapest' : 'most expensive' }}).
               Repeats up to {{ draft.multiMaxSteps || '∞' }} time(s).
             </v-alert>
+            <div class="d-flex align-center gap-2 mt-3">
+              <v-icon size="16" color="medium-emphasis">mdi-calculator</v-icon>
+              <span class="text-caption text-medium-emphasis">Free item accounting price</span>
+              <v-chip size="small" color="primary" variant="tonal">€{{ settingsStore.multiBuyFreePrice }}</v-chip>
+              <v-btn variant="text" size="x-small" color="primary" to="/settings/accounting" class="ml-1">
+                Configure
+              </v-btn>
+            </div>
           </template>
 
           <!-- Gift trigger configuration (purple) -->
@@ -291,6 +336,14 @@
                 />
               </v-col>
             </v-row>
+            <div class="d-flex align-center gap-2 mt-3">
+              <v-icon size="16" color="medium-emphasis">mdi-calculator</v-icon>
+              <span class="text-caption text-medium-emphasis">Gift item accounting price</span>
+              <v-chip size="small" color="purple" variant="tonal">€{{ settingsStore.giftFreePrice }}</v-chip>
+              <v-btn variant="text" size="x-small" color="primary" to="/settings/accounting" class="ml-1">
+                Configure
+              </v-btn>
+            </div>
           </template>
         </v-card>
 
@@ -382,21 +435,18 @@
         </v-card>
 
         <v-card border elevation="0" class="pa-5 mb-4">
-          <div class="text-body-1 font-weight-bold mb-4">Advanced</div>
-          <v-text-field
-            v-model.number="draft.processingOrder"
-            label="Processing order"
-            type="number"
-            variant="outlined"
-            density="compact"
-            hint="Lower = evaluated first"
-            persistent-hint
-          />
+          <div class="text-body-1 font-weight-bold mb-4">Stacking group</div>
+          <StackingGroupSelect v-model="draft.stackingGroupId" />
         </v-card>
 
         <v-card border elevation="0" class="pa-5 mb-4">
-          <div class="text-body-1 font-weight-bold mb-4">Stacking group</div>
-          <StackingGroupSelect v-model="draft.stackingGroupId" />
+          <div class="text-body-1 font-weight-bold mb-4">Processing order</div>
+          <ProcessingOrderSelect
+            :stacking-group-id="draft.stackingGroupId"
+            :priority="draft.priority"
+            :current-name="draft.name"
+            @update:priority="draft.priority = $event"
+          />
         </v-card>
 
         <v-card border elevation="0" class="pa-5 mb-4">
@@ -428,6 +478,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { usePromotionsStore } from '../../stores/promotions'
 import { useStackingGroupsStore } from '../../stores/stackingGroups'
 import { useUiStore } from '../../stores/ui'
+import { useSettingsStore } from '../../stores/settings'
 import { validateConditions } from '../../utils/conditionValidator'
 import { detectGiftConflicts } from '../../utils/giftConflictDetector'
 import ConditionChip from './ConditionChip.vue'
@@ -437,6 +488,7 @@ import StepDiscountEditor from './StepDiscountEditor.vue'
 import GiftItemsSection from './GiftItemsSection.vue'
 import ConflictWarningBanner from './ConflictWarningBanner.vue'
 import StackingGroupSelect from './StackingGroupSelect.vue'
+import ProcessingOrderSelect from './ProcessingOrderSelect.vue'
 import NonCombinableRulesSection from './NonCombinableRulesSection.vue'
 import TagsSection from './TagsSection.vue'
 
@@ -445,6 +497,7 @@ const router = useRouter()
 const store = usePromotionsStore()
 const sgStore = useStackingGroupsStore()
 const uiStore = useUiStore()
+const settingsStore = useSettingsStore()
 
 const isEdit = computed(() => !!route.params.id)
 const saving = ref(false)
@@ -500,6 +553,17 @@ const amountTypeItems = [
   { value: 'PERCENT_LINE', title: '% off line' },
   { value: 'FIXED_LINE', title: '€ off line' },
 ]
+
+const channelOptions = [
+  { value: 'web', title: 'Web', icon: 'mdi-web' },
+  { value: 'mobile_app', title: 'Mobile App', icon: 'mdi-cellphone' },
+]
+
+function toggleChannel(value) {
+  const idx = draft.channels.indexOf(value)
+  if (idx === -1) draft.channels.push(value)
+  else draft.channels.splice(idx, 1)
+}
 
 const breadcrumbs = computed(() => [
   { title: 'Promotions', to: '/promotions' },
