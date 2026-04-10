@@ -88,36 +88,42 @@
             </v-btn>
           </v-btn-toggle>
 
-          <!-- Group picker -->
-          <v-select
-            v-if="mode === 'group'"
-            v-model="selectedId"
-            :items="availableGroups"
-            label="Select stacking group"
-            variant="outlined"
-            density="compact"
-            no-data-text="All groups already added"
-            hide-details
-          >
-            <template #item="{ props: itemProps, item }">
-              <v-list-item v-bind="itemProps">
-                <template #prepend>
-                  <v-icon size="16" :color="item.raw.color" class="mr-1">mdi-layers-triple</v-icon>
-                </template>
-              </v-list-item>
-            </template>
-          </v-select>
+          <!-- Group picker — chip toggles -->
+          <template v-if="mode === 'group'">
+            <div v-if="availableGroups.length" class="d-flex flex-wrap gap-2">
+              <v-chip
+                v-for="g in availableGroups"
+                :key="g.value"
+                :color="selectedIds.includes(g.value) ? 'primary' : undefined"
+                :variant="selectedIds.includes(g.value) ? 'flat' : 'outlined'"
+                size="small"
+                label
+                class="cursor-pointer"
+                @click="toggleSelection(g.value)"
+              >
+                <v-icon start size="14" :color="selectedIds.includes(g.value) ? undefined : g.color">
+                  mdi-layers-triple
+                </v-icon>
+                <v-icon v-if="selectedIds.includes(g.value)" start size="14">mdi-check</v-icon>
+                {{ g.title }}
+              </v-chip>
+            </div>
+            <p v-else class="text-caption text-medium-emphasis">All groups already added.</p>
+          </template>
 
-          <!-- Rule picker -->
+          <!-- Rule picker — multiple autocomplete -->
           <v-autocomplete
             v-else
-            v-model="selectedId"
+            v-model="selectedIds"
             :items="availableRules"
-            label="Select rule"
+            label="Select rules"
             variant="outlined"
             density="compact"
             item-title="title"
             item-value="value"
+            multiple
+            chips
+            closable-chips
             no-data-text="No eligible rules found"
             hide-details
           >
@@ -141,7 +147,9 @@
         <v-card-actions class="pa-4 pt-0">
           <v-spacer />
           <v-btn variant="text" @click="dialog = false">Cancel</v-btn>
-          <v-btn color="primary" :disabled="!selectedId" @click="add">Add</v-btn>
+          <v-btn color="primary" :disabled="!selectedIds.length" @click="add">
+            Add{{ selectedIds.length > 1 ? ` (${selectedIds.length})` : '' }}
+          </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -165,9 +173,9 @@ const promoStore = usePromotionsStore()
 
 const dialog = ref(false)
 const mode = ref('group')
-const selectedId = ref(null)
+const selectedIds = ref([])
 
-watch(mode, () => { selectedId.value = null })
+watch(mode, () => { selectedIds.value = [] })
 
 const currentRuleId = computed(() => route.params.id ?? null)
 
@@ -222,14 +230,21 @@ function openDialog() {
   dialog.value = true
 }
 
+function toggleSelection(id) {
+  const idx = selectedIds.value.indexOf(id)
+  if (idx === -1) selectedIds.value.push(id)
+  else selectedIds.value.splice(idx, 1)
+}
+
 function resetDialog() {
   mode.value = 'group'
-  selectedId.value = null
+  selectedIds.value = []
 }
 
 function add() {
-  if (!selectedId.value) return
-  emit('update:modelValue', [...props.modelValue, { type: mode.value, id: selectedId.value }])
+  if (!selectedIds.value.length) return
+  const newEntries = selectedIds.value.map(id => ({ type: mode.value, id }))
+  emit('update:modelValue', [...props.modelValue, ...newEntries])
   dialog.value = false
 }
 </script>

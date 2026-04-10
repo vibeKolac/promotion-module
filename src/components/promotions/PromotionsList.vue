@@ -191,9 +191,11 @@
         :headers="activeTab === 'performance' ? performanceHeaders : headers"
         :items="tabItems"
         :loading="store.loading"
+        :row-props="() => ({ style: 'cursor: pointer' })"
         item-value="id"
         show-select
         hover
+        @click:row="onRowClick"
       >
         <template #item.name="{ item }">
           <div class="d-flex align-center gap-2">
@@ -318,6 +320,7 @@
 
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { useDisplay } from 'vuetify'
 import { usePromotionsStore } from '../../stores/promotions'
 import { useUiStore } from '../../stores/ui'
@@ -334,8 +337,15 @@ import { downloadCSV, exportRulesToCSV } from '../../utils/csvRuleImportExport'
 import RulePriorityPreview from './RulePriorityPreview.vue'
 import AiRecommendationsPanel from '../ai/AiRecommendationsPanel.vue'
 
+const router = useRouter()
 const store = usePromotionsStore()
 const uiStore = useUiStore()
+
+function onRowClick(event, { item }) {
+  // Skip navigation when clicking checkbox or the actions menu
+  if (event.target.closest('.v-selection-control') || event.target.closest('[data-testid="row-actions"]')) return
+  router.push(`/promotions/${item.id}/edit`)
+}
 const sgStore = useStackingGroupsStore()
 const tagsStore = useTagsStore()
 const { mobile } = useDisplay()

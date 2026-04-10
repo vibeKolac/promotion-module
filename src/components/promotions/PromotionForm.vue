@@ -139,14 +139,35 @@
             persistent-hint
             class="mb-3"
           />
+          <div class="text-caption font-weight-bold text-medium-emphasis mb-3">CUSTOMER-FACING DESCRIPTION</div>
+          <v-text-field
+            v-model="draft.promotionTitle"
+            label="Promotion title"
+            variant="outlined"
+            density="compact"
+            hint="Short headline shown to customers (e.g. '20% off Vichy')"
+            persistent-hint
+            class="mb-3"
+          />
           <v-textarea
-            v-model="draft.labelDescription"
-            label="Customer-Facing Description"
+            v-model="draft.promotionText"
+            label="Promotion text"
             variant="outlined"
             density="compact"
             rows="2"
             auto-grow
-            hint="This will be displayed to customers in the frontend"
+            hint="Main description displayed on the storefront"
+            persistent-hint
+            class="mb-3"
+          />
+          <v-textarea
+            v-model="draft.promotionLegal"
+            label="Promotion legal"
+            variant="outlined"
+            density="compact"
+            rows="2"
+            auto-grow
+            hint="Terms and conditions, fine print"
             persistent-hint
           />
 
