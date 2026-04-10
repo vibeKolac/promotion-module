@@ -50,15 +50,22 @@
         </div>
       </div>
 
-      <div class="text-caption text-medium-emphasis mt-2">
-        Showing rules in <strong>{{ currentGroupName }}</strong>. Priority determines evaluation order within the group.
+      <div class="d-flex align-center flex-wrap gap-2 mt-2">
+        <v-icon size="14" color="medium-emphasis">mdi-layers</v-icon>
+        <span class="text-caption text-medium-emphasis"><strong>{{ currentGroupName }}</strong></span>
+        <v-chip size="x-small" variant="tonal" color="primary">
+          group priority {{ currentGroup?.priority ?? '—' }}
+        </v-chip>
+        <v-chip size="x-small" variant="tonal" color="secondary">
+          rule priority {{ props.priority ?? '—' }}
+        </v-chip>
       </div>
     </template>
   </div>
 </template>
 
 <script setup>
-import { computed, onMounted } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { usePromotionsStore } from '../../stores/promotions'
 import { useStackingGroupsStore } from '../../stores/stackingGroups'
@@ -75,70 +82,58 @@ const sgStore = useStackingGroupsStore()
 const route = useRoute()
 const currentId = computed(() => route.params.id ?? null)
 
-const currentGroupName = computed(() => {
-  const g = sgStore.items.find(g => g.id === props.stackingGroupId)
-  return g?.name ?? 'Unassigned'
-})
+const currentGroup = computed(() =>
+  sgStore.items.find(g => g.id === props.stackingGroupId)
+)
+const currentGroupName = computed(() => currentGroup.value?.name ?? 'Unassigned')
 
-// Only rules in the same stacking group, sorted by priority
+// Other rules in the same stacking group, sorted by priority
 const groupRules = computed(() =>
   [...promotionsStore.items]
     .filter(r => r.id !== currentId.value && (r.stackingGroupId ?? 'sg-default') === (props.stackingGroupId ?? 'sg-default'))
     .sort((a, b) => (a.priority ?? 999) - (b.priority ?? 999))
 )
 
-const currentEntry = computed(() => ({
-  id: '__current__',
-  isCurrent: true,
-  name: props.currentName || 'This rule',
-  type: null,
-  priority: props.priority,
-}))
+// Local ordered array — drives display and moves.
+// Reset whenever the stacking group changes; priority changes from arrows do NOT reset it.
+const localOrder = ref(null)
 
+function buildLocalOrder() {
+  const others = [...groupRules.value]
+  const cur = { id: '__current__', isCurrent: true, name: props.currentName || 'This rule', type: null }
+  const insertIdx = others.findIndex(r => (r.priority ?? 999) > (props.priority ?? 999))
+  if (insertIdx === -1) others.push(cur)
+  else others.splice(insertIdx, 0, cur)
+  localOrder.value = others
+}
+
+watch(() => props.stackingGroupId, () => { localOrder.value = null }, { immediate: false })
+watch(() => props.currentName, (name) => {
+  if (!localOrder.value) return
+  const entry = localOrder.value.find(r => r.isCurrent)
+  if (entry) entry.name = name || 'This rule'
+})
+
+// Expose flat list — build on first access or after group reset
 const flatList = computed(() => {
-  const others = groupRules.value
-  const cur = currentEntry.value
-  const insertIdx = others.findIndex(r => (r.priority ?? 999) > (cur.priority ?? 999))
-  const list = [...others]
-  if (insertIdx === -1) list.push(cur)
-  else list.splice(insertIdx, 0, cur)
-  return list
+  if (!localOrder.value) buildLocalOrder()
+  return localOrder.value ?? []
 })
 
 const currentIdx = computed(() => flatList.value.findIndex(r => r.isCurrent))
 
 function move(dir) {
-  const list = flatList.value
+  const list = [...flatList.value]
   const idx = currentIdx.value
-  const targetIdx = idx + dir
-  if (targetIdx < 0 || targetIdx >= list.length) return
+  const newIdx = idx + dir
+  if (newIdx < 0 || newIdx >= list.length) return
 
-  // New neighbours after the move:
-  // dir=-1 (up):   between list[targetIdx-1] and list[targetIdx]
-  // dir=+1 (down): between list[targetIdx]   and list[targetIdx+1]
-  const beforeItem = dir === -1 ? list[targetIdx - 1] : list[targetIdx]
-  const afterItem  = dir === -1 ? list[targetIdx]     : list[targetIdx + 1]
+  // Swap current rule with neighbour
+  ;[list[idx], list[newIdx]] = [list[newIdx], list[idx]]
+  localOrder.value = list
 
-  const prevP = (beforeItem && !beforeItem.isCurrent) ? (beforeItem.priority ?? 0) : null
-  const nextP = (afterItem  && !afterItem.isCurrent)  ? (afterItem.priority  ?? null) : null
-
-  let newPriority
-  if (prevP !== null && nextP !== null) {
-    const mid = (prevP + nextP) / 2
-    // If mid doesn't land strictly between the boundaries (equal-priority neighbours),
-    // step just outside them so the rule always moves visually.
-    newPriority = (mid === prevP || mid === nextP)
-      ? (dir === -1 ? prevP - 0.5 : nextP + 0.5)
-      : mid
-  } else if (prevP !== null) {
-    newPriority = prevP + 0.5
-  } else if (nextP !== null) {
-    newPriority = nextP - 0.5
-  } else {
-    newPriority = 10
-  }
-
-  emit('update:priority', newPriority)
+  // Emit whole-number priority: position × 10, always an integer with gaps
+  emit('update:priority', (newIdx + 1) * 10)
 }
 
 onMounted(async () => {

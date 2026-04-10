@@ -47,20 +47,11 @@
           <div v-if="validationErrors.name" class="text-caption text-error mt-1 mb-2">{{ validationErrors.name }}</div>
 
           <v-row dense class="mb-3">
-            <v-col cols="6">
+            <v-col cols="12">
               <v-select
                 v-model="draft.type"
                 :items="ruleTypeItems"
                 label="Rule type *"
-                variant="outlined"
-                density="compact"
-              />
-            </v-col>
-            <v-col cols="6">
-              <v-text-field
-                v-model.number="draft.priority"
-                label="Priority"
-                type="number"
                 variant="outlined"
                 density="compact"
               />
