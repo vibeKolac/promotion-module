@@ -58,6 +58,19 @@
           </v-btn-toggle>
         </div>
 
+        <!-- Scope context banner for quantifiable fields -->
+        <v-alert
+          v-if="currentTypeDef?.quantifiable"
+          :color="props.scope === 'item' ? 'deep-purple' : 'blue'"
+          variant="tonal"
+          density="compact"
+          :icon="props.scope === 'item' ? 'mdi-package-variant' : 'mdi-cart'"
+          class="mb-3 text-caption"
+        >
+          <strong>{{ props.scope === 'item' ? 'Item scope' : 'Cart scope' }}</strong>
+          — {{ scopeHint }}
+        </v-alert>
+
         <!-- Operator for quantifiable types -->
         <v-select
           v-if="currentTypeDef?.quantifiable"
@@ -102,11 +115,11 @@
         <v-text-field
           v-else
           :model-value="localCondition.values[0] ?? ''"
-          :label="currentTypeDef?.title + ' value'"
+          :label="quantifiableLabel"
           type="number"
           variant="outlined"
           density="compact"
-          hint="Enter a numeric threshold"
+          :hint="quantifiableHint"
           persistent-hint
           class="mb-3"
           @update:model-value="v => localCondition.values = [v]"
@@ -211,10 +224,35 @@ const operatorItems = [
   { value: '<',  title: 'Less than (<)'  },
 ]
 
+// Scope-aware labels and hints for quantifiable fields
+const SCOPE_FIELD_LABELS = {
+  cart: { subtotal: 'Cart subtotal (ex. VAT)', quantity: 'Total cart quantity', weight: 'Total cart weight' },
+  item: { subtotal: 'Item price (incl. VAT)', quantity: 'Item line quantity', weight: 'Item weight' },
+}
+
+const SCOPE_FIELD_HINTS = {
+  cart: {
+    subtotal: 'Cart total before VAT — e.g. ≥ 100 means cart net value must reach €100',
+    quantity: 'Total number of items across all lines in the cart',
+    weight: 'Sum of all item weights in the cart (kg)',
+  },
+  item: {
+    subtotal: 'Individual item price including VAT — e.g. ≥ 20 means item must cost at least €20',
+    quantity: 'Quantity of this specific item/SKU on the line',
+    weight: 'Weight of a single item unit (kg)',
+  },
+}
+
+const SCOPE_HINTS = {
+  cart: { subtotal: 'Threshold on whole-cart subtotal, VAT excluded', quantity: 'Threshold on total cart item count', weight: 'Threshold on total cart weight' },
+  item: { subtotal: 'Threshold on per-item price, VAT included', quantity: 'Threshold on per-line item quantity', weight: 'Threshold on single item weight' },
+}
+
 // --- Props / emits ---
 const props = defineProps({
   modelValue: Boolean,
   initialCondition: { type: Object, default: null },
+  scope: { type: String, default: 'cart' },
 })
 const emit = defineEmits(['update:modelValue', 'save'])
 
@@ -227,6 +265,21 @@ const isEditMode = computed(() => !!props.initialCondition)
 const currentTypeDef = computed(() => CONDITION_TYPES.find(t => t.value === localCondition.value.field))
 const currentTypeOptions = computed(() => TYPE_OPTIONS[localCondition.value.field] ?? [])
 const validationErrors = computed(() => validateCondition(localCondition.value).errors)
+
+const quantifiableLabel = computed(() => {
+  const field = localCondition.value.field
+  return SCOPE_FIELD_LABELS[props.scope]?.[field] ?? currentTypeDef.value?.title ?? field
+})
+
+const quantifiableHint = computed(() => {
+  const field = localCondition.value.field
+  return SCOPE_FIELD_HINTS[props.scope]?.[field] ?? 'Enter a numeric threshold'
+})
+
+const scopeHint = computed(() => {
+  const field = localCondition.value.field
+  return SCOPE_HINTS[props.scope]?.[field] ?? (props.scope === 'item' ? 'Evaluated per item/line' : 'Evaluated against the whole cart')
+})
 
 // --- Watchers ---
 watch(() => props.initialCondition, (val) => {

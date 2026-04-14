@@ -22,22 +22,29 @@ import { computed } from 'vue'
 
 const props = defineProps({
   condition: { type: Object, required: true },
+  scope: { type: String, default: 'cart' },
 })
 defineEmits(['edit', 'remove'])
 
 const LABELS = {
   categories: 'Categories', brands: 'Brands', skus: 'SKUs',
-  product_lines: 'Product lines', subtotal: 'Subtotal',
-  quantity: 'Quantity', weight: 'Weight', customer_group: 'Customer group',
+  product_lines: 'Product lines', customer_group: 'Customer group',
   coupon_code: 'Coupon code', exclude_on_sale: 'Exclude on sale',
   pim_status: 'PIM status', attribute_set: 'Attribute set',
   source: 'Source', warehouse_type: 'Warehouse type', seller: 'Seller',
 }
 
+const SCOPE_LABELS = {
+  cart: { subtotal: 'Cart subtotal (ex. VAT)', quantity: 'Cart qty', weight: 'Cart weight' },
+  item: { subtotal: 'Item price (incl. VAT)', quantity: 'Line qty', weight: 'Item weight' },
+}
+
 const OPERATORS = { '>=': 'at least', '>': 'more than', '<=': 'at most', '<': 'less than' }
 
 const label = computed(() => {
-  const fieldLabel = LABELS[props.condition.field] || props.condition.field
+  const fieldLabel = SCOPE_LABELS[props.scope]?.[props.condition.field]
+    ?? LABELS[props.condition.field]
+    ?? props.condition.field
   const vals = props.condition.values.join(', ')
   if (props.condition.operator) {
     return `${fieldLabel} ${OPERATORS[props.condition.operator] || props.condition.operator} ${vals}`

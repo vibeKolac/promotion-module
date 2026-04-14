@@ -58,6 +58,30 @@
             </v-col>
           </v-row>
 
+          <!-- Rule scope -->
+          <div class="mb-4">
+            <div class="text-caption font-weight-bold text-medium-emphasis mb-2">RULE SCOPE</div>
+            <v-btn-toggle
+              v-model="draft.scope"
+              mandatory
+              density="compact"
+              variant="outlined"
+              color="primary"
+              class="mb-1"
+            >
+              <v-btn value="cart" size="small" prepend-icon="mdi-cart-outline">Cart</v-btn>
+              <v-btn value="item" size="small" prepend-icon="mdi-package-variant">Item</v-btn>
+            </v-btn-toggle>
+            <div class="text-caption text-medium-emphasis mt-1">
+              <template v-if="draft.scope === 'cart'">
+                Discount and conditions apply to the whole cart. Subtotal thresholds use cart total <strong>ex. VAT</strong>.
+              </template>
+              <template v-else>
+                Discount and conditions apply per item / line. Subtotal thresholds use item price <strong>incl. VAT</strong>.
+              </template>
+            </div>
+          </div>
+
           <!-- Discount value (discount type only) -->
           <v-row v-if="draft.type === 'discount'" dense class="mb-3">
             <v-col cols="8">
@@ -386,6 +410,7 @@
               v-for="(cond, idx) in draft.conditions"
               :key="cond.id"
               :condition="cond"
+              :scope="draft.scope"
               @edit="openEditCondition(idx)"
               @remove="removeCondition(idx)"
             />
@@ -395,7 +420,7 @@
             No conditions set — this rule applies to all products.
           </v-alert>
 
-          <ReachEstimateBar :conditions="draft.conditions" class="mt-3" />
+          <ReachEstimateBar :conditions="draft.conditions" :scope="draft.scope" class="mt-3" />
 
           <!-- Validation feedback -->
           <template v-if="conditionValidation.warnings.length || conditionValidation.suggestions.length">
@@ -479,6 +504,7 @@
     <ConditionBuilderDialog
       v-model="conditionDialogOpen"
       :initial-condition="editingCondition"
+      :scope="draft.scope"
       @save="onConditionSave"
     />
   </v-container>

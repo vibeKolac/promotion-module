@@ -32,6 +32,20 @@ const fieldLabels = {
   subtotal: 'Subtotal', weight: 'Weight',
 }
 
+// Scope-aware labels for quantifiable fields
+const scopeLabels = {
+  cart: {
+    subtotal: 'Cart subtotal (ex. VAT)',
+    quantity: 'Total cart quantity',
+    weight: 'Total cart weight',
+  },
+  item: {
+    subtotal: 'Item price (incl. VAT)',
+    quantity: 'Item line quantity',
+    weight: 'Item weight',
+  },
+}
+
 let _idCounter = 0
 function genId() {
   return `cond_${Date.now()}_${++_idCounter}`
@@ -65,13 +79,15 @@ export function parsedConditionsToWizardConditions(parsedData) {
 /**
  * Format conditions as a human-readable summary string.
  * @param {Array} conditions
+ * @param {'cart'|'item'} scope
  * @returns {string}
  */
-export function formatConditionsSummary(conditions) {
+export function formatConditionsSummary(conditions, scope = 'cart') {
   if (!conditions?.length) return 'No conditions'
   const opLabels = { '>=': 'at least', '>': 'greater than', '<=': 'at most', '<': 'less than' }
   return conditions.map(c => {
-    const label = fieldLabels[c.field] ?? c.field
+    const scopedLabel = scopeLabels[scope]?.[c.field]
+    const label = scopedLabel ?? fieldLabels[c.field] ?? c.field
     const modeIcon = c.mode === 'include' ? '✅' : '❌'
     if (c.field === 'exclude_on_sale') return `${modeIcon} Exclude items on sale`
     if (c.operator) {

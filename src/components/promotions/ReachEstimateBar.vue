@@ -21,7 +21,8 @@ import { estimateReach } from '../../utils/reachEstimator'
 
 const props = defineProps({
   conditions: { type: Array, default: () => [] },
+  scope: { type: String, default: 'cart' },
 })
 
-const reach = computed(() => estimateReach(props.conditions))
+const reach = computed(() => estimateReach(props.conditions, props.scope))
 </script>
