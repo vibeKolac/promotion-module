@@ -74,10 +74,10 @@
             </v-btn-toggle>
             <div class="text-caption text-medium-emphasis mt-1">
               <template v-if="draft.scope === 'cart'">
-                Discount and conditions apply to the whole cart. Subtotal thresholds use cart total <strong>ex. VAT</strong>.
+                Discount and conditions apply to the whole cart.
               </template>
               <template v-else>
-                Discount and conditions apply per item / line. Subtotal thresholds use item price <strong>incl. VAT</strong>.
+                Discount and conditions apply per item / line.
               </template>
             </div>
           </div>
@@ -129,22 +129,23 @@
           <!-- Channels -->
           <div class="mt-4">
             <div class="text-caption font-weight-bold text-medium-emphasis mb-2">SALES CHANNELS</div>
-            <div class="d-flex flex-wrap gap-2">
-              <v-chip
+            <v-btn-toggle
+              :model-value="draft.channels"
+              multiple
+              density="compact"
+              variant="outlined"
+              color="primary"
+              class="mb-1"
+              @update:model-value="draft.channels = $event"
+            >
+              <v-btn
                 v-for="ch in channelOptions"
                 :key="ch.value"
-                :color="draft.channels.includes(ch.value) ? 'primary' : undefined"
-                :variant="draft.channels.includes(ch.value) ? 'flat' : 'outlined'"
+                :value="ch.value"
                 size="small"
-                label
-                class="cursor-pointer"
-                @click="toggleChannel(ch.value)"
-              >
-                <v-icon v-if="draft.channels.includes(ch.value)" start size="14">mdi-check</v-icon>
-                <v-icon v-else start size="14">{{ ch.icon }}</v-icon>
-                {{ ch.title }}
-              </v-chip>
-            </div>
+                :prepend-icon="ch.icon"
+              >{{ ch.title }}</v-btn>
+            </v-btn-toggle>
             <div v-if="!draft.channels.length" class="text-caption text-error mt-1">
               At least one channel must be selected.
             </div>
@@ -597,11 +598,6 @@ const channelOptions = [
   { value: 'mobile_app', title: 'Mobile App', icon: 'mdi-cellphone' },
 ]
 
-function toggleChannel(value) {
-  const idx = draft.channels.indexOf(value)
-  if (idx === -1) draft.channels.push(value)
-  else draft.channels.splice(idx, 1)
-}
 
 const breadcrumbs = computed(() => [
   { title: 'Promotions', to: '/promotions' },
