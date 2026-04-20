@@ -6,7 +6,7 @@
 
     <!-- Title row -->
     <div class="d-flex align-center flex-wrap mb-6 py-2" style="gap: 12px">
-      <h1 class="text-h5 font-weight-bold">Promotion rules overview</h1>
+      <h1 class="text-h5 font-weight-bold">Promotion rules management</h1>
       <v-spacer />
       <v-btn
         v-if="!mobile"
@@ -520,7 +520,7 @@ const errorSnack = computed({ get: () => !!store.error, set: () => {} })
 
 const breadcrumbs = [
   { title: 'Promotions', disabled: true },
-  { title: 'Promotion rules overview', disabled: true },
+  { title: 'Promotion rules management', disabled: true },
 ]
 
 const headers = computed(() => [
