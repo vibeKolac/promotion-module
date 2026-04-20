@@ -1,244 +1,288 @@
 # Design Library — Promotions Module
 
-Reference for all UI components used in this prototype, mapped to the global component library from `drmax-eshop-admin-client`.
+Reference for all UI components used in this prototype. Three tiers:
+
+1. **Global library** — components from `drmax-eshop-admin-client/_common/components/`. Not copied into this repo; documented here as the canonical API reference.
+2. **Local implementations** — components in `src/components/_common/`. Locally implemented to match the global library API without vee-validate. Use these in this prototype.
+3. **Promotion-specific** — components in `src/components/promotions/`, `shared/`, `stackingGroups/`, `tags/`, `templates/`, `ai/`. No global equivalent; promotions module only.
 
 ---
 
-## Source repositories
+## Source map
 
-| Source | Path | Usage |
+| Tier | Location | Notes |
 |---|---|---|
-| Global library | `drmax-eshop-admin-client/src/modules/_common/components/` | Shared wrappers around Vuetify; vee-validate integrated |
-| Prototype | `promotions-vue/src/components/` | Module-specific components; raw Vuetify with manual validation |
+| Global library | `drmax-eshop-admin-client/src/modules/_common/components/` | Vee-validate integrated; TypeScript; Options API |
+| Local implementations | `promotions-vue/src/components/_common/` | Same API surface; no vee-validate; Composition API |
+| Promotion-specific | `promotions-vue/src/components/` | Domain components; no global equivalent |
 
 ---
 
-## Form inputs
+## Tier 1 — Global library reference
 
-### TextInput
-**Source:** `_common/components/form/TextInput.vue`
+These exist in `drmax-eshop-admin-client`. Not available in this prototype directly. Documented so the local implementations (Tier 2) can be kept in sync.
+
+### Form inputs
+
+#### TextInput
+**Source:** `form/TextInput.vue`
 **Wraps:** `v-text-field`
-**Use for:** All single-line text inputs, including password fields (toggle handled internally).
-
-```vue
-<TextInput id="name" name="name" label="Rule name" :rules="{ required: true }" dense />
-```
 
 Props: `id`, `name`, `label`, `helpText`, `dense`, `disabled`, `rules`, `type`, `appendIcon`
 Exposes: `getValue()`, `setValue(v)`, `clearValue()`
 
 ---
 
-### NumberInput
-**Source:** `_common/components/form/NumberInput.vue`
+#### NumberInput
+**Source:** `form/NumberInput.vue`
 **Wraps:** `v-text-field type="number"`
-**Use for:** All numeric inputs (discount amount, quantities, thresholds, max steps).
-
-```vue
-<NumberInput id="discount-value" name="value" label="Discount amount" :rules="{ required: true, min_value: 0 }" dense />
-```
 
 Returns `null` when empty (not empty string).
+Props: same base as `TextInput`.
+
+---
+
+#### SelectInput
+**Source:** `form/SelectInput.vue`
+**Wraps:** `v-select`
+
+Props: `data` (items), `itemText` (default `label`), `itemValue` (default `key`), `multiple`, `returnObject`, `compareBy`
+Item shape: `{ key: string, label: string }` — note: differs from raw Vuetify `{ value, title }`.
+
+---
+
+#### BooleanSelect
+**Source:** `form/BooleanSelect.vue`
+**Wraps:** `SelectInput` with hardcoded Yes/No items.
+Props: `canBeEmpty` (adds null `--` option).
+
+---
+
+#### DatePicker
+**Source:** `form/DatePicker.vue`
+**Wraps:** `v-date-input` (Vuetify Labs)
+
+Props: `pickerOptions` — `allowedDates` receives ISO string (wrapper converts JS Date → ISO internally).
+
+---
+
+#### DatetimePicker
+**Source:** `form/DatetimePicker.vue`
+Opens `v-dialog` with `v-date-picker` + `v-time-picker`. Uses Luxon. Not used in promotions module.
+
+---
+
+#### TimePicker
+**Source:** `form/TimePicker.vue`
+Not used in promotions module.
+
+---
+
+#### CustomValidatorAlert
+**Source:** `form/CustomValidatorAlert.vue`
+Renders `v-alert type="error"` when a validator function fails. Registers with parent `FormGroup`.
+
+---
+
+### Dialogs
+
+#### DialogCard
+**Source:** `DialogCard.vue`
+Slot-based dialog shell. Opened imperatively via `ref.open()` / `ref.close()`.
+Slots: `#title`, default (body), `#actions`.
+
+---
+
+#### ConfirmModal
+**Source:** `ConfirmModal/index.vue`
+Promise-based confirm dialog. `ref.open()` returns `Promise<boolean>`.
+Slots: `#header`, `#body`, `#actions`.
+
+---
+
+### Data table
+
+#### Dynamic
+**Source:** `DataTable/Dynamic.vue`
+**Wraps:** `v-data-table` / `v-data-table-server`
+
+Headers shape: `{ key, title, sortable?, hiddenByDefault? }`
+Built-in: column picker, filter presets, export, reorderable columns.
+**Deferred in prototype** — requires server pagination API.
+
+---
+
+### Global utilities
+
+#### HelpTooltip
+**Source:** `global/HelpTooltip.vue`
+Icon + tooltip for contextual help text.
+
+#### ValueWithDefault
+**Source:** `global/ValueWithDefault.vue`
+Displays value or `—` if empty.
+
+#### ApiErrorAlert
+**Source:** `global/ApiErrorAlert.vue`
+Inline API error display. Replaces `v-snackbar` for save errors.
+**Deferred in prototype** — swap when vee-validate is adopted.
+
+---
+
+## Tier 2 — Local implementations (`src/components/_common/`)
+
+These are locally implemented to match the Tier 1 API without vee-validate. Use these throughout the prototype. When the prototype adopts vee-validate, swap these out for the real global components.
+
+### TextInput
+**File:** `src/components/_common/TextInput.vue`
+**Mirrors:** Global `TextInput`
+
+```vue
+<TextInput
+  v-model="draft.name"
+  label="Rule name *"
+  :error-messages="validationErrors.name ? [validationErrors.name] : []"
+/>
+```
+
+Props: `modelValue`, `label`, `helpText`, `dense` (default `true`), `disabled`, `errorMessages`, `type`, `appendIcon`
+Differences from global: no vee-validate, no `id`/`name`/`rules` — use `:error-messages` directly.
+
+---
+
+### NumberInput
+**File:** `src/components/_common/NumberInput.vue`
+**Mirrors:** Global `NumberInput`
+
+```vue
+<NumberInput v-model="draft.value" label="Discount amount *" help-text="Enter a positive number" />
+```
+
+Props: `modelValue`, `label`, `helpText`, `dense` (default `true`), `disabled`, `errorMessages`
+Emits `null` on empty input (matches global behaviour).
 
 ---
 
 ### SelectInput
-**Source:** `_common/components/form/SelectInput.vue`
-**Wraps:** `v-select`
-**Use for:** All dropdown selects (rule type, amount type, step type, free item selection).
+**File:** `src/components/_common/SelectInput.vue`
+**Mirrors:** Global `SelectInput`
 
 ```vue
-<SelectInput id="rule-type" name="type" label="Rule type" :data="ruleTypeItems" dense />
+<SelectInput v-model="draft.type" :data="ruleTypeItems" label="Rule type *" />
 ```
 
-Props: `data` (items array), `itemText` (default `label`), `itemValue` (default `key`), `multiple`, `returnObject`, `compareBy`
-Item shape expected: `{ key: string, label: string }` — different from raw Vuetify default (`value`/`title`).
+Props: `modelValue`, `data`, `label`, `helpText`, `dense` (default `true`), `disabled`, `errorMessages`, `itemText` (default `label`), `itemValue` (default `key`), `multiple`, `returnObject`
+Item shape: `{ key, label }` preferred. Also accepts `{ value, title }` — normalized internally.
 
 ---
-
-### BooleanSelect
-**Source:** `_common/components/form/BooleanSelect.vue`
-**Wraps:** `SelectInput` with hardcoded Yes/No items
-**Use for:** Boolean fields that need a select UX (e.g. exclusive rule flag).
-
-```vue
-<BooleanSelect id="exclusive" name="exclusive" label="Exclusive" :canBeEmpty="true" dense />
-```
-
-Note: For toggle UX (on/off switches), use raw `v-switch` — `BooleanSelect` renders as a dropdown.
-
----
-
-### DatePicker
-**Source:** `_common/components/form/DatePicker.vue`
-**Wraps:** `v-date-input` (Vuetify Labs)
-**Use for:** All date-only inputs (start date, end date, pause from, pause until).
-
-```vue
-<DatePicker
-  id="start-date"
-  name="startDate"
-  label="Start date"
-  :pickerOptions="{ allowedDates: (val) => val >= today }"
-  dense
-/>
-```
-
-Props: `pickerOptions` — passed directly to `v-date-input`; `allowedDates` receives ISO string (wrapper converts from JS Date).
-The prototype currently uses `v-date-input` directly with the same `allowedDates` pattern.
-
----
-
-### DatetimePicker
-**Source:** `_common/components/form/DatetimePicker.vue`
-**Use for:** Date + time combined inputs (not currently used in promotions module).
-Opens a dialog with `v-date-picker` + `v-time-picker`. Uses Luxon.
-
----
-
-### TimePicker
-**Source:** `_common/components/form/TimePicker.vue`
-**Use for:** Time-only inputs (not currently used in promotions module).
-
----
-
-### CustomValidatorAlert
-**Source:** `_common/components/form/CustomValidatorAlert.vue`
-**Use for:** Cross-field validation errors displayed as a `v-alert type="error"`.
-
-```vue
-<CustomValidatorAlert
-  :value="someValue"
-  :validator="(v) => v > otherValue || 'Must be after start date'"
-  message="Invalid range"
-/>
-```
-
-Registers with parent `FormGroup` context automatically.
-
----
-
-## Dialogs
 
 ### DialogCard
-**Source:** `_common/components/DialogCard.vue`
-**Use for:** General-purpose dialog shells. Opened imperatively via `ref.open()`.
+**File:** `src/components/_common/DialogCard.vue`
+**Mirrors:** Global `DialogCard`
 
 ```vue
-<DialogCard ref="dialog">
+<DialogCard ref="dialog" max-width="480">
   <template #title>Edit rule</template>
   <!-- body content -->
   <template #actions>
-    <v-btn @click="dialog.close()">Cancel</v-btn>
+    <v-btn variant="text" @click="dialog.close()">Cancel</v-btn>
     <v-btn color="primary" @click="save">Save</v-btn>
   </template>
 </DialogCard>
+
+<!-- Open imperatively -->
+dialog.value.open()
 ```
+
+Exposes: `open()`, `close()`
+Extra attrs (`max-width`, `persistent`, etc.) passed through to `v-dialog`.
 
 ---
 
 ### ConfirmModal
-**Source:** `_common/components/ConfirmModal/index.vue`
-**Use for:** Confirmation dialogs (delete, discard, overwrite). Promise-based API.
+**File:** `src/components/_common/ConfirmModal.vue`
+**Mirrors:** Global `ConfirmModal`
 
 ```vue
-<ConfirmModal ref="confirmModal">
-  <template #body>Are you sure you want to delete "{{ item.name }}"?</template>
+<ConfirmModal ref="deleteModal" confirm-text="Delete" confirm-color="error" :loading="deleting">
+  <template #header>Delete rule?</template>
+  <template #body>
+    <strong>{{ item.name }}</strong> will be permanently deleted.
+  </template>
 </ConfirmModal>
 
-<!-- Usage -->
-const confirmed = await confirmModal.value.open(item)
+<!-- Open with promise pattern -->
+const confirmed = await deleteModal.value.open()
 if (confirmed) await store.remove(item.id)
 ```
 
-Replaces prototype's `ConfirmDeleteDialog` — same pattern, more generic.
+Props: `confirmText` (default `"Confirm"`), `confirmColor` (default `"primary"`), `loading`
+Exposes: `open()` — returns `Promise<boolean>`
+Slots: `#header`, `#body`, `#actions` (override default Cancel/Confirm buttons)
 
 ---
 
-## Data table
+## Tier 3 — Promotion-specific components (`src/components/`)
 
-### Dynamic
-**Source:** `_common/components/DataTable/Dynamic.vue`
-**Wraps:** `v-data-table` / `v-data-table-server`
-**Use for:** All list/table views (PromotionsList, StackingGroupsPage, TagsPage).
+These have no equivalent in the global library. They are scoped to this module and should not be used outside it without first being promoted to a shared library.
 
-```vue
-<Dynamic
-  :headers="headers"
-  :items="items"
-  :server-items-length="total"
-  storage-key="promotions-list"
-  :options="tableOptions"
-  @update:options="tableOptions = $event"
-  @export-all="handleExport"
-/>
-```
+### Shared primitives
 
-Headers shape: `{ key: string, title: string, sortable?: boolean, hiddenByDefault?: boolean }`
-Built-in: column picker, filter presets, export (all / by filter), reorderable columns (optional).
+| Component | File | Purpose |
+|---|---|---|
+| `StatusBadge` | `shared/StatusBadge.vue` | Maps rule status (`active`, `paused`, `draft`, `scheduled`, `ended`) to a colored `v-chip`. Candidate for global library. |
+| `FilterTabs` | `shared/FilterTabs.vue` | Chip-based tab switcher with optional badge counts. Props: `tabs`, `modelValue`. |
+| `ColorPicker` | `shared/ColorPicker.vue` | 8-swatch color picker. Props: `modelValue` (hex string). |
 
 ---
 
-## Global utilities
+### Promotion form components
 
-### HelpTooltip
-**Source:** `_common/components/global/HelpTooltip.vue`
-**Use for:** Contextual help icons next to labels (e.g. "Processing order", "Non-combinable rules").
-
-```vue
-<HelpTooltip text="Rules and groups that cannot apply together with this rule." />
-```
-
----
-
-### ValueWithDefault
-**Source:** `_common/components/global/ValueWithDefault.vue`
-**Use for:** Displaying a value with an em-dash fallback when empty.
-
-```vue
-<ValueWithDefault :value="rule.endDate" />
-```
+| Component | File | Purpose |
+|---|---|---|
+| `ConditionChip` | `promotions/ConditionChip.vue` | Displays one targeting condition with edit/remove actions. Props: `condition`, `scope`. |
+| `ConditionBuilderDialog` | `promotions/ConditionBuilderDialog.vue` | 2-step dialog for building/editing targeting conditions. Uses `DialogCard` + `SelectInput` + `NumberInput`. Props: `modelValue`, `initialCondition`, `scope`. Emits `save`. |
+| `StepDiscountEditor` | `promotions/StepDiscountEditor.vue` | Repeating row editor for step discount tiers. Props: `modelValue` (array of tiers). |
+| `GiftItemsSection` | `promotions/GiftItemsSection.vue` | Accordion list for gift SKU/quantity rows. Props: `modelValue` (array). |
+| `ConflictBadge` | `promotions/ConflictBadge.vue` | Small warning chip shown on list rows when gift conflicts are detected. Props: `conflicts`. |
+| `ConflictWarningBanner` | `promotions/ConflictWarningBanner.vue` | Inline `v-alert` banner for gift item conflicts. Props: `conflicts`. |
+| `ReachEstimateBar` | `promotions/ReachEstimateBar.vue` | Thin `v-progress-linear` estimating rule reach from conditions. Props: `conditions`, `scope`. |
+| `StackingGroupSelect` | `promotions/StackingGroupSelect.vue` | Single `v-select` pre-loaded with stacking groups from store. Props: `modelValue`. |
+| `ProcessingOrderSelect` | `promotions/ProcessingOrderSelect.vue` | Priority-order widget with up/down arrow controls within a stacking group. Props: `stackingGroupId`, `priority`, `currentName`. |
+| `NonCombinableRulesSection` | `promotions/NonCombinableRulesSection.vue` | List of non-combinable rule/group restrictions with inline add dialog. Uses `DialogCard`. Props: `modelValue`. |
+| `TagsSection` | `promotions/TagsSection.vue` | Tag chip picker with inline create and visibility toggle. Props: `modelValue`. |
+| `RulePriorityPreview` | `promotions/RulePriorityPreview.vue` | Collapsible card showing rule application order across stacking groups. Props: `rules`, `groups`. |
 
 ---
 
-### ApiErrorAlert
-**Source:** `_common/components/global/ApiErrorAlert.vue`
-**Use for:** Displaying API error responses. Replaces raw `v-snackbar` for save errors.
+### Stacking groups
+
+| Component | File | Purpose |
+|---|---|---|
+| `StackingGroupDialog` | `stackingGroups/StackingGroupDialog.vue` | Create/edit dialog for a stacking group. Uses `DialogCard` + `TextInput` + `NumberInput` + `ColorPicker`. |
 
 ---
 
-## Prototype-only components (no global equivalent)
+### AI components
 
-These components are specific to the promotions module and should remain as-is.
-
-| Component | Purpose |
-|---|---|
-| `StatusBadge` | Maps rule status string to a colored `v-chip`. Candidate for global library addition. |
-| `FilterTabs` | Chip-based tab switcher with optional counts. |
-| `ColorPicker` | 8-color swatch picker for stacking groups. |
-| `ConditionChip` | Displays one targeting condition with edit/remove. |
-| `ConditionBuilderDialog` | 2-step dialog for building targeting conditions. |
-| `StepDiscountEditor` | Repeating tier editor for step discount rules. |
-| `GiftItemsSection` | Accordion for gift SKU/quantity rows. |
-| `ConflictBadge` | Inline conflict warning chip on list rows. |
-| `ConflictWarningBanner` | Alert banner for gift item conflicts. |
-| `ReachEstimateBar` | Thin progress bar estimating rule reach from conditions. |
-| `StackingGroupSelect` | Single select for assigning a stacking group. |
-| `ProcessingOrderSelect` | Priority-order widget with arrow controls. |
-| `NonCombinableRulesSection` | List of non-combinable rule restrictions with inline add. |
-| `TagsSection` | Tag chip picker with inline create. |
-| `RulePriorityPreview` | Collapsible preview card showing rule application order. |
+| Component | File | Purpose |
+|---|---|---|
+| `AiAssistantPanel` | `ai/AiAssistantPanel.vue` | Right-side drawer chat panel. Sends natural language input, applies parsed rule to form draft. |
+| `AiRecommendationsPanel` | `ai/AiRecommendationsPanel.vue` | Recommendations strip shown on the list page. |
+| `SmartRulePreview` | `ai/SmartRulePreview.vue` | Preview card for an AI-parsed rule with apply/edit/dismiss actions. |
+| `WizardPanel` | `ai/WizardPanel.vue` | Step-by-step AI wizard inside the assistant panel. |
 
 ---
 
-## Raw Vuetify — approved patterns (no wrapper needed)
+## Raw Vuetify — approved patterns
 
-These Vuetify components have no global wrapper and are used directly in both the global library and this prototype.
+No wrapper exists (global or local) for these. Use raw Vuetify directly.
 
 | Component | Used for |
 |---|---|
 | `v-alert` | Inline warnings, info banners, validation summaries |
 | `v-snackbar` | Save success/error toasts |
+| `v-textarea` | Multi-line text inputs (descriptions, legal text) |
 | `v-btn-toggle` | Scope selector (cart/item), channel selector |
 | `v-tabs` / `v-tab` | Status tabs on the list page |
 | `v-chip` / `v-chip-group` | Filter chips, tag chips, status display |

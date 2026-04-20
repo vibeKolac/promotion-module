@@ -31,12 +31,10 @@
     </div>
 
     <!-- Search -->
-    <v-text-field
+    <TextInput
       v-model="search"
       prepend-inner-icon="mdi-magnify"
       placeholder="Search in all columns"
-      variant="outlined"
-      density="compact"
       hide-details
       class="mb-4"
       :style="mobile ? '' : 'max-width: 480px'"
@@ -57,11 +55,10 @@
         <v-tab v-if="!mobile" value="performance">Performance</v-tab>
       </v-tabs>
       <v-spacer />
-      <v-select
+      <SelectInput
         v-model="stackingGroupFilter"
-        :items="stackingGroupFilterItems"
-        variant="outlined"
-        density="compact"
+        :data="stackingGroupFilterItems"
+        label=""
         hide-details
         style="max-width: 200px; min-width: 140px"
       />
@@ -100,22 +97,18 @@
 
       <v-divider v-if="!mobile" vertical class="mx-1" style="align-self:stretch; opacity:.3" />
 
-      <v-select
+      <SelectInput
         v-model="createdByFilter"
-        :items="createdByFilterItems"
+        :data="createdByFilterItems"
         label="Created by"
-        variant="outlined"
-        density="compact"
         hide-details
         style="max-width: 160px; min-width: 130px"
       />
 
-      <v-select
+      <SelectInput
         v-model="dateFilter"
-        :items="dateFilterItems"
+        :data="dateFilterItems"
         label="Date"
-        variant="outlined"
-        density="compact"
         hide-details
         style="max-width: 175px; min-width: 145px"
       />
@@ -162,7 +155,7 @@
           <v-btn size="small" variant="outlined" color="primary" @click="bulkDialogOpen = true">
             <v-icon size="16" class="mr-1">mdi-filter</v-icon>Edit Conditions
           </v-btn>
-          <v-btn size="small" variant="outlined" color="error" @click="bulkDeleteOpen = true">
+          <v-btn size="small" variant="outlined" color="error" @click="openBulkDelete">
             <v-icon size="16" class="mr-1">mdi-delete</v-icon>Delete
           </v-btn>
         </div>
@@ -298,20 +291,20 @@
       </v-data-table>
     </v-card>
 
-    <ConfirmDeleteDialog
-      v-model="deleteDialog"
-      :item-name="deletingItem?.name"
-      :loading="deleting"
-      @confirm="confirmDelete"
-    />
+    <ConfirmModal ref="deleteModal" confirm-text="Delete" confirm-color="error" :loading="deleting">
+      <template #header>Delete promotion rule?</template>
+      <template #body>
+        This action cannot be undone. The rule <strong>{{ deletingItem?.name }}</strong> will be permanently deleted.
+      </template>
+    </ConfirmModal>
+    <ConfirmModal ref="bulkDeleteModal" confirm-text="Delete" confirm-color="error" :loading="store.loading">
+      <template #header>Delete {{ selected.length }} rule{{ selected.length > 1 ? 's' : '' }}?</template>
+      <template #body>
+        This action cannot be undone. The selected {{ selected.length }} rule{{ selected.length > 1 ? 's' : '' }} will be permanently deleted.
+      </template>
+    </ConfirmModal>
     <BulkEditConditionsDialog v-model="bulkDialogOpen" :selected-count="selected.length" @apply="onBulkApply" />
     <CsvImportDialog v-model="csvImportOpen" @import="onCSVImport" />
-    <ConfirmDeleteDialog
-      v-model="bulkDeleteOpen"
-      :item-name="`${selected.length} selected rule${selected.length > 1 ? 's' : ''}`"
-      :loading="store.loading"
-      @confirm="confirmBulkDelete"
-    />
     <v-snackbar v-model="errorSnack" color="error" timeout="4000">{{ store.error }}</v-snackbar>
     <v-snackbar v-model="duplicateSnack" color="success" timeout="3000">Rule duplicated — added to Draft tab</v-snackbar>
     <v-snackbar v-model="bulkSnack" color="success" timeout="3000">{{ bulkSnackText }}</v-snackbar>
@@ -327,7 +320,9 @@ import { useUiStore } from '../../stores/ui'
 import { useStackingGroupsStore } from '../../stores/stackingGroups'
 import { useTagsStore } from '../../stores/tags'
 import StatusBadge from '../shared/StatusBadge.vue'
-import ConfirmDeleteDialog from '../shared/ConfirmDeleteDialog.vue'
+import ConfirmModal from '../_common/ConfirmModal.vue'
+import TextInput from '../_common/TextInput.vue'
+import SelectInput from '../_common/SelectInput.vue'
 import { useDebounceFn } from '@vueuse/core'
 import { detectConflicts } from '../../utils/ruleConflictDetector'
 import ConflictBadge from './ConflictBadge.vue'
@@ -359,14 +354,14 @@ const typeFilter = ref([])
 const tagFilter = ref([])
 const createdByFilter = ref('')
 const dateFilter = ref('any')
-const deleteDialog = ref(false)
+const deleteModal = ref(null)
+const bulkDeleteModal = ref(null)
 const deletingItem = ref(null)
 const deleting = ref(false)
 const selected = ref([])
 const bulkDialogOpen = ref(false)
 const csvImportOpen = ref(false)
 const duplicateSnack = ref(false)
-const bulkDeleteOpen = ref(false)
 const bulkSnack = ref(false)
 const bulkSnackText = ref('')
 
@@ -571,16 +566,13 @@ onMounted(async () => {
   await Promise.all([store.fetchAll(), sgStore.fetchAll(), tagsStore.fetchAll()])
 })
 
-function openDelete(item) {
+async function openDelete(item) {
   deletingItem.value = item
-  deleteDialog.value = true
-}
-
-async function confirmDelete() {
+  const confirmed = await deleteModal.value.open()
+  if (!confirmed) { deletingItem.value = null; return }
   deleting.value = true
-  await store.remove(deletingItem.value.id)
+  await store.remove(item.id)
   deleting.value = false
-  deleteDialog.value = false
   deletingItem.value = null
 }
 
@@ -621,12 +613,13 @@ async function bulkDuplicate() {
   bulkSnack.value = true
 }
 
-async function confirmBulkDelete() {
+async function openBulkDelete() {
+  const confirmed = await bulkDeleteModal.value.open()
+  if (!confirmed) return
   const count = selected.value.length
   await store.bulkRemove(selected.value)
   bulkSnackText.value = `${count} rule${count > 1 ? 's' : ''} deleted`
   selected.value = []
-  bulkDeleteOpen.value = false
   bulkSnack.value = true
 }
 </script>

@@ -61,13 +61,9 @@
     </v-btn>
 
     <!-- Add restriction dialog -->
-    <v-dialog v-model="dialog" max-width="480" @after-leave="resetDialog">
-      <v-card>
-        <v-card-title class="text-subtitle-1 font-weight-bold pa-4 pb-2">
-          Add non-combinable restriction
-        </v-card-title>
+    <DialogCard ref="dialogCard" max-width="480" @after-leave="resetDialog">
+      <template #title>Add non-combinable restriction</template>
 
-        <v-card-text class="pa-4 pt-2">
           <p class="text-caption text-medium-emphasis mb-4">
             Select a stacking group or a specific rule that cannot run at the same time as this rule.
           </p>
@@ -142,17 +138,13 @@
               </v-list-item>
             </template>
           </v-autocomplete>
-        </v-card-text>
-
-        <v-card-actions class="pa-4 pt-0">
-          <v-spacer />
-          <v-btn variant="text" @click="dialog = false">Cancel</v-btn>
-          <v-btn color="primary" :disabled="!selectedIds.length" @click="add">
-            Add{{ selectedIds.length > 1 ? ` (${selectedIds.length})` : '' }}
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
+      <template #actions>
+        <v-btn variant="text" @click="dialogCard.close()">Cancel</v-btn>
+        <v-btn color="primary" :disabled="!selectedIds.length" @click="add">
+          Add{{ selectedIds.length > 1 ? ` (${selectedIds.length})` : '' }}
+        </v-btn>
+      </template>
+    </DialogCard>
   </div>
 </template>
 
@@ -161,6 +153,7 @@ import { ref, computed, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useStackingGroupsStore } from '../../stores/stackingGroups'
 import { usePromotionsStore } from '../../stores/promotions'
+import DialogCard from '../_common/DialogCard.vue'
 
 const props = defineProps({
   modelValue: { type: Array, default: () => [] },
@@ -171,7 +164,7 @@ const route = useRoute()
 const sgStore = useStackingGroupsStore()
 const promoStore = usePromotionsStore()
 
-const dialog = ref(false)
+const dialogCard = ref(null)
 const mode = ref('group')
 const selectedIds = ref([])
 
@@ -227,7 +220,7 @@ function remove(idx) {
 }
 
 function openDialog() {
-  dialog.value = true
+  dialogCard.value.open()
 }
 
 function toggleSelection(id) {
@@ -245,6 +238,6 @@ function add() {
   if (!selectedIds.value.length) return
   const newEntries = selectedIds.value.map(id => ({ type: mode.value, id }))
   emit('update:modelValue', [...props.modelValue, ...newEntries])
-  dialog.value = false
+  dialogCard.value.close()
 }
 </script>

@@ -82,15 +82,12 @@
     </template>
 
     <!-- Create / Edit dialog -->
-    <v-dialog v-model="formDialog" max-width="420" persistent>
-      <v-card>
-        <v-card-title class="text-h6">{{ editingTag ? 'Edit tag' : 'New tag' }}</v-card-title>
-        <v-card-text>
-          <v-text-field
+    <DialogCard ref="formDialogCard" max-width="420" persistent>
+      <template #title>{{ editingTag ? 'Edit tag' : 'New tag' }}</template>
+
+          <TextInput
             v-model="form.name"
             label="Tag name *"
-            variant="outlined"
-            density="compact"
             autofocus
             class="mb-4"
             :error-messages="formError ? [formError] : []"
@@ -124,31 +121,21 @@
               inset
             />
           </div>
-        </v-card-text>
-        <v-card-actions>
-          <v-spacer />
-          <v-btn variant="text" @click="closeForm">Cancel</v-btn>
-          <v-btn color="primary" variant="flat" :loading="saving" @click="submitForm">
-            {{ editingTag ? 'Save' : 'Create' }}
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
+      <template #actions>
+        <v-btn variant="text" @click="closeForm">Cancel</v-btn>
+        <v-btn color="primary" variant="flat" :loading="saving" @click="submitForm">
+          {{ editingTag ? 'Save' : 'Create' }}
+        </v-btn>
+      </template>
+    </DialogCard>
 
     <!-- Delete confirmation -->
-    <v-dialog v-model="deleteDialog" max-width="400">
-      <v-card>
-        <v-card-title class="text-h6">Delete tag?</v-card-title>
-        <v-card-text>
-          <strong>{{ deletingTag?.name }}</strong> will be permanently deleted and removed from all rules.
-        </v-card-text>
-        <v-card-actions>
-          <v-spacer />
-          <v-btn variant="text" @click="deleteDialog = false">Cancel</v-btn>
-          <v-btn color="error" variant="flat" :loading="deleting" @click="confirmDelete">Delete</v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
+    <ConfirmModal ref="deleteConfirmModal" confirm-text="Delete" confirm-color="error" :loading="deleting">
+      <template #header>Delete tag?</template>
+      <template #body>
+        <strong>{{ deletingTag?.name }}</strong> will be permanently deleted and removed from all rules.
+      </template>
+    </ConfirmModal>
 
     <v-snackbar v-model="savedSnack" color="success" timeout="2000">Saved</v-snackbar>
     <v-snackbar v-model="errorSnack" color="error" timeout="5000">{{ errorMsg }}</v-snackbar>
@@ -159,6 +146,9 @@
 import { ref, computed, reactive, onMounted } from 'vue'
 import { useTagsStore } from '../../stores/tags'
 import { usePromotionsStore } from '../../stores/promotions'
+import DialogCard from '../_common/DialogCard.vue'
+import ConfirmModal from '../_common/ConfirmModal.vue'
+import TextInput from '../_common/TextInput.vue'
 
 const tagsStore = useTagsStore()
 const promoStore = usePromotionsStore()
@@ -183,7 +173,7 @@ const usageMap = computed(() => {
 })
 
 // Form state
-const formDialog = ref(false)
+const formDialogCard = ref(null)
 const editingTag = ref(null)
 const saving = ref(false)
 const formError = ref(null)
@@ -195,7 +185,7 @@ function openCreate() {
   form.color = PALETTE[0]
   form.visibleOnFrontend = true
   formError.value = null
-  formDialog.value = true
+  formDialogCard.value.open()
 }
 
 function openEdit(tag) {
@@ -204,11 +194,11 @@ function openEdit(tag) {
   form.color = tag.color ?? PALETTE[0]
   form.visibleOnFrontend = tag.visibleOnFrontend ?? true
   formError.value = null
-  formDialog.value = true
+  formDialogCard.value.open()
 }
 
 function closeForm() {
-  formDialog.value = false
+  formDialogCard.value.close()
   editingTag.value = null
 }
 
@@ -236,29 +226,25 @@ async function submitForm() {
 }
 
 // Delete state
-const deleteDialog = ref(false)
+const deleteConfirmModal = ref(null)
 const deletingTag = ref(null)
 const deleting = ref(false)
 const savedSnack = ref(false)
 const errorSnack = ref(false)
 const errorMsg = ref('')
 
-function openDelete(tag) {
+async function openDelete(tag) {
   deletingTag.value = tag
-  deleteDialog.value = true
-}
-
-async function confirmDelete() {
+  const confirmed = await deleteConfirmModal.value.open()
+  if (!confirmed) { deletingTag.value = null; return }
   deleting.value = true
   try {
-    await tagsStore.remove(deletingTag.value.id)
+    await tagsStore.remove(tag.id)
     savedSnack.value = true
-    deleteDialog.value = false
     deletingTag.value = null
   } catch (e) {
     errorMsg.value = e?.response?.data?.error ?? e?.message ?? 'Failed to delete'
     errorSnack.value = true
-    deleteDialog.value = false
   } finally {
     deleting.value = false
   }

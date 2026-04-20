@@ -37,23 +37,19 @@
         <v-card border elevation="0" class="pa-5">
           <div class="text-body-1 font-weight-bold mb-4">Basic information</div>
 
-          <v-text-field
+          <TextInput
             v-model="draft.name"
             label="Rule name *"
-            variant="outlined"
-            density="compact"
+            :error-messages="validationErrors.name ? [validationErrors.name] : []"
             class="mb-3"
           />
-          <div v-if="validationErrors.name" class="text-caption text-error mt-1 mb-2">{{ validationErrors.name }}</div>
 
           <v-row dense class="mb-3">
             <v-col cols="12">
-              <v-select
+              <SelectInput
                 v-model="draft.type"
-                :items="ruleTypeItems"
+                :data="ruleTypeItems"
                 label="Rule type *"
-                variant="outlined"
-                density="compact"
               />
             </v-col>
           </v-row>
@@ -204,23 +200,14 @@
           </div>
           <v-row dense>
             <v-col cols="8">
-              <v-text-field
+              <NumberInput
                 v-model="draft.value"
                 label="Discount amount *"
-                type="number"
-                variant="outlined"
-                density="compact"
+                :error-messages="validationErrors.value ? [validationErrors.value] : []"
               />
-              <div v-if="validationErrors.value" class="text-caption text-error mt-1">{{ validationErrors.value }}</div>
             </v-col>
             <v-col cols="4">
-              <v-select
-                v-model="draft.amountType"
-                :items="amountTypeItems"
-                label="Amount type"
-                variant="outlined"
-                density="compact"
-              />
+              <SelectInput v-model="draft.amountType" :data="amountTypeItems" label="Amount type" />
             </v-col>
           </v-row>
         </v-card>
@@ -233,44 +220,22 @@
           </div>
           <v-row dense class="mb-3">
             <v-col cols="6">
-              <v-select
+              <SelectInput
                 v-model="draft.stepType"
-                :items="[{ value: 'SPENT', title: 'Amount spent (€)' }, { value: 'QTY', title: 'Quantity' }]"
+                :data="[{ value: 'SPENT', title: 'Amount spent (€)' }, { value: 'QTY', title: 'Quantity' }]"
                 label="Step type"
-                variant="outlined"
-                density="compact"
               />
             </v-col>
             <v-col cols="6">
-              <v-text-field
-                v-model.number="draft.stepMaxSteps"
-                label="Max steps"
-                type="number"
-                variant="outlined"
-                density="compact"
-                hint="0 = unlimited"
-                persistent-hint
-              />
+              <NumberInput v-model.number="draft.stepMaxSteps" label="Max steps" help-text="0 = unlimited" />
             </v-col>
           </v-row>
           <v-row dense class="mb-3">
             <v-col cols="8">
-              <v-text-field
-                v-model="draft.value"
-                label="Discount amount per step *"
-                type="number"
-                variant="outlined"
-                density="compact"
-              />
+              <NumberInput v-model="draft.value" label="Discount amount per step *" />
             </v-col>
             <v-col cols="4">
-              <v-select
-                v-model="draft.amountType"
-                :items="amountTypeItems"
-                label="Amount type"
-                variant="outlined"
-                density="compact"
-              />
+              <SelectInput v-model="draft.amountType" :data="amountTypeItems" label="Amount type" />
             </v-col>
           </v-row>
           <div class="text-caption font-weight-bold text-medium-emphasis mb-2">DISCOUNT TIERS</div>
@@ -298,48 +263,22 @@
           </div>
           <v-row dense class="mb-3">
             <v-col cols="6">
-              <v-text-field
-                v-model.number="draft.multiBuyQty"
-                label="Buy quantity *"
-                type="number"
-                variant="outlined"
-                density="compact"
-                hint="Items customer must buy"
-                persistent-hint
-              />
+              <NumberInput v-model.number="draft.multiBuyQty" label="Buy quantity *" help-text="Items customer must buy" />
             </v-col>
             <v-col cols="6">
-              <v-text-field
-                v-model.number="draft.multiFreeQty"
-                label="Free quantity *"
-                type="number"
-                variant="outlined"
-                density="compact"
-                hint="Items given free"
-                persistent-hint
-              />
+              <NumberInput v-model.number="draft.multiFreeQty" label="Free quantity *" help-text="Items given free" />
             </v-col>
           </v-row>
           <v-row dense class="mb-3">
             <v-col cols="6">
-              <v-select
+              <SelectInput
                 v-model="draft.multiSelectionMode"
-                :items="[{ value: 'CHEAPEST', title: 'Cheapest items free' }, { value: 'MOST_EXPENSIVE', title: 'Most expensive items free' }]"
+                :data="[{ value: 'CHEAPEST', title: 'Cheapest items free' }, { value: 'MOST_EXPENSIVE', title: 'Most expensive items free' }]"
                 label="Free item selection"
-                variant="outlined"
-                density="compact"
               />
             </v-col>
             <v-col cols="6">
-              <v-text-field
-                v-model.number="draft.multiMaxSteps"
-                label="Max steps"
-                type="number"
-                variant="outlined"
-                density="compact"
-                hint="0 = unlimited"
-                persistent-hint
-              />
+              <NumberInput v-model.number="draft.multiMaxSteps" label="Max steps" help-text="0 = unlimited" />
             </v-col>
           </v-row>
           <v-alert
@@ -372,31 +311,17 @@
           </div>
           <v-row dense>
             <v-col cols="5">
-              <v-select
+              <SelectInput
                 v-model="draft.giftStepType"
-                :items="[{ value: 'SPENT', title: 'Amount spent' }, { value: 'QTY', title: 'Quantity' }]"
+                :data="[{ value: 'SPENT', title: 'Amount spent' }, { value: 'QTY', title: 'Quantity' }]"
                 label="Trigger type"
-                variant="outlined"
-                density="compact"
               />
             </v-col>
             <v-col cols="4">
-              <v-text-field
-                v-model="draft.giftStepValue"
-                label="Threshold"
-                type="number"
-                variant="outlined"
-                density="compact"
-              />
+              <NumberInput v-model="draft.giftStepValue" label="Threshold" />
             </v-col>
             <v-col cols="3">
-              <v-text-field
-                v-model="draft.giftMaxSteps"
-                label="Max gifts"
-                type="number"
-                variant="outlined"
-                density="compact"
-              />
+              <NumberInput v-model="draft.giftMaxSteps" label="Max gifts" />
             </v-col>
           </v-row>
           <div class="d-flex align-center gap-2 mt-3">
@@ -430,13 +355,10 @@
             class="mb-3"
           />
           <div class="text-caption font-weight-bold text-medium-emphasis mb-3">CUSTOMER-FACING DESCRIPTION</div>
-          <v-text-field
+          <TextInput
             v-model="draft.promotionTitle"
             label="Promotion title"
-            variant="outlined"
-            density="compact"
-            hint="Short headline shown to customers (e.g. '20% off Vichy')"
-            persistent-hint
+            help-text="Short headline shown to customers (e.g. '20% off Vichy')"
             class="mb-3"
           />
           <v-textarea
@@ -528,12 +450,11 @@
       <v-col cols="12" md="5">
         <v-card border elevation="0" class="pa-5 mb-4">
           <div class="text-body-1 font-weight-bold mb-4">Status</div>
-          <v-select
+          <SelectInput
             v-model="draft.status"
-            :items="statusItems"
+            :data="statusItems"
+            label=""
             :disabled="draft.status === 'scheduled' || draft.status === 'ended'"
-            variant="outlined"
-            density="compact"
             hide-details
           />
           <div v-if="draft.status === 'scheduled'" class="text-caption text-medium-emphasis mt-2">
@@ -602,6 +523,9 @@ import StackingGroupSelect from './StackingGroupSelect.vue'
 import ProcessingOrderSelect from './ProcessingOrderSelect.vue'
 import NonCombinableRulesSection from './NonCombinableRulesSection.vue'
 import TagsSection from './TagsSection.vue'
+import TextInput from '../_common/TextInput.vue'
+import NumberInput from '../_common/NumberInput.vue'
+import SelectInput from '../_common/SelectInput.vue'
 
 const route = useRoute()
 const router = useRouter()

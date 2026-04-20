@@ -1,11 +1,10 @@
 <!-- src/components/promotions/ConditionBuilderDialog.vue -->
 <template>
-  <v-dialog :model-value="modelValue" max-width="560" @update:model-value="$emit('update:modelValue', $event)">
-    <v-card>
-      <v-card-title class="pa-5 pb-2">
-        {{ isEditMode ? 'Edit condition' : 'Add condition' }}
-        <span v-if="!isEditMode" class="text-caption text-medium-emphasis ml-2">Step {{ step }} of 2</span>
-      </v-card-title>
+  <DialogCard :model-value="modelValue" max-width="560" @update:model-value="$emit('update:modelValue', $event)">
+    <template #title>
+      {{ isEditMode ? 'Edit condition' : 'Add condition' }}
+      <span v-if="!isEditMode" class="text-caption text-medium-emphasis ml-2">Step {{ step }} of 2</span>
+    </template>
 
       <!-- Step 1: Type selector -->
       <v-card-text v-if="step === 1" class="pa-5 pt-2">
@@ -72,13 +71,11 @@
         </v-alert>
 
         <!-- Operator for quantifiable types -->
-        <v-select
+        <SelectInput
           v-if="currentTypeDef?.quantifiable"
           v-model="localCondition.operator"
-          :items="operatorItems"
+          :data="operatorItems"
           label="Operator"
-          variant="outlined"
-          density="compact"
           class="mb-3"
         />
 
@@ -112,15 +109,11 @@
         />
 
         <!-- Numeric input for quantifiable types -->
-        <v-text-field
+        <NumberInput
           v-else
           :model-value="localCondition.values[0] ?? ''"
           :label="quantifiableLabel"
-          type="number"
-          variant="outlined"
-          density="compact"
-          :hint="quantifiableHint"
-          persistent-hint
+          :help-text="quantifiableHint"
           class="mb-3"
           @update:model-value="v => localCondition.values = [v]"
         />
@@ -139,31 +132,32 @@
         </v-alert>
       </v-card-text>
 
-      <v-card-actions class="pa-5 pt-0">
-        <v-spacer />
-        <v-btn variant="text" @click="$emit('update:modelValue', false)">Cancel</v-btn>
-        <v-btn
-          v-if="step === 1"
-          color="primary"
-          variant="flat"
-          :disabled="!selectedField"
-          @click="step = 2"
-        >Next</v-btn>
-        <v-btn
-          v-else
-          color="primary"
-          variant="flat"
-          @click="handleSave"
-        >{{ isEditMode ? 'Update' : 'Add condition' }}</v-btn>
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
+    <template #actions>
+      <v-btn variant="text" @click="$emit('update:modelValue', false)">Cancel</v-btn>
+      <v-btn
+        v-if="step === 1"
+        color="primary"
+        variant="flat"
+        :disabled="!selectedField"
+        @click="step = 2"
+      >Next</v-btn>
+      <v-btn
+        v-else
+        color="primary"
+        variant="flat"
+        @click="handleSave"
+      >{{ isEditMode ? 'Update' : 'Add condition' }}</v-btn>
+    </template>
+  </DialogCard>
 </template>
 
 <script setup>
 import { ref, computed, watch } from 'vue'
 import { v4 as uuid } from 'uuid'
 import { validateCondition } from '../../utils/conditionValidator'
+import DialogCard from '../_common/DialogCard.vue'
+import SelectInput from '../_common/SelectInput.vue'
+import NumberInput from '../_common/NumberInput.vue'
 
 // --- Type definitions ---
 const CONDITION_TYPES = [

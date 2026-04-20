@@ -1,59 +1,40 @@
 <!-- src/components/stackingGroups/StackingGroupDialog.vue -->
 <template>
-  <v-dialog :model-value="modelValue" max-width="460" @update:model-value="$emit('update:modelValue', $event)">
-    <v-card>
-      <v-card-title class="text-h6 pa-5 pb-2">
-        {{ isEditMode ? 'Edit group' : 'New group' }}
-      </v-card-title>
+  <DialogCard :model-value="modelValue" max-width="460" @update:model-value="$emit('update:modelValue', $event)">
+    <template #title>{{ isEditMode ? 'Edit group' : 'New group' }}</template>
 
-      <v-card-text class="pa-5 pt-2">
-        <v-text-field
-          v-model="form.name"
-          label="Name"
-          variant="outlined"
-          density="compact"
-          class="mb-3"
-          :error-messages="nameError"
-        />
+    <TextInput v-model="form.name" label="Name" :error-messages="nameError" class="mb-3" />
+    <NumberInput v-model.number="form.priority" label="Priority" class="mb-3" />
 
-        <v-text-field
-          v-model.number="form.priority"
-          label="Priority"
-          type="number"
-          variant="outlined"
-          density="compact"
-          class="mb-3"
-        />
+    <div class="mb-3">
+      <div class="text-caption font-weight-bold text-medium-emphasis mb-2">COLOR</div>
+      <ColorPicker v-model="form.color" />
+    </div>
 
-        <div class="mb-3">
-          <div class="text-caption font-weight-bold text-medium-emphasis mb-2">COLOR</div>
-          <ColorPicker v-model="form.color" />
-        </div>
+    <v-switch
+      v-model="form.isDefault"
+      label="Default group"
+      density="compact"
+      color="primary"
+      hide-details
+    />
 
-        <v-switch
-          v-model="form.isDefault"
-          label="Default group"
-          density="compact"
-          color="primary"
-          hide-details
-        />
-      </v-card-text>
-
-      <v-card-actions class="pa-5 pt-0">
-        <v-spacer />
-        <v-btn variant="text" @click="$emit('update:modelValue', false)">Cancel</v-btn>
-        <v-btn color="primary" variant="flat" :loading="saving" @click="handleSave">
-          {{ isEditMode ? 'Update' : 'Create' }}
-        </v-btn>
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
+    <template #actions>
+      <v-btn variant="text" @click="$emit('update:modelValue', false)">Cancel</v-btn>
+      <v-btn color="primary" variant="flat" :loading="saving" @click="handleSave">
+        {{ isEditMode ? 'Update' : 'Create' }}
+      </v-btn>
+    </template>
+  </DialogCard>
 </template>
 
 <script setup>
 import { ref, computed, watch } from 'vue'
 import { useStackingGroupsStore } from '../../stores/stackingGroups'
 import ColorPicker from '../shared/ColorPicker.vue'
+import DialogCard from '../_common/DialogCard.vue'
+import TextInput from '../_common/TextInput.vue'
+import NumberInput from '../_common/NumberInput.vue'
 
 const props = defineProps({
   modelValue: Boolean,
