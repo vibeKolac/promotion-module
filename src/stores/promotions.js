@@ -9,6 +9,7 @@ const emptyDraft = () => ({
   scope: 'cart',
   steps: [], priority: 10, status: 'draft',
   startDate: null, endDate: null,
+  pauseScheduled: false, pauseStart: null, pauseEnd: null,
   description: '',
   promotionTitle: '',
   promotionText: '',

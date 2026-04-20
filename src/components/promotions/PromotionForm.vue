@@ -84,24 +84,90 @@
 
           <v-row dense>
             <v-col cols="6">
-              <v-text-field
-                v-model="draft.startDate"
+              <v-date-input
+                :model-value="draft.startDate"
                 label="Start date"
-                type="date"
                 variant="outlined"
                 density="compact"
+                prepend-inner-icon="mdi-calendar"
+                prepend-icon=""
+                clearable
+                @update:model-value="draft.startDate = toIsoDate($event)"
               />
             </v-col>
             <v-col cols="6">
-              <v-text-field
-                v-model="draft.endDate"
+              <v-date-input
+                :model-value="draft.endDate"
                 label="End date"
-                type="date"
                 variant="outlined"
                 density="compact"
+                prepend-inner-icon="mdi-calendar"
+                prepend-icon=""
+                clearable
+                @update:model-value="draft.endDate = toIsoDate($event)"
               />
             </v-col>
           </v-row>
+
+          <!-- Schedule pausing -->
+          <div class="mt-3">
+            <v-checkbox
+              v-model="draft.pauseScheduled"
+              label="Schedule rule pausing"
+              density="compact"
+              hide-details
+              color="warning"
+              class="mb-1"
+            />
+            <template v-if="draft.pauseScheduled">
+              <v-alert
+                v-if="pauseAdjustWarning"
+                type="warning"
+                variant="tonal"
+                density="compact"
+                icon="mdi-clock-alert-outline"
+                class="mb-3 text-caption"
+                closable
+                @click:close="pauseAdjustWarning = false"
+              >
+                Rule dates have changed — please review the scheduled pause period to ensure it still falls within the active range.
+              </v-alert>
+              <v-row dense class="mt-2">
+                <v-col cols="6">
+                  <v-date-input
+                    :model-value="draft.pauseStart"
+                    label="Pause from *"
+                    variant="outlined"
+                    density="compact"
+                    prepend-inner-icon="mdi-calendar"
+                    prepend-icon=""
+                    clearable
+                    :allowed-dates="pauseStartAllowedDates"
+                    :error-messages="pauseErrors.pauseStart"
+                    @update:model-value="draft.pauseStart = toIsoDate($event)"
+                  />
+                </v-col>
+                <v-col cols="6">
+                  <v-date-input
+                    :model-value="draft.pauseEnd"
+                    label="Pause until *"
+                    variant="outlined"
+                    density="compact"
+                    prepend-inner-icon="mdi-calendar"
+                    prepend-icon=""
+                    clearable
+                    :allowed-dates="pauseEndAllowedDates"
+                    :error-messages="pauseErrors.pauseEnd"
+                    @update:model-value="draft.pauseEnd = toIsoDate($event)"
+                  />
+                </v-col>
+              </v-row>
+              <div class="text-caption text-medium-emphasis mt-1">
+                While in Active status, the rule will be automatically paused during this period.
+                Pause must fall within the rule's start and end date.
+              </div>
+            </template>
+          </div>
 
           <!-- Channels -->
           <div class="mt-4">
@@ -551,6 +617,8 @@ const conditionDialogOpen = ref(false)
 const validationErrors = ref({})
 const editingCondition = ref(null)
 const editingConditionIdx = ref(null)
+const pauseAdjustWarning = ref(false)
+const pauseErrors = ref({})
 
 const draft = store.formDraft
 
@@ -564,20 +632,89 @@ function isPastDate(dateStr) {
   return !!dateStr && new Date(dateStr) < today
 }
 
-function resolveStatus(currentStatus, startDate, endDate) {
+function resolveStatus(currentStatus, startDate, endDate, pauseScheduled, pauseStart, pauseEnd) {
   if (isPastDate(endDate)) return 'ended'
   if (isFutureDate(startDate)) return 'scheduled'
   if (currentStatus === 'scheduled' || currentStatus === 'ended') return 'active'
+  if (pauseScheduled && pauseStart && pauseEnd) {
+    const now = new Date(new Date().toDateString())
+    const ps = new Date(pauseStart)
+    const pe = new Date(pauseEnd)
+    if (now >= ps && now <= pe && currentStatus === 'active') return 'paused'
+  }
   return currentStatus
 }
 
+function validatePause() {
+  const errors = {}
+  if (!draft.pauseScheduled) return errors
+  if (!draft.pauseStart) errors.pauseStart = 'Pause start date is required'
+  if (!draft.pauseEnd) errors.pauseEnd = 'Pause end date is required'
+  if (draft.pauseStart && draft.pauseEnd && draft.pauseStart >= draft.pauseEnd) {
+    errors.pauseEnd = 'Pause end must be after pause start'
+  }
+  if (draft.pauseStart && draft.startDate && draft.pauseStart < draft.startDate) {
+    errors.pauseStart = 'Pause must start on or after rule start date'
+  }
+  if (draft.pauseEnd && draft.endDate && draft.pauseEnd > draft.endDate) {
+    errors.pauseEnd = 'Pause must end on or before rule end date'
+  }
+  if (draft.pauseStart && !draft.startDate) {
+    errors.pauseStart = 'Rule start date must be set before scheduling a pause'
+  }
+  if (draft.pauseEnd && !draft.endDate) {
+    errors.pauseEnd = 'Rule end date must be set before scheduling a pause'
+  }
+  return errors
+}
+
 watch(() => draft.startDate, () => {
-  draft.status = resolveStatus(draft.status, draft.startDate, draft.endDate)
+  draft.status = resolveStatus(draft.status, draft.startDate, draft.endDate, draft.pauseScheduled, draft.pauseStart, draft.pauseEnd)
+  if (draft.pauseScheduled && (draft.pauseStart || draft.pauseEnd)) {
+    pauseAdjustWarning.value = true
+  }
 })
 
 watch(() => draft.endDate, () => {
-  draft.status = resolveStatus(draft.status, draft.startDate, draft.endDate)
+  draft.status = resolveStatus(draft.status, draft.startDate, draft.endDate, draft.pauseScheduled, draft.pauseStart, draft.pauseEnd)
+  if (draft.pauseScheduled && (draft.pauseStart || draft.pauseEnd)) {
+    pauseAdjustWarning.value = true
+  }
 })
+
+watch(() => draft.pauseScheduled, (val) => {
+  if (!val) {
+    draft.pauseStart = null
+    draft.pauseEnd = null
+    pauseErrors.value = {}
+    pauseAdjustWarning.value = false
+  }
+})
+
+function toIsoDate(val) {
+  if (!val) return null
+  if (typeof val === 'string') return val.split('T')[0]
+  const d = new Date(val)
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+
+function pauseStartAllowedDates(d) {
+  const iso = toIsoDate(d)
+  if (!iso) return false
+  if (draft.startDate && iso < draft.startDate) return false
+  if (draft.endDate && iso > draft.endDate) return false
+  if (draft.pauseEnd && iso > draft.pauseEnd) return false
+  return true
+}
+
+function pauseEndAllowedDates(d) {
+  const iso = toIsoDate(d)
+  if (!iso) return false
+  if (draft.startDate && iso < draft.startDate) return false
+  if (draft.endDate && iso > draft.endDate) return false
+  if (draft.pauseStart && iso < draft.pauseStart) return false
+  return true
+}
 
 const statusItems = [
   { value: 'active', title: 'Active' },
@@ -642,7 +779,9 @@ function validate() {
   if (!draft.name?.trim()) errors.name = 'Rule name is required'
   if (draft.type === 'discount' && !draft.value) errors.value = 'Discount value is required'
   validationErrors.value = errors
-  return Object.keys(errors).length === 0
+  const pErrors = validatePause()
+  pauseErrors.value = pErrors
+  return Object.keys(errors).length === 0 && Object.keys(pErrors).length === 0
 }
 
 async function save() {
@@ -651,7 +790,7 @@ async function save() {
   saveError.value = null
   try {
     const payload = JSON.parse(JSON.stringify(toRaw(draft)))
-    payload.status = resolveStatus(payload.status, payload.startDate, payload.endDate)
+    payload.status = resolveStatus(payload.status, payload.startDate, payload.endDate, payload.pauseScheduled, payload.pauseStart, payload.pauseEnd)
     if (isEdit.value) {
       await store.update(route.params.id, payload)
     } else {
