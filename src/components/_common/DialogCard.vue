@@ -16,15 +16,25 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 
 defineOptions({ inheritAttrs: false })
 
+const props = defineProps({ modelValue: { type: Boolean, default: undefined } })
+const emit = defineEmits(['update:modelValue'])
+
 const isOpen = ref(false)
+
+watch(() => props.modelValue, (val) => {
+  if (typeof val === 'boolean') isOpen.value = val
+}, { immediate: true })
 
 function open() { isOpen.value = true }
 function close() { isOpen.value = false }
-function onOverlayUpdate(val) { if (!val) isOpen.value = false }
+function onOverlayUpdate(val) {
+  isOpen.value = !!val
+  emit('update:modelValue', !!val)
+}
 
 defineExpose({ open, close })
 </script>
