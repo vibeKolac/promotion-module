@@ -66,6 +66,17 @@ html,body{height:100%;overflow:hidden;font-family:'Inter',sans-serif;background:
 .ndot{width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,.25);cursor:pointer;transition:all .2s;flex-shrink:0}
 .ndot.a{background:#fff;width:15px;border-radius:3px}
 .ncnt{font-size:.65rem;opacity:.4;font-weight:700;min-width:34px;text-align:center}
+.rrow{display:flex;align-items:center;gap:5px;margin-bottom:5px}
+.rnum{font-size:.57rem;font-weight:800;opacity:.3;min-width:18px;text-align:right;flex-shrink:0}
+.rname{font-size:.68rem;flex:1;line-height:1.2}
+.rpills{display:flex;gap:2px;flex-shrink:0}
+.cpill{border-radius:2px;padding:0 3px;font-size:.52rem;font-weight:800;flex-shrink:0}
+.cp-sk{background:#bbf7d0;color:#166534}.cp-cz{background:#bfdbfe;color:#1e3a8a}
+.cp-pl{background:#fecaca;color:#7f1d1d}.cp-ro{background:#fef08a;color:#713f12}
+.cp-it{background:#e9d5ff;color:#4c1d95}.cp-off{background:rgba(255,255,255,.1);color:rgba(255,255,255,.2);font-weight:600}
+.rbar{width:32px;background:rgba(0,0,0,.22);border-radius:2px;height:5px;overflow:hidden;flex-shrink:0}
+.rbfill{height:5px;background:rgba(255,255,255,.48);border-radius:2px}
+.rval{font-size:.58rem;font-weight:700;min-width:24px;text-align:right;opacity:.5;flex-shrink:0}
 </style>
 </head>
 <body>
@@ -92,7 +103,7 @@ html,body{height:100%;overflow:hidden;font-family:'Inter',sans-serif;background:
 
 <!-- ─── SLIDE 2: INTRO ─── -->
 <div class="slide" id="s1">
-  <div class="shdr"><h2>Intro</h2><div style="display:flex;align-items:center;gap:9px"><span class="stag">📋 Intro</span><span class="snum">2 / 15</span></div></div>
+  <div class="shdr"><h2>Intro</h2><div style="display:flex;align-items:center;gap:9px"><span class="stag">📋 Intro</span><span class="snum">2 / 18</span></div></div>
   <div class="sbody">
     <div class="g2 mb16">
       <div class="card">
@@ -155,49 +166,54 @@ html,body{height:100%;overflow:hidden;font-family:'Inter',sans-serif;background:
 
 <!-- ─── SLIDE 3: RULE TYPES & CONDITIONS ─── -->
 <div class="slide" id="s2">
-  <div class="shdr"><h2>Rule Types &amp; Conditions</h2><div style="display:flex;align-items:center;gap:9px"><span class="stag">📑 cartpriceRuleNames</span><span class="snum">3 / 15</span></div></div>
+  <div class="shdr"><h2>Rule Types &amp; Conditions</h2><div style="display:flex;align-items:center;gap:9px"><span class="stag">📑 cartpriceRuleNames</span><span class="snum">3 / 18</span></div></div>
   <div class="sbody">
-    <div class="g2 mb14">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;flex-wrap:wrap">
+      <span style="font-size:.67rem;opacity:.5">Ranked by global volume · bar = ratio of markets using · pill lit = market actively uses it</span>
+      <div style="display:flex;gap:3px">
+        <span class="cpill cp-sk">SK</span><span class="cpill cp-cz">CZ</span><span class="cpill cp-pl">PL</span><span class="cpill cp-ro">RO</span><span class="cpill cp-it">IT</span>
+      </div>
+    </div>
+    <div class="g2 mb12">
       <div class="card">
-        <div class="cttl">Rule types — ranked by global order volume (top 15)</div>
-        <div class="brow"><span class="blbl">Fixed discount · Qty · Cart</span><div class="btrack"><div class="bfill" style="width:100%"></div></div><span class="bval">5.47M</span></div>
-        <div class="brow"><span class="blbl">Fixed discount · Realspent · Cart</span><div class="btrack"><div class="bfill" style="width:47.1%"></div></div><span class="bval">2.58M</span></div>
-        <div class="brow"><span class="blbl">Gift from item · Qty · Cart (min)</span><div class="btrack"><div class="bfill" style="width:13.3%"></div></div><span class="bval">726K</span></div>
-        <div class="brow"><span class="blbl">Percent discount · Qty · Cart</span><div class="btrack"><div class="bfill" style="width:9.2%"></div></div><span class="bval">504K</span></div>
-        <div class="brow"><span class="blbl">Gift extra · Qty · Cart</span><div class="btrack"><div class="bfill" style="width:9.1%"></div></div><span class="bval">495K</span></div>
-        <div class="brow"><span class="blbl">Gift from item · Qty · Cart (max)</span><div class="btrack"><div class="bfill" style="width:6.9%"></div></div><span class="bval">379K</span></div>
-        <div class="brow"><span class="blbl">Fixed discount · Spent · Cart</span><div class="btrack"><div class="bfill" style="width:5.2%"></div></div><span class="bval">287K</span></div>
-        <div class="brow"><span class="blbl">Percent discount · Spent · Cart</span><div class="btrack"><div class="bfill" style="width:4.8%"></div></div><span class="bval">260K</span></div>
-        <div class="brow"><span class="blbl">Gift extra · Realspent · Cart</span><div class="btrack"><div class="bfill" style="width:4.7%"></div></div><span class="bval">259K</span></div>
-        <div class="brow"><span class="blbl">Fixed (Marketplace) · Spent · Cart</span><div class="btrack"><div class="bfill y" style="width:4.6%"></div></div><span class="bval" style="color:#FDE68A">250K</span></div>
-        <div class="brow"><span class="blbl">Percent discount · Qty · Item</span><div class="btrack"><div class="bfill" style="width:3.2%"></div></div><span class="bval">175K</span></div>
-        <div class="brow"><span class="blbl">Gift extra · Spent · Cart</span><div class="btrack"><div class="bfill" style="width:2.7%"></div></div><span class="bval">150K</span></div>
-        <div class="brow"><span class="blbl">Percent discount · Realspent · Cart</span><div class="btrack"><div class="bfill" style="width:1.8%"></div></div><span class="bval">98K</span></div>
-        <div class="brow"><span class="blbl">Gift same · Qty · Item</span><div class="btrack"><div class="bfill" style="width:1.4%"></div></div><span class="bval">77K</span></div>
-        <div class="brow"><span class="blbl">Buy X Get Y · Qty · Cart (min)</span><div class="btrack"><div class="bfill" style="width:1.2%"></div></div><span class="bval">67K</span></div>
-        <div style="margin-top:8px;font-size:.66rem;opacity:.45">+ 19 more types used in smaller volumes (bundles, marketplace variants, item-level rules)</div>
+        <div class="cttl">Rule types — ranked · bar = share of 5 markets using</div>
+        <div class="rrow"><span class="rnum">#1</span><span class="rname">Fixed · Qty · Cart</span><div class="rpills"><span class="cpill cp-sk">SK</span><span class="cpill cp-cz">CZ</span><span class="cpill cp-pl">PL</span><span class="cpill cp-ro">RO</span><span class="cpill cp-it">IT</span></div><div class="rbar"><div class="rbfill" style="width:100%"></div></div><span class="rval">5/5</span></div>
+        <div class="rrow"><span class="rnum">#2</span><span class="rname">Fixed · Realspent · Cart</span><div class="rpills"><span class="cpill cp-sk">SK</span><span class="cpill cp-cz">CZ</span><span class="cpill cp-pl">PL</span><span class="cpill cp-off">RO</span><span class="cpill cp-off">IT</span></div><div class="rbar"><div class="rbfill" style="width:60%"></div></div><span class="rval">3/5</span></div>
+        <div class="rrow"><span class="rnum">#3</span><span class="rname">Gift extra · Qty · Cart</span><div class="rpills"><span class="cpill cp-sk">SK</span><span class="cpill cp-cz">CZ</span><span class="cpill cp-pl">PL</span><span class="cpill cp-ro">RO</span><span class="cpill cp-it">IT</span></div><div class="rbar"><div class="rbfill" style="width:100%"></div></div><span class="rval">5/5</span></div>
+        <div class="rrow"><span class="rnum">#4</span><span class="rname">Percent · Qty · Cart</span><div class="rpills"><span class="cpill cp-sk">SK</span><span class="cpill cp-cz">CZ</span><span class="cpill cp-pl">PL</span><span class="cpill cp-ro">RO</span><span class="cpill cp-it">IT</span></div><div class="rbar"><div class="rbfill" style="width:100%"></div></div><span class="rval">5/5</span></div>
+        <div class="rrow"><span class="rnum">#5</span><span class="rname">Gift from item · Qty · Cart (min)</span><div class="rpills"><span class="cpill cp-sk">SK</span><span class="cpill cp-cz">CZ</span><span class="cpill cp-pl">PL</span><span class="cpill cp-ro">RO</span><span class="cpill cp-off">IT</span></div><div class="rbar"><div class="rbfill" style="width:80%"></div></div><span class="rval">4/5</span></div>
+        <div class="rrow"><span class="rnum">#6</span><span class="rname">Fixed · Spent · Cart</span><div class="rpills"><span class="cpill cp-sk">SK</span><span class="cpill cp-cz">CZ</span><span class="cpill cp-pl">PL</span><span class="cpill cp-ro">RO</span><span class="cpill cp-it">IT</span></div><div class="rbar"><div class="rbfill" style="width:100%"></div></div><span class="rval">5/5</span></div>
+        <div class="rrow"><span class="rnum">#7</span><span class="rname">Percent · Spent · Cart</span><div class="rpills"><span class="cpill cp-sk">SK</span><span class="cpill cp-cz">CZ</span><span class="cpill cp-pl">PL</span><span class="cpill cp-ro">RO</span><span class="cpill cp-it">IT</span></div><div class="rbar"><div class="rbfill" style="width:100%"></div></div><span class="rval">5/5</span></div>
+        <div class="rrow"><span class="rnum">#8</span><span class="rname">Percent · Qty · Item</span><div class="rpills"><span class="cpill cp-sk">SK</span><span class="cpill cp-cz">CZ</span><span class="cpill cp-pl">PL</span><span class="cpill cp-ro">RO</span><span class="cpill cp-off">IT</span></div><div class="rbar"><div class="rbfill" style="width:80%"></div></div><span class="rval">4/5</span></div>
+        <div class="rrow"><span class="rnum">#9</span><span class="rname">Buy X Get Y · Qty · Cart</span><div class="rpills"><span class="cpill cp-off">SK</span><span class="cpill cp-off">CZ</span><span class="cpill cp-pl">PL</span><span class="cpill cp-ro">RO</span><span class="cpill cp-it">IT</span></div><div class="rbar"><div class="rbfill" style="width:60%"></div></div><span class="rval">3/5</span></div>
+        <div class="rrow"><span class="rnum">#10</span><span class="rname">Fixed (Marketplace) · Spent · Cart</span><div class="rpills"><span class="cpill cp-off">SK</span><span class="cpill cp-cz">CZ</span><span class="cpill cp-off">PL</span><span class="cpill cp-off">RO</span><span class="cpill cp-off">IT</span></div><div class="rbar"><div class="rbfill" style="width:40%"></div></div><span class="rval" style="color:#FDE68A">2/5</span></div>
+        <div class="rrow"><span class="rnum">#11</span><span class="rname">Gift extra · Spent · Cart</span><div class="rpills"><span class="cpill cp-sk">SK</span><span class="cpill cp-cz">CZ</span><span class="cpill cp-off">PL</span><span class="cpill cp-off">RO</span><span class="cpill cp-off">IT</span></div><div class="rbar"><div class="rbfill" style="width:40%"></div></div><span class="rval">2/5</span></div>
+        <div class="rrow"><span class="rnum">#12</span><span class="rname">Percent · Realspent · Cart</span><div class="rpills"><span class="cpill cp-sk">SK</span><span class="cpill cp-off">CZ</span><span class="cpill cp-off">PL</span><span class="cpill cp-off">RO</span><span class="cpill cp-it">IT</span></div><div class="rbar"><div class="rbfill" style="width:40%"></div></div><span class="rval">2/5</span></div>
+        <div class="rrow"><span class="rnum">#13</span><span class="rname">Gift same · Qty · Item</span><div class="rpills"><span class="cpill cp-off">SK</span><span class="cpill cp-cz">CZ</span><span class="cpill cp-off">PL</span><span class="cpill cp-ro">RO</span><span class="cpill cp-off">IT</span></div><div class="rbar"><div class="rbfill" style="width:40%"></div></div><span class="rval">2/5</span></div>
+        <div class="rrow"><span class="rnum">#14</span><span class="rname">Gift from item (max) <span style="color:#bbf7d0;font-size:.58rem">SK only</span></span><div class="rpills"><span class="cpill cp-sk">SK</span><span class="cpill cp-off">CZ</span><span class="cpill cp-off">PL</span><span class="cpill cp-off">RO</span><span class="cpill cp-off">IT</span></div><div class="rbar"><div class="rbfill" style="width:20%"></div></div><span class="rval">1/5</span></div>
+        <div class="rrow"><span class="rnum">#15</span><span class="rname">Gift extra · Realspent <span style="color:#bbf7d0;font-size:.58rem">SK only</span></span><div class="rpills"><span class="cpill cp-sk">SK</span><span class="cpill cp-off">CZ</span><span class="cpill cp-off">PL</span><span class="cpill cp-off">RO</span><span class="cpill cp-off">IT</span></div><div class="rbar"><div class="rbfill" style="width:20%"></div></div><span class="rval">1/5</span></div>
+        <div style="margin-top:8px;font-size:.63rem;opacity:.35">26 of 34 available rule types used in 2025 · + 11 more in minor volume</div>
       </div>
       <div>
         <div class="card mb12">
-          <div class="cttl">Conditions — ranked by global order volume</div>
-          <div class="brow"><span class="blbl s">sku</span><div class="btrack"><div class="bfill" style="width:100%"></div></div><span class="bval">5.17M</span></div>
-          <div class="brow"><span class="blbl s">drmax_free_shipping_price</span><div class="btrack"><div class="bfill" style="width:80.6%"></div></div><span class="bval">4.16M</span></div>
-          <div class="brow"><span class="blbl s">drmax_brand</span><div class="btrack"><div class="bfill" style="width:44.6%"></div></div><span class="bval">2.30M</span></div>
-          <div class="brow"><span class="blbl s">attribute_set_id</span><div class="btrack"><div class="bfill" style="width:32.6%"></div></div><span class="bval">1.69M</span></div>
-          <div class="brow"><span class="blbl s">drmax_order_type</span><div class="btrack"><div class="bfill" style="width:24.6%"></div></div><span class="bval">1.27M</span></div>
-          <div class="brow"><span class="blbl s">base_subtotal_total_incl_tax</span><div class="btrack"><div class="bfill" style="width:22.2%"></div></div><span class="bval">1.15M</span></div>
-          <div class="brow"><span class="blbl s">drmax_pim_status</span><div class="btrack"><div class="bfill y" style="width:17.8%"></div></div><span class="bval" style="color:#FDE68A">920K</span></div>
-          <div class="brow"><span class="blbl s">category_ids</span><div class="btrack"><div class="bfill" style="width:17.4%"></div></div><span class="bval">899K</span></div>
-          <div class="brow"><span class="blbl s">drmax_subtotal_</span><div class="btrack"><div class="bfill" style="width:10.8%"></div></div><span class="bval">560K</span></div>
-          <div class="brow"><span class="blbl s">drmax_stock_availability_text</span><div class="btrack"><div class="bfill y" style="width:9.9%"></div></div><span class="bval" style="color:#FDE68A">512K</span></div>
-          <div class="brow"><span class="blbl s">qty</span><div class="btrack"><div class="bfill" style="width:4.8%"></div></div><span class="bval">248K</span></div>
-          <div class="brow"><span class="blbl s">base_row_total</span><div class="btrack"><div class="bfill" style="width:3.7%"></div></div><span class="bval">192K</span></div>
-          <div class="brow"><span class="blbl s">quote_item_shop_type</span><div class="btrack"><div class="bfill y" style="width:1.7%"></div></div><span class="bval" style="color:#FDE68A">86K</span></div>
-          <div class="brow"><span class="blbl s">drmax_product_line</span><div class="btrack"><div class="bfill" style="width:1.4%"></div></div><span class="bval">74K</span></div>
-          <div style="margin-top:6px;font-size:.63rem;opacity:.4">Yellow = SK or PL specific condition not used in other markets</div>
+          <div class="cttl">Conditions — ranked · bar = share of 5 markets using</div>
+          <div class="rrow"><span class="rnum">#1</span><span class="rname">sku</span><div class="rpills"><span class="cpill cp-sk">SK</span><span class="cpill cp-cz">CZ</span><span class="cpill cp-pl">PL</span><span class="cpill cp-ro">RO</span><span class="cpill cp-it">IT</span></div><div class="rbar"><div class="rbfill" style="width:100%"></div></div><span class="rval">5/5</span></div>
+          <div class="rrow"><span class="rnum">#2</span><span class="rname">drmax_free_shipping_price</span><div class="rpills"><span class="cpill cp-sk">SK</span><span class="cpill cp-cz">CZ</span><span class="cpill cp-pl">PL</span><span class="cpill cp-off">RO</span><span class="cpill cp-off">IT</span></div><div class="rbar"><div class="rbfill" style="width:60%"></div></div><span class="rval">3/5</span></div>
+          <div class="rrow"><span class="rnum">#3</span><span class="rname">drmax_brand</span><div class="rpills"><span class="cpill cp-sk">SK</span><span class="cpill cp-cz">CZ</span><span class="cpill cp-pl">PL</span><span class="cpill cp-ro">RO</span><span class="cpill cp-it">IT</span></div><div class="rbar"><div class="rbfill" style="width:100%"></div></div><span class="rval">5/5</span></div>
+          <div class="rrow"><span class="rnum">#4</span><span class="rname">attribute_set_id</span><div class="rpills"><span class="cpill cp-off">SK</span><span class="cpill cp-cz">CZ</span><span class="cpill cp-off">PL</span><span class="cpill cp-off">RO</span><span class="cpill cp-it">IT</span></div><div class="rbar"><div class="rbfill" style="width:40%"></div></div><span class="rval">2/5</span></div>
+          <div class="rrow"><span class="rnum">#5</span><span class="rname">drmax_order_type <span style="color:#bbf7d0;font-size:.58rem">SK primary</span></span><div class="rpills"><span class="cpill cp-sk">SK</span><span class="cpill cp-cz">CZ</span><span class="cpill cp-off">PL</span><span class="cpill cp-off">RO</span><span class="cpill cp-off">IT</span></div><div class="rbar"><div class="rbfill" style="width:40%"></div></div><span class="rval">2/5</span></div>
+          <div class="rrow"><span class="rnum">#6</span><span class="rname">base_subtotal_total_incl_tax</span><div class="rpills"><span class="cpill cp-sk">SK</span><span class="cpill cp-cz">CZ</span><span class="cpill cp-pl">PL</span><span class="cpill cp-off">RO</span><span class="cpill cp-it">IT</span></div><div class="rbar"><div class="rbfill" style="width:80%"></div></div><span class="rval">4/5</span></div>
+          <div class="rrow"><span class="rnum">#7</span><span class="rname">category_ids</span><div class="rpills"><span class="cpill cp-sk">SK</span><span class="cpill cp-cz">CZ</span><span class="cpill cp-pl">PL</span><span class="cpill cp-ro">RO</span><span class="cpill cp-it">IT</span></div><div class="rbar"><div class="rbfill" style="width:100%"></div></div><span class="rval">5/5</span></div>
+          <div class="rrow"><span class="rnum">#8</span><span class="rname">qty</span><div class="rpills"><span class="cpill cp-sk">SK</span><span class="cpill cp-cz">CZ</span><span class="cpill cp-pl">PL</span><span class="cpill cp-ro">RO</span><span class="cpill cp-it">IT</span></div><div class="rbar"><div class="rbfill" style="width:100%"></div></div><span class="rval">5/5</span></div>
+          <div class="rrow"><span class="rnum">#9</span><span class="rname">drmax_pim_status <span style="color:#bbf7d0;font-size:.58rem">SK only</span></span><div class="rpills"><span class="cpill cp-sk">SK</span><span class="cpill cp-off">CZ</span><span class="cpill cp-off">PL</span><span class="cpill cp-off">RO</span><span class="cpill cp-off">IT</span></div><div class="rbar"><div class="rbfill" style="width:20%"></div></div><span class="rval">1/5</span></div>
+          <div class="rrow"><span class="rnum">#10</span><span class="rname">drmax_stock_availability_text <span style="color:#bbf7d0;font-size:.58rem">SK primary</span></span><div class="rpills"><span class="cpill cp-sk">SK</span><span class="cpill cp-cz">CZ</span><span class="cpill cp-off">PL</span><span class="cpill cp-off">RO</span><span class="cpill cp-off">IT</span></div><div class="rbar"><div class="rbfill" style="width:40%"></div></div><span class="rval">2/5</span></div>
+          <div class="rrow"><span class="rnum">#11</span><span class="rname">base_row_total</span><div class="rpills"><span class="cpill cp-off">SK</span><span class="cpill cp-off">CZ</span><span class="cpill cp-off">PL</span><span class="cpill cp-ro">RO</span><span class="cpill cp-it">IT</span></div><div class="rbar"><div class="rbfill" style="width:40%"></div></div><span class="rval">2/5</span></div>
+          <div class="rrow"><span class="rnum">#12</span><span class="rname">drmax_product_line</span><div class="rpills"><span class="cpill cp-sk">SK</span><span class="cpill cp-cz">CZ</span><span class="cpill cp-off">PL</span><span class="cpill cp-off">RO</span><span class="cpill cp-off">IT</span></div><div class="rbar"><div class="rbfill" style="width:40%"></div></div><span class="rval">2/5</span></div>
+          <div class="rrow"><span class="rnum">#13</span><span class="rname">quote_item_shop_type <span style="color:#fecaca;font-size:.58rem">PL only</span></span><div class="rpills"><span class="cpill cp-off">SK</span><span class="cpill cp-off">CZ</span><span class="cpill cp-pl">PL</span><span class="cpill cp-off">RO</span><span class="cpill cp-off">IT</span></div><div class="rbar"><div class="rbfill" style="width:20%"></div></div><span class="rval">1/5</span></div>
+          <div style="margin-top:6px;font-size:.62rem;opacity:.35">Market-specific labels = exclusive or dominant in one market · 18 distinct condition attributes used globally</div>
         </div>
         <div class="card" style="font-size:.7rem;line-height:1.5;opacity:.8">
-          <strong style="opacity:1">34 rule types total</strong> — grouped into: Qty (16), Spent (5), Realspent (4), No Step (1), Bundle (2) · Cart rules (22) and Item rules (12). Operators: &lt; &gt; ≤ ≥ for quantifiable, include/exclude/AND/OR for non-quantifiable.
+          <strong style="opacity:1">34 rule types total</strong> — Qty (16) · Spent (5) · Realspent (4) · No Step (1) · Bundle (2) · Cart rules (22) · Item rules (12). Operators: &lt; &gt; ≤ ≥ for quantifiable, include/exclude/AND/OR for non-quantifiable.
         </div>
       </div>
     </div>
@@ -206,7 +222,7 @@ html,body{height:100%;overflow:hidden;font-family:'Inter',sans-serif;background:
 
 <!-- ─── SLIDE 4: PIVOT TABLE ─── -->
 <div class="slide" id="s3">
-  <div class="shdr"><h2>Order Volume by Rule Type — Cross Country</h2><div style="display:flex;align-items:center;gap:9px"><span class="stag">📊 Pivot_table Group Differences</span><span class="snum">4 / 15</span></div></div>
+  <div class="shdr"><h2>Order Volume by Rule Type — Cross Country</h2><div style="display:flex;align-items:center;gap:9px"><span class="stag">📊 Pivot_table Group Differences</span><span class="snum">4 / 18</span></div></div>
   <div class="sbody">
     <div class="g5 mb14">
       <div class="card" style="text-align:center"><div style="font-size:1.5rem;margin-bottom:3px">🇨🇿</div><div class="sv" style="font-size:1.4rem">4.22M</div><div class="sl">Czech Republic</div></div>
@@ -246,7 +262,7 @@ html,body{height:100%;overflow:hidden;font-family:'Inter',sans-serif;background:
 
 <!-- ─── SLIDE 5: GROUP VIEW ─── -->
 <div class="slide" id="s4">
-  <div class="shdr"><h2>Rule Adoption Across Markets</h2><div style="display:flex;align-items:center;gap:9px"><span class="stag">📂 Group View 2025source</span><span class="snum">5 / 15</span></div></div>
+  <div class="shdr"><h2>Rule Adoption Across Markets</h2><div style="display:flex;align-items:center;gap:9px"><span class="stag">📂 Group View 2025source</span><span class="snum">5 / 18</span></div></div>
   <div class="sbody">
     <div class="ins mb14"><span class="ins-ico">💡</span><div class="ins-txt">Which rule types are actively used vs absent in each market. Shows market-specific mechanics and shared foundation. Some types exclusive to one country reveal local Magento customisation.</div></div>
     <div class="card mb14">
@@ -282,7 +298,7 @@ html,body{height:100%;overflow:hidden;font-family:'Inter',sans-serif;background:
 
 <!-- ─── SLIDE 6: SLOVAKIA ─── -->
 <div class="slide" id="s5">
-  <div class="shdr"><h2>Slovakia</h2><div style="display:flex;align-items:center;gap:9px"><span class="stag">🇸🇰 report SK</span><span class="snum">6 / 15</span></div></div>
+  <div class="shdr"><h2>Slovakia</h2><div style="display:flex;align-items:center;gap:9px"><span class="stag">🇸🇰 report SK</span><span class="snum">6 / 18</span></div></div>
   <div class="sbody">
     <div class="g4 mb14">
       <div class="card" style="text-align:center"><div class="sv">5.83M</div><div class="sl">Total promo orders</div></div>
@@ -323,7 +339,7 @@ html,body{height:100%;overflow:hidden;font-family:'Inter',sans-serif;background:
 
 <!-- ─── SLIDE 7: CZECH REPUBLIC ─── -->
 <div class="slide" id="s6">
-  <div class="shdr"><h2>Czech Republic</h2><div style="display:flex;align-items:center;gap:9px"><span class="stag">🇨🇿 report CZ</span><span class="snum">7 / 15</span></div></div>
+  <div class="shdr"><h2>Czech Republic</h2><div style="display:flex;align-items:center;gap:9px"><span class="stag">🇨🇿 report CZ</span><span class="snum">7 / 18</span></div></div>
   <div class="sbody">
     <div class="g4 mb14">
       <div class="card" style="text-align:center"><div class="sv">4.22M</div><div class="sl">Total promo orders<br>(Magento export)</div></div>
@@ -363,7 +379,7 @@ html,body{height:100%;overflow:hidden;font-family:'Inter',sans-serif;background:
 
 <!-- ─── SLIDE 8: POLAND ─── -->
 <div class="slide" id="s7">
-  <div class="shdr"><h2>Poland</h2><div style="display:flex;align-items:center;gap:9px"><span class="stag">🇵🇱 report PL</span><span class="snum">8 / 15</span></div></div>
+  <div class="shdr"><h2>Poland</h2><div style="display:flex;align-items:center;gap:9px"><span class="stag">🇵🇱 report PL</span><span class="snum">8 / 18</span></div></div>
   <div class="sbody">
     <div class="g4 mb14">
       <div class="card" style="text-align:center"><div class="sv">272K</div><div class="sl">Unique promo orders</div></div>
@@ -407,7 +423,7 @@ html,body{height:100%;overflow:hidden;font-family:'Inter',sans-serif;background:
 
 <!-- ─── SLIDE 9: ROMANIA ─── -->
 <div class="slide" id="s8">
-  <div class="shdr"><h2>Romania</h2><div style="display:flex;align-items:center;gap:9px"><span class="stag">🇷🇴 report RO</span><span class="snum">9 / 15</span></div></div>
+  <div class="shdr"><h2>Romania</h2><div style="display:flex;align-items:center;gap:9px"><span class="stag">🇷🇴 report RO</span><span class="snum">9 / 18</span></div></div>
   <div class="sbody">
     <div class="g4 mb14">
       <div class="card" style="text-align:center"><div class="sv">503K</div><div class="sl">Unique promo orders</div></div>
@@ -447,7 +463,7 @@ html,body{height:100%;overflow:hidden;font-family:'Inter',sans-serif;background:
 
 <!-- ─── SLIDE 10: ITALY ─── -->
 <div class="slide" id="s9">
-  <div class="shdr"><h2>Italy</h2><div style="display:flex;align-items:center;gap:9px"><span class="stag">🇮🇹 report IT</span><span class="snum">10 / 15</span></div></div>
+  <div class="shdr"><h2>Italy</h2><div style="display:flex;align-items:center;gap:9px"><span class="stag">🇮🇹 report IT</span><span class="snum">10 / 18</span></div></div>
   <div class="sbody">
     <div class="g4 mb14">
       <div class="card" style="text-align:center"><div class="sv">697K</div><div class="sl">Unique promo orders</div></div>
@@ -484,9 +500,53 @@ html,body{height:100%;overflow:hidden;font-family:'Inter',sans-serif;background:
   </div>
 </div>
 
-<!-- ─── SLIDE 11: MAGENTO ADMIN USAGE ─── -->
+<!-- ─── SLIDE 11: FAKE RULES ─── -->
+<div class="slide" id="s10b">
+  <div class="shdr"><h2>Fake Rules — Promotional Text Workaround</h2><div style="display:flex;align-items:center;gap:9px"><span class="stag">🎭 Workaround Pattern</span><span class="snum">11 / 18</span></div></div>
+  <div class="sbody">
+    <div class="g2 mb12">
+      <div>
+        <div class="card mb12">
+          <div class="cttl">What is a fake rule?</div>
+          <div style="font-size:.77rem;line-height:1.6;margin-bottom:10px">A <strong>fake rule</strong> is a Cart Price Rule configured with a <strong>0% discount value</strong> — not to apply any discount, but purely to attach promotional text, action labels, and frontend visibility to a promotion whose actual pricing is handled elsewhere (e.g. Advanced Pricing).</div>
+          <div class="ins r"><span class="ins-ico">🧮</span><div class="ins-txt">Magento's Advanced Pricing module, when active, <strong>prevents attaching promotional text fields</strong> to standard cart rules in certain configurations. The workaround: create a shadow 0% rule to carry the text payload.</div></div>
+        </div>
+        <div class="card">
+          <div class="cttl">Why teams use this</div>
+          <div class="ins mb8"><span class="ins-ico">🏷️</span><div class="ins-txt"><strong>Promotional banners &amp; product labels</strong> require a cart rule with "Visible on frontend" enabled. Advanced Pricing has no equivalent field.</div></div>
+          <div class="ins mb8"><span class="ins-ico">📄</span><div class="ins-txt"><strong>Promo title, text, legal disclaimer</strong> — these fields exist on cart rules only. When a pricing override handles the discount, a fake rule is the only vehicle for this content.</div></div>
+          <div class="ins"><span class="ins-ico">🎯</span><div class="ins-txt"><strong>Action labels on product tiles</strong> must reflect the promotion type. These attach to cart rules, not advanced pricing entries.</div></div>
+        </div>
+      </div>
+      <div>
+        <div class="card mb12">
+          <div class="cttl">Scale — Romania primary market</div>
+          <div class="g2 mb10" style="gap:8px">
+            <div style="background:rgba(0,0,0,.2);border-radius:10px;padding:12px;text-align:center">
+              <div style="font-size:1.55rem;font-weight:900;color:#FDE68A">1,769</div>
+              <div style="font-size:.65rem;opacity:.6;margin-top:3px;line-height:1.3">gift_extra_empty_cart<br>rule instances (RO)</div>
+            </div>
+            <div style="background:rgba(0,0,0,.2);border-radius:10px;padding:12px;text-align:center">
+              <div style="font-size:1.55rem;font-weight:900">1,644</div>
+              <div style="font-size:.65rem;opacity:.6;margin-top:3px;line-height:1.3">orders actually<br>triggered</div>
+            </div>
+          </div>
+          <div class="ins y"><span class="ins-ico">🇷🇴</span><div class="ins-txt">125 rules (7%) with zero corresponding orders — likely fake/text-only rules that were never intended to trigger a discount but exist for label &amp; text purposes.</div></div>
+        </div>
+        <div class="card">
+          <div class="cttl">Impact &amp; new system requirement</div>
+          <div class="ins r mb8"><span class="ins-ico">⚠️</span><div class="ins-txt"><strong>Inflates rule count</strong> — stale fake rules accumulate without cleanup tooling. No visual distinction between real and fake rules in Magento UI.</div></div>
+          <div class="ins r mb8"><span class="ins-ico">😵</span><div class="ins-txt"><strong>Cognitive overhead</strong> — rule managers must remember which rules are "real" vs. text-only carriers. Risk of confusion and accidental misuse.</div></div>
+          <div class="ins g"><span class="ins-ico">✅</span><div class="ins-txt"><strong>New system requirement:</strong> Promotional text, labels, and banners must be configurable <strong>independently of discount value</strong> — decoupling eliminates this workaround entirely.</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ─── SLIDE 12: MAGENTO ADMIN USAGE ─── -->
 <div class="slide" id="s10">
-  <div class="shdr"><h2>How Countries Work With Magento</h2><div style="display:flex;align-items:center;gap:9px"><span class="stag">⚙️ Magento Admin Field Usage</span><span class="snum">11 / 15</span></div></div>
+  <div class="shdr"><h2>How Countries Work With Magento</h2><div style="display:flex;align-items:center;gap:9px"><span class="stag">⚙️ Magento Admin Field Usage</span><span class="snum">12 / 18</span></div></div>
   <div class="sbody">
     <div class="ins mb14"><span class="ins-ico">📋</span><div class="ins-txt">Based on Confluence Magento Administration Usage Report — field-by-field analysis from IT, RO, SK, PL workshops. CZ workshop pending.</div></div>
     <div class="g2 mb12">
@@ -561,7 +621,7 @@ html,body{height:100%;overflow:hidden;font-family:'Inter',sans-serif;background:
 
 <!-- ─── SLIDE 12: WHAT WORKS ─── -->
 <div class="slide" id="s11">
-  <div class="shdr"><h2>What Works Well</h2><div style="display:flex;align-items:center;gap:9px"><span class="stag">✅ Strengths of Current Solution</span><span class="snum">12 / 15</span></div></div>
+  <div class="shdr"><h2>What Works Well</h2><div style="display:flex;align-items:center;gap:9px"><span class="stag">✅ Strengths of Current Solution</span><span class="snum">13 / 18</span></div></div>
   <div class="sbody">
     <div class="g3 mb14">
       <div class="card">
@@ -587,11 +647,6 @@ html,body{height:100%;overflow:hidden;font-family:'Inter',sans-serif;background:
         <div style="font-size:.74rem;opacity:.8;line-height:1.5">Rules can target specific channels: web, mobile app, brick &amp; mortar. PL uses shop_type conditions to differentiate pharmacy vs online promotions. IT uses Reservation Allowed for Click &amp; Collect.</div>
       </div>
       <div class="card">
-        <div style="font-size:1.5rem;margin-bottom:8px">🔗</div>
-        <div style="font-size:.82rem;font-weight:700;margin-bottom:5px">ERP integration (Farmis)</div>
-        <div style="font-size:.74rem;opacity:.8;line-height:1.5">Farmis Voucher ID and Code fields are mandatory across all markets. Direct linkage to the ERP for accounting reconciliation is built into the rule, not bolted on.</div>
-      </div>
-      <div class="card">
         <div style="font-size:1.5rem;margin-bottom:8px">⚙️</div>
         <div style="font-size:.82rem;font-weight:700;margin-bottom:5px">Rich condition system</div>
         <div style="font-size:.74rem;opacity:.8;line-height:1.5">18 distinct condition attributes used globally. Supports both quantifiable (≤ ≥ = range) and non-quantifiable (include/exclude/AND/OR) operators. Multiple conditions per rule with full logical grouping.</div>
@@ -612,9 +667,9 @@ html,body{height:100%;overflow:hidden;font-family:'Inter',sans-serif;background:
   </div>
 </div>
 
-<!-- ─── SLIDE 13: CHALLENGES ─── -->
+<!-- ─── SLIDE 14: PAIN POINTS ─── -->
 <div class="slide" id="s12">
-  <div class="shdr"><h2>Current Challenges &amp; Workarounds</h2><div style="display:flex;align-items:center;gap:9px"><span class="stag">🔍 Identified Issues</span><span class="snum">13 / 15</span></div></div>
+  <div class="shdr"><h2>Pain Points &amp; Workarounds</h2><div style="display:flex;align-items:center;gap:9px"><span class="stag">🔍 Workshop Findings</span><span class="snum">14 / 18</span></div></div>
   <div class="sbody">
     <div class="g2 mb14">
       <div>
@@ -633,9 +688,53 @@ html,body{height:100%;overflow:hidden;font-family:'Inter',sans-serif;background:
   </div>
 </div>
 
-<!-- ─── SLIDE 14: LEGAL & ERP ─── -->
+<!-- ─── SLIDE 15: CHALLENGES & RISKS ─── -->
+<div class="slide" id="s14b">
+  <div class="shdr"><h2>Challenges &amp; Risks</h2><div style="display:flex;align-items:center;gap:9px"><span class="stag">⚠️ System &amp; Migration</span><span class="snum">15 / 18</span></div></div>
+  <div class="sbody">
+    <div class="g2 mb12">
+      <div class="card">
+        <div class="cttl">System risks</div>
+        <div class="ins r mb8"><span class="ins-ico">🎲</span><div class="ins-txt"><strong>Rule stacking unpredictable.</strong> "Discard subsequent rules" is the only combinability control — a global on/off switch. No fine-grained interaction management. PL: 37% of orders have 2+ rules applied simultaneously.</div></div>
+        <div class="ins r mb8"><span class="ins-ico">📊</span><div class="ins-txt"><strong>Priority system not trusted.</strong> 3 of 4 markets use it inconsistently or avoid it entirely. Discount calculation order is unpredictable when multiple rules match the same cart.</div></div>
+        <div class="ins y mb8"><span class="ins-ico">🧹</span><div class="ins-txt"><strong>Rule accumulation.</strong> No lifecycle tooling — stale rules build up silently. RO: 5,520 rule instances with no automated detection of zero-order rules.</div></div>
+        <div class="ins y"><span class="ins-ico">👁️</span><div class="ins-txt"><strong>No pre-activation visibility.</strong> Teams cannot see what rules will combine on a given cart before activating a new one. Testing requires creating real orders.</div></div>
+      </div>
+      <div class="card">
+        <div class="cttl">Migration risks</div>
+        <div class="ins r mb8"><span class="ins-ico">🇸🇰</span><div class="ins-txt"><strong>SK-exclusive rule types.</strong> gift_from_qty_cart_max, gift_extra_realspent_cart, and by_fixed_per_qty are used only in SK — may be local Magento customizations. Technical confirmation required before migration scope is set.</div></div>
+        <div class="ins r mb8"><span class="ins-ico">🇨🇿</span><div class="ins-txt"><strong>CZ Marketplace integration.</strong> mp_fixed_spent_cart handles ~250K orders not present in any other market. Architecture unclear — must be understood before redesign.</div></div>
+        <div class="ins y mb8"><span class="ins-ico">🇷🇴</span><div class="ins-txt"><strong>RO data quality.</strong> 5,520 rule instances including stale and fake rules. Requires cleanup strategy and stakeholder sign-off before migration.</div></div>
+        <div class="ins y"><span class="ins-ico">🇨🇿</span><div class="ins-txt"><strong>CZ workshop gap.</strong> Qualitative data not yet collected. Architecture decisions made before CZ workshop may need revisiting.</div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="cttl">Business risks if not addressed</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <div style="background:rgba(227,30,36,.15);border:1px solid rgba(227,30,36,.2);border-radius:8px;padding:9px 12px;flex:1;min-width:150px">
+          <div style="font-size:.72rem;font-weight:700;color:#fca5a5;margin-bottom:4px">Discount leakage</div>
+          <div style="font-size:.67rem;opacity:.75;line-height:1.4">Uncontrolled stacking creates unintended discount accumulation — highest risk in PL where 37% of orders already stack multiple rules.</div>
+        </div>
+        <div style="background:rgba(227,30,36,.15);border:1px solid rgba(227,30,36,.2);border-radius:8px;padding:9px 12px;flex:1;min-width:150px">
+          <div style="font-size:.72rem;font-weight:700;color:#fca5a5;margin-bottom:4px">Compliance exposure</div>
+          <div style="font-size:.67rem;opacity:.75;line-height:1.4">Missing VAT-inclusive condition (RO) means thresholds may fire incorrectly. Legal text &amp; ERP fields must carry forward — cannot be dropped in redesign.</div>
+        </div>
+        <div style="background:rgba(253,230,138,.1);border:1px solid rgba(253,230,138,.18);border-radius:8px;padding:9px 12px;flex:1;min-width:150px">
+          <div style="font-size:.72rem;font-weight:700;color:#FDE68A;margin-bottom:4px">Operational overhead</div>
+          <div style="font-size:.67rem;opacity:.75;line-height:1.4">Fake rules, stale rules, and manual workarounds consume team time. Complexity grows with each market — no self-service tooling to clean up.</div>
+        </div>
+        <div style="background:rgba(253,230,138,.1);border:1px solid rgba(253,230,138,.18);border-radius:8px;padding:9px 12px;flex:1;min-width:150px">
+          <div style="font-size:.72rem;font-weight:700;color:#FDE68A;margin-bottom:4px">Scalability ceiling</div>
+          <div style="font-size:.67rem;opacity:.75;line-height:1.4">Current per-market Magento model cannot support global/cross-market promotion campaigns. New architecture must rethink country customisation scope.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ─── SLIDE 16: LEGAL & ERP ─── -->
 <div class="slide" id="s13">
-  <div class="shdr"><h2>Legal &amp; ERP Constraints</h2><div style="display:flex;align-items:center;gap:9px"><span class="stag">⚖️ Compliance Requirements</span><span class="snum">14 / 15</span></div></div>
+  <div class="shdr"><h2>Legal &amp; ERP Constraints</h2><div style="display:flex;align-items:center;gap:9px"><span class="stag">⚖️ Compliance Requirements</span><span class="snum">16 / 18</span></div></div>
   <div class="sbody">
     <div class="ins mb14"><span class="ins-ico">📌</span><div class="ins-txt">These requirements are non-negotiable — they must be preserved in any redesign of the Promotions Module. The new system must continue to support all of these out of the box.</div></div>
     <div class="g2 mb14">
@@ -675,9 +774,47 @@ html,body{height:100%;overflow:hidden;font-family:'Inter',sans-serif;background:
   </div>
 </div>
 
-<!-- ─── SLIDE 15: FEATURES & NEXT STEPS ─── -->
+<!-- ─── SLIDE 17: OPEN POINTS ─── -->
+<div class="slide" id="s16b">
+  <div class="shdr"><h2>Open Points — Team Discussion</h2><div style="display:flex;align-items:center;gap:9px"><span class="stag">💬 Unresolved</span><span class="snum">17 / 18</span></div></div>
+  <div class="sbody">
+    <div class="g2 mb12">
+      <div>
+        <div class="card mb12">
+          <div class="cttl">Rule engine architecture</div>
+          <div class="ins mb8"><span class="ins-ico">🇸🇰</span><div class="ins-txt"><strong>SK-exclusive rule types</strong> — are gift_from_qty_cart_max, gift_extra_realspent_cart custom Magento code or standard features? Must confirm before migration scope is finalised.</div></div>
+          <div class="ins mb8"><span class="ins-ico">🇨🇿</span><div class="ins-txt"><strong>CZ Marketplace integration</strong> — mp_fixed_spent_cart handles ~250K orders unique to CZ. Is this a separate promotion engine? Does it migrate or get replaced?</div></div>
+          <div class="ins mb8"><span class="ins-ico">🌍</span><div class="ins-txt"><strong>Buy X Get Y standardisation</strong> — active in RO/PL/IT but absent in SK/CZ. Should the new system standardise this globally or keep it market-selective?</div></div>
+          <div class="ins"><span class="ins-ico">📦</span><div class="ins-txt"><strong>Cart vs Item rule distinction</strong> — maintain separation (22 cart / 12 item) or unify into one rule type with scope configuration?</div></div>
+        </div>
+        <div class="card">
+          <div class="cttl">Product &amp; UX decisions</div>
+          <div class="ins mb8"><span class="ins-ico">🎭</span><div class="ins-txt"><strong>Decoupling promotional text from discount</strong> — eliminates fake rules entirely. In scope for V1 or later iteration?</div></div>
+          <div class="ins mb8"><span class="ins-ico">🔮</span><div class="ins-txt"><strong>Rule simulation / cart preview</strong> — teams need to verify which rules fire before activation. V1 scope?</div></div>
+          <div class="ins"><span class="ins-ico">📊</span><div class="ins-txt"><strong>Priority system redesign</strong> — enforce with clear UI, replace with explicit ordering (drag-drop), or replace with stacking group logic?</div></div>
+        </div>
+      </div>
+      <div>
+        <div class="card mb12">
+          <div class="cttl">Data &amp; migration</div>
+          <div class="ins mb8"><span class="ins-ico">🇨🇿</span><div class="ins-txt"><strong>CZ workshop timeline</strong> — when is it scheduled? Some architecture decisions should wait for CZ qualitative data. Who owns scheduling?</div></div>
+          <div class="ins mb8"><span class="ins-ico">🧹</span><div class="ins-txt"><strong>RO data cleanup strategy</strong> — 5,520 rule instances, many stale or fake. Cleanup before migration? Owned by local team or GLO?</div></div>
+          <div class="ins"><span class="ins-ico">🔗</span><div class="ins-txt"><strong>Farmis field migration</strong> — Voucher ID and Code are ERP identifiers. Same field names/formats in new system, or will the Farmis integration be redesigned?</div></div>
+        </div>
+        <div class="card">
+          <div class="cttl">Legal &amp; compliance</div>
+          <div class="ins mb8"><span class="ins-ico">🧮</span><div class="ins-txt"><strong>VAT-inclusive subtotal condition</strong> — confirmed RO-only or potentially needed in other markets? Standard global condition or market-specific?</div></div>
+          <div class="ins mb8"><span class="ins-ico">📄</span><div class="ins-txt"><strong>Mandatory legal text enforcement</strong> — enforce system-wide or remain optional with RO enforced locally by process?</div></div>
+          <div class="ins"><span class="ins-ico">🏷️</span><div class="ins-txt"><strong>Non-combinable rule scope</strong> — current per-rule field sufficient, or redesign as stacking groups / combination policies (prototype already has stacking group concept)?</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ─── SLIDE 18: FEATURES & NEXT STEPS ─── -->
 <div class="slide" id="s14">
-  <div class="shdr"><h2>Features &amp; Next Steps</h2><div style="display:flex;align-items:center;gap:9px"><span class="stag">🚀 WIP + Handoff</span><span class="snum">15 / 15</span></div></div>
+  <div class="shdr"><h2>Features &amp; Next Steps</h2><div style="display:flex;align-items:center;gap:9px"><span class="stag">🚀 WIP + Handoff</span><span class="snum">18 / 18</span></div></div>
   <div class="sbody">
     <div class="g2 mb14">
       <div class="card">
@@ -737,7 +874,7 @@ html,body{height:100%;overflow:hidden;font-family:'Inter',sans-serif;background:
 <div class="nav" id="nav">
   <button class="nbtn" id="pb" onclick="go(-1)" disabled>◀</button>
   <div id="dots" style="display:flex;gap:5px;align-items:center"></div>
-  <span class="ncnt" id="cnt">1 / 15</span>
+  <span class="ncnt" id="cnt">1 / 18</span>
   <button class="nbtn" id="nb" onclick="go(1)">▶</button>
 </div>
 
