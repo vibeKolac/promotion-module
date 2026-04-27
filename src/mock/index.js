@@ -6,7 +6,7 @@
 import MockAdapter from 'axios-mock-adapter'
 import axios from 'axios'
 import { v4 as uuid } from 'uuid'
-import { promotions as seedPromotions, stackingGroups as seedGroups, templates as seedTemplates, tags as seedTags } from './seed.js'
+import { promotions as seedPromotions, stackingGroups as seedGroups, templates as seedTemplates, tags as seedTags, promotionOrders as seedOrders } from './seed.js'
 
 // Mutable in-memory copies — survive the session, reset on hard reload
 const db = {
@@ -14,6 +14,7 @@ const db = {
   stackingGroups: structuredClone(seedGroups),
   templates: structuredClone(seedTemplates),
   tags: structuredClone(seedTags),
+  promotionOrders: structuredClone(seedOrders),
 }
 
 function now() { return new Date().toISOString() }
@@ -29,6 +30,11 @@ export function installMock() {
       ? db.promotions.filter(p => p.name.toLowerCase().includes(q))
       : db.promotions
     return [200, items]
+  })
+
+  mock.onGet(/\/api\/promotions\/([^/]+)\/orders/).reply(config => {
+    const id = config.url.split('/').slice(-2, -1)[0]
+    return [200, db.promotionOrders[id] ?? []]
   })
 
   mock.onGet(/\/api\/promotions\/(.+)/).reply(config => {
@@ -88,6 +94,27 @@ export function installMock() {
   // ── Templates ───────────────────────────────────────────────────────────────
 
   mock.onGet('/api/templates').reply(() => [200, db.templates])
+
+  mock.onPost('/api/templates').reply(config => {
+    const body = JSON.parse(config.data)
+    const item = { id: uuid(), ...body }
+    db.templates.push(item)
+    return [201, item]
+  })
+
+  mock.onPut(/\/api\/templates\/(.+)/).reply(config => {
+    const id = config.url.split('/').pop()
+    const idx = db.templates.findIndex(t => t.id === id)
+    if (idx === -1) return [404, { error: 'Not found' }]
+    db.templates[idx] = { ...db.templates[idx], ...JSON.parse(config.data) }
+    return [200, db.templates[idx]]
+  })
+
+  mock.onDelete(/\/api\/templates\/(.+)/).reply(config => {
+    const id = config.url.split('/').pop()
+    db.templates = db.templates.filter(t => t.id !== id)
+    return [204]
+  })
 
   // ── Tags ────────────────────────────────────────────────────────────────────
 

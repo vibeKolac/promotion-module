@@ -11,6 +11,14 @@ const routes = [
     component: () => import('../components/promotions/PromotionForm.vue'),
   },
   {
+    path: '/promotions/reporting',
+    component: () => import('../components/promotions/ReportingPage.vue'),
+  },
+  {
+    path: '/promotions/reporting/:id',
+    component: () => import('../components/promotions/ReportingDetailPage.vue'),
+  },
+  {
     path: '/promotions/:id/edit',
     component: () => import('../components/promotions/PromotionForm.vue'),
   },
@@ -23,12 +31,16 @@ const routes = [
     component: () => import('../components/templates/TemplatesPage.vue'),
   },
   {
+    path: '/templates/:id/edit',
+    component: () => import('../components/promotions/PromotionForm.vue'),
+  },
+  {
     path: '/tags',
     component: () => import('../components/tags/TagsPage.vue'),
   },
   {
-    path: '/settings/accounting',
-    component: () => import('../components/settings/AccountingPage.vue'),
+    path: '/settings/general',
+    component: () => import('../components/settings/GeneralPage.vue'),
   },
 ]
 

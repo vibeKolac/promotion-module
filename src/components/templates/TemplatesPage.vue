@@ -25,10 +25,26 @@
 
     <div v-if="filtered.length" class="d-flex flex-wrap gap-4">
       <div v-for="tpl in filtered" :key="tpl.id" :style="mobile ? 'width: 100%' : 'width: 280px'">
-        <TemplateCard :template="tpl" @select="applyTemplate" />
+        <TemplateCard :template="tpl" @select="applyTemplate" @edit="openEdit" @delete="openDelete" />
       </div>
     </div>
     <v-alert v-else type="info" variant="tonal" density="compact">No templates</v-alert>
+
+    <!-- Delete dialog -->
+    <v-dialog v-model="deleteDialogOpen" max-width="400">
+      <v-card>
+        <v-card-title class="text-h6">Delete template?</v-card-title>
+        <v-card-text>
+          This action cannot be undone. The template <strong>{{ deletingTemplate?.label }}</strong> will be permanently deleted.
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer />
+          <v-btn variant="text" @click="deleteDialogOpen = false">Cancel</v-btn>
+          <v-btn color="error" variant="flat" :loading="deleting" @click="confirmDelete">Delete</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
   </v-container>
 </template>
 
@@ -69,13 +85,46 @@ const filtered = computed(() =>
 
 function applyTemplate(tpl) {
   promoStore.resetDraft()
-  Object.assign(promoStore.formDraft, {
-    type: tpl.ruleType ?? 'discount',
-    value: tpl.defaultValue ?? '',
-    valueUnit: tpl.defaultValueUnit ?? '%',
-    conditions: tpl.defaultConditions ? [...tpl.defaultConditions] : [],
-    name: tpl.label,
-  })
+  if (tpl.ruleSnapshot) {
+    Object.assign(promoStore.formDraft, tpl.ruleSnapshot, {
+      name: tpl.label,
+      status: 'draft',
+      startDate: null,
+      endDate: null,
+    })
+  } else {
+    Object.assign(promoStore.formDraft, {
+      type: tpl.ruleType ?? 'discount',
+      value: tpl.defaultValue ?? '',
+      valueUnit: tpl.defaultValueUnit ?? '%',
+      conditions: tpl.defaultConditions ? [...tpl.defaultConditions] : [],
+      name: tpl.label,
+    })
+  }
   router.push({ path: '/promotions/new', query: { fromTemplate: '1' } })
+}
+
+function openEdit(tpl) {
+  router.push(`/templates/${tpl.id}/edit`)
+}
+
+// ── Delete ────────────────────────────────────────────────────────────────────
+const deleteDialogOpen = ref(false)
+const deleting = ref(false)
+const deletingTemplate = ref(null)
+
+function openDelete(tpl) {
+  deletingTemplate.value = tpl
+  deleteDialogOpen.value = true
+}
+
+async function confirmDelete() {
+  deleting.value = true
+  try {
+    await store.remove(deletingTemplate.value.id)
+    deleteDialogOpen.value = false
+  } finally {
+    deleting.value = false
+  }
 }
 </script>

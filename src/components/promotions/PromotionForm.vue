@@ -6,11 +6,37 @@
 
     <!-- Title + actions -->
     <div class="d-flex align-center flex-wrap mb-5 gap-3">
-      <h1 class="text-h5 font-weight-bold">{{ isEdit ? 'Edit promotion rule' : 'New promotion rule' }}</h1>
+      <h1 class="text-h5 font-weight-bold">
+        {{ isTemplateEdit ? 'Edit template' : (isEdit ? 'Edit promotion rule' : 'New promotion rule') }}
+      </h1>
       <v-spacer />
-      <v-btn variant="outlined" to="/promotions" class="text-uppercase">Discard</v-btn>
-      <v-btn color="primary" class="text-uppercase" :loading="saving" data-testid="save-btn" @click="save">Save rule</v-btn>
+      <v-btn variant="outlined" :to="isTemplateEdit ? '/templates' : '/promotions'" class="text-uppercase">Discard</v-btn>
+      <template v-if="isTemplateEdit">
+        <v-btn color="primary" class="text-uppercase ml-4" size="small" :loading="saving" @click="save">Save template</v-btn>
+      </template>
+      <template v-else>
+      <v-btn-group color="primary" divided size="small" class="ml-4">
+        <v-btn class="text-uppercase" :loading="saving" data-testid="save-btn" @click="save">Save rule</v-btn>
+        <v-menu location="bottom end">
+          <template #activator="{ props: menuProps }">
+            <v-btn v-bind="menuProps" icon="mdi-chevron-down" :loading="saving" />
+          </template>
+          <v-list density="compact" min-width="220">
+            <v-list-item prepend-icon="mdi-content-save-outline" title="Save rule" @click="save" />
+            <v-list-item prepend-icon="mdi-file-document-plus-outline" title="Save and create template" @click="openSaveAsTemplate" />
+          </v-list>
+        </v-menu>
+      </v-btn-group>
+      </template>
     </div>
+
+    <!-- Template metadata (template edit mode only) -->
+    <v-card v-if="isTemplateEdit" border elevation="0" class="pa-5 mb-5">
+      <div class="text-body-1 font-weight-bold mb-4">Template details</div>
+      <TextInput v-model="tplLabel" label="Template name *" class="mb-3" />
+      <TextInput v-model="tplDescription" label="Description" class="mb-3" />
+      <SelectInput v-model="tplCategory" :data="templateCategoryItems" label="Category" />
+    </v-card>
 
     <!-- AI Assistant banner -->
     <v-alert
@@ -64,6 +90,7 @@
               variant="outlined"
               color="primary"
               class="mb-1"
+              :disabled="draft.type === 'multi_buy'"
             >
               <v-btn value="cart" size="small" prepend-icon="mdi-cart-outline">Cart</v-btn>
               <v-btn value="item" size="small" prepend-icon="mdi-package-variant">Item</v-btn>
@@ -214,44 +241,70 @@
 
         <!-- Step Discount configuration (green) -->
         <v-card v-if="draft.type === 'step_discount'" border elevation="0" class="pa-5 mt-4">
-          <div class="d-flex align-center mb-3">
+          <div class="d-flex align-center mb-4">
             <v-icon color="green-darken-2" size="18" class="mr-2">mdi-stairs</v-icon>
             <span class="text-body-1 font-weight-bold text-green-darken-2">Step Discount Configuration</span>
           </div>
+
           <v-row dense class="mb-3">
-            <v-col cols="6">
+            <v-col cols="4">
               <SelectInput
                 v-model="draft.stepType"
                 :data="[{ value: 'SPENT', title: 'Amount spent (€)' }, { value: 'QTY', title: 'Quantity' }]"
                 label="Step type"
               />
             </v-col>
-            <v-col cols="6">
-              <NumberInput v-model.number="draft.stepMaxSteps" label="Max steps" help-text="0 = unlimited" />
-            </v-col>
-          </v-row>
-          <v-row dense class="mb-3">
-            <v-col cols="8">
-              <NumberInput v-model="draft.value" label="Discount amount per step *" />
+            <v-col cols="4">
+              <NumberInput
+                v-model.number="draft.stepValue"
+                :label="draft.stepType === 'QTY' ? 'Every (qty)' : 'Every (€)'"
+                :help-text="draft.stepType === 'QTY' ? 'e.g. 20 items' : 'e.g. €50'"
+              />
             </v-col>
             <v-col cols="4">
+              <NumberInput v-model.number="draft.stepMaxSteps" label="Max steps" help-text="Empty = unlimited" />
+            </v-col>
+          </v-row>
+
+          <v-row dense class="mb-3">
+            <v-col cols="6">
+              <NumberInput
+                v-model="draft.value"
+                label="Discount per step *"
+                :error-messages="validationErrors.value ? [validationErrors.value] : []"
+              />
+            </v-col>
+            <v-col cols="6">
               <SelectInput v-model="draft.amountType" :data="amountTypeItems" label="Amount type" />
             </v-col>
           </v-row>
+
+          <SelectInput
+            v-if="draft.scope === 'item'"
+            v-model="draft.stepApplyTo"
+            :data="[{ value: 'all', title: 'All items' }, { value: 'cheapest', title: 'Cheapest item only' }]"
+            label="Apply discount on"
+            class="mb-4"
+          />
+
           <div class="text-caption font-weight-bold text-medium-emphasis mb-2">DISCOUNT TIERS</div>
-          <StepDiscountEditor v-model="draft.steps" />
+          <StepDiscountEditor
+            v-model="draft.steps"
+            :step-type="draft.stepType"
+            :amount-type="draft.amountType"
+            :step-value="draft.stepValue || null"
+            :max-steps="draft.stepMaxSteps || null"
+          />
+
           <v-alert
-            v-if="draft.value && draft.stepType"
+            v-if="stepDescription"
             color="green-lighten-4"
             variant="flat"
             density="compact"
             icon="mdi-information-outline"
-            class="mt-3 text-caption"
+            class="mt-4 text-caption"
           >
-            Example: {{ draft.stepType === 'SPENT' ? 'Spend €X' : 'Buy X items' }}, get
-            {{ draft.amountType?.startsWith('PERCENT') ? draft.value + '%' : '€' + draft.value }} off
-            {{ draft.amountType?.endsWith('LINE') ? 'each line' : 'cart total' }}.
-            Repeats up to {{ draft.stepMaxSteps || '∞' }} time(s).
+            {{ stepDescription }}
           </v-alert>
         </v-card>
 
@@ -386,8 +439,26 @@
 
         <!-- Conditions -->
         <v-card border elevation="0" class="pa-5 mt-4">
-          <div class="d-flex align-center mb-4">
+          <div class="d-flex align-center flex-wrap gap-2 mb-4">
             <span class="text-body-1 font-weight-bold flex-grow-1">Targeting conditions</span>
+            <v-btn
+              prepend-icon="mdi-download-outline"
+              variant="text"
+              size="small"
+              class="text-uppercase"
+              @click="downloadConditionsTemplate()"
+            >
+              Template
+            </v-btn>
+            <v-btn
+              prepend-icon="mdi-upload"
+              variant="outlined"
+              size="small"
+              class="text-uppercase"
+              @click="conditionCsvImportOpen = true"
+            >
+              Import CSV
+            </v-btn>
             <v-btn
               prepend-icon="mdi-plus"
               variant="outlined"
@@ -466,27 +537,74 @@
         </v-card>
 
         <v-card border elevation="0" class="pa-5 mb-4">
-          <div class="text-body-1 font-weight-bold mb-4">Stacking group</div>
-          <StackingGroupSelect v-model="draft.stackingGroupId" />
-        </v-card>
-
-        <v-card border elevation="0" class="pa-5 mb-4">
-          <div class="text-body-1 font-weight-bold mb-4">Processing order</div>
-          <ProcessingOrderSelect
-            :stacking-group-id="draft.stackingGroupId"
-            :priority="draft.priority"
-            :current-name="draft.name"
-            @update:priority="draft.priority = $event"
-          />
-        </v-card>
-
-        <v-card border elevation="0" class="pa-5 mb-4">
-          <div class="text-body-1 font-weight-bold mb-1">Non-combinable rules</div>
-          <p class="text-caption text-medium-emphasis mb-4">
-            Rules and groups listed here cannot apply together with this rule in the same cart.
+          <div class="d-flex align-center mb-1">
+            <div class="text-body-1 font-weight-bold">Usage limits</div>
+            <v-spacer />
+            <v-switch v-model="draft.usageLimitsEnabled" density="compact" hide-details color="primary" />
+          </div>
+          <p class="text-caption text-medium-emphasis" :class="draft.usageLimitsEnabled ? 'mb-4' : 'mb-0'">
+            Restrict how many times this rule can be applied.
           </p>
-          <NonCombinableRulesSection v-model="draft.nonCombinableRules" />
+          <template v-if="draft.usageLimitsEnabled">
+            <v-text-field
+              v-model.number="draft.maxUsagePerCustomer"
+              label="Max usages per customer"
+              type="number"
+              min="1"
+              variant="outlined"
+              density="compact"
+              hide-details
+              class="mb-3"
+              placeholder="Unlimited"
+            />
+            <v-text-field
+              v-model.number="draft.maxUsagePerRule"
+              label="Max usages per rule (total)"
+              type="number"
+              min="1"
+              variant="outlined"
+              density="compact"
+              hide-details
+              placeholder="Unlimited"
+            />
+          </template>
         </v-card>
+
+        <template v-if="settingsStore.prioritizationMode === 'automatic'">
+          <v-card border elevation="0" class="pa-5 mb-4">
+            <div class="d-flex align-center gap-2 mb-2">
+              <div class="text-body-1 font-weight-bold">Prioritization &amp; combinability</div>
+              <v-chip size="x-small" color="default" variant="tonal" label>Auto</v-chip>
+            </div>
+            <v-alert type="info" variant="tonal" density="compact">
+              User gets the best sales rule based on cart items to always get the best value. All rules are non-combinable.
+            </v-alert>
+          </v-card>
+        </template>
+        <template v-else>
+          <v-card border elevation="0" class="pa-5 mb-4">
+            <div class="text-body-1 font-weight-bold mb-4">Stacking group</div>
+            <StackingGroupSelect v-model="draft.stackingGroupId" />
+          </v-card>
+
+          <v-card border elevation="0" class="pa-5 mb-4">
+            <div class="text-body-1 font-weight-bold mb-4">Processing order</div>
+            <ProcessingOrderSelect
+              :stacking-group-id="draft.stackingGroupId"
+              :priority="draft.priority"
+              :current-name="draft.name"
+              @update:priority="draft.priority = $event"
+            />
+          </v-card>
+
+          <v-card border elevation="0" class="pa-5 mb-4">
+            <div class="text-body-1 font-weight-bold mb-1">Non-combinable rules</div>
+            <p class="text-caption text-medium-emphasis mb-4">
+              Rules and groups listed here cannot apply together with this rule in the same cart.
+            </p>
+            <NonCombinableRulesSection v-model="draft.nonCombinableRules" />
+          </v-card>
+        </template>
 
         <TagsSection v-model="draft.tags" />
       </v-col>
@@ -501,6 +619,43 @@
       :scope="draft.scope"
       @save="onConditionSave"
     />
+
+    <!-- Condition CSV import dialog -->
+    <ConditionCsvImportDialog
+      v-model="conditionCsvImportOpen"
+      @import="onConditionsCsvImport"
+    />
+
+    <!-- Save as template dialog -->
+    <DialogCard v-model="templateDialogOpen" max-width="480">
+      <template #title>Create template from rule</template>
+      <v-alert type="info" variant="tonal" density="compact" class="mb-4" icon="mdi-information-outline">
+        The rule has been saved. Fill in the template details below.
+      </v-alert>
+      <TextInput v-model="templateLabel" label="Template name *" class="mb-3" />
+      <TextInput v-model="templateDescription" label="Description" class="mb-3" />
+      <SelectInput
+        v-model="templateCategory"
+        :data="templateCategoryItems"
+        label="Category"
+      />
+      <template #actions>
+        <v-btn variant="text" @click="templateDialogOpen = false">Skip</v-btn>
+        <v-btn
+          color="primary"
+          class="text-uppercase"
+          :loading="creatingTemplate"
+          :disabled="!templateLabel.trim()"
+          @click="confirmCreateTemplate"
+        >
+          Create template
+        </v-btn>
+      </template>
+    </DialogCard>
+
+    <v-snackbar v-model="templateCreatedSnack" color="success" timeout="3000">
+      Template "{{ templateLabel }}" created successfully.
+    </v-snackbar>
   </v-container>
 </template>
 
@@ -513,8 +668,11 @@ import { useUiStore } from '../../stores/ui'
 import { useSettingsStore } from '../../stores/settings'
 import { validateConditions } from '../../utils/conditionValidator'
 import { detectGiftConflicts } from '../../utils/giftConflictDetector'
+import { downloadConditionsTemplate } from '../../utils/csvRuleImportExport'
+import { v4 as uuid } from 'uuid'
 import ConditionChip from './ConditionChip.vue'
 import ConditionBuilderDialog from './ConditionBuilderDialog.vue'
+import ConditionCsvImportDialog from './ConditionCsvImportDialog.vue'
 import ReachEstimateBar from './ReachEstimateBar.vue'
 import StepDiscountEditor from './StepDiscountEditor.vue'
 import GiftItemsSection from './GiftItemsSection.vue'
@@ -526,6 +684,8 @@ import TagsSection from './TagsSection.vue'
 import TextInput from '../_common/TextInput.vue'
 import NumberInput from '../_common/NumberInput.vue'
 import SelectInput from '../_common/SelectInput.vue'
+import DialogCard from '../_common/DialogCard.vue'
+import { useTemplatesStore } from '../../stores/templates'
 
 const route = useRoute()
 const router = useRouter()
@@ -533,11 +693,84 @@ const store = usePromotionsStore()
 const sgStore = useStackingGroupsStore()
 const uiStore = useUiStore()
 const settingsStore = useSettingsStore()
+const templatesStore = useTemplatesStore()
 
-const isEdit = computed(() => !!route.params.id)
+const isTemplateEdit = computed(() => route.path.startsWith('/templates/'))
+const isEdit = computed(() => !!route.params.id && !isTemplateEdit.value)
+
 const saving = ref(false)
 const saveError = ref(null)
 const conditionDialogOpen = ref(false)
+const conditionCsvImportOpen = ref(false)
+
+// Template edit metadata
+const tplLabel = ref('')
+const tplDescription = ref('')
+const tplCategory = ref('')
+
+// ── Save as template ──────────────────────────────────────────────────────────
+const templateDialogOpen = ref(false)
+const templateLabel = ref('')
+const templateDescription = ref('')
+const templateCategory = ref('')
+const creatingTemplate = ref(false)
+const templateCreatedSnack = ref(false)
+
+const templateCategoryItems = [
+  { value: '', title: 'None' },
+  { value: 'flash', title: 'Flash' },
+  { value: 'seasonal', title: 'Seasonal' },
+  { value: 'loyalty', title: 'Loyalty' },
+  { value: 'bulk', title: 'Bulk' },
+  { value: 'category', title: 'Category' },
+  { value: 'gift', title: 'Gift' },
+]
+
+async function openSaveAsTemplate() {
+  if (!validate()) return
+  saving.value = true
+  saveError.value = null
+  try {
+    const payload = JSON.parse(JSON.stringify(toRaw(draft)))
+    payload.status = resolveStatus(payload.status, payload.startDate, payload.endDate, payload.pauseScheduled, payload.pauseStart, payload.pauseEnd)
+    if (isEdit.value) {
+      await store.update(route.params.id, payload)
+    } else {
+      await store.create(payload)
+    }
+    templateLabel.value = draft.name
+    templateDescription.value = ''
+    templateCategory.value = ''
+    templateDialogOpen.value = true
+  } catch (e) {
+    saveError.value = e?.response?.data?.error ?? e?.message ?? 'Failed to save rule'
+  } finally {
+    saving.value = false
+  }
+}
+
+async function confirmCreateTemplate() {
+  creatingTemplate.value = true
+  try {
+    const snapshot = JSON.parse(JSON.stringify(toRaw(draft)))
+    const INSTANCE_FIELDS = ['name', 'status', 'startDate', 'endDate', 'pauseScheduled', 'pauseStart', 'pauseEnd', 'processingOrder', 'nonCombinableRules']
+    INSTANCE_FIELDS.forEach(f => delete snapshot[f])
+    await templatesStore.create({
+      label: templateLabel.value,
+      description: templateDescription.value,
+      category: templateCategory.value || undefined,
+      ruleType: draft.type,
+      ruleSnapshot: snapshot,
+    })
+    templateDialogOpen.value = false
+    templateCreatedSnack.value = true
+    setTimeout(() => router.push('/promotions'), 1500)
+  } catch (e) {
+    saveError.value = e?.response?.data?.error ?? e?.message ?? 'Failed to create template'
+  } finally {
+    creatingTemplate.value = false
+  }
+}
 const validationErrors = ref({})
 const editingCondition = ref(null)
 const editingConditionIdx = ref(null)
@@ -591,6 +824,10 @@ function validatePause() {
   }
   return errors
 }
+
+watch(() => draft.type, (type) => {
+  if (type === 'multi_buy') draft.scope = 'item'
+})
 
 watch(() => draft.startDate, () => {
   draft.status = resolveStatus(draft.status, draft.startDate, draft.endDate, draft.pauseScheduled, draft.pauseStart, draft.pauseEnd)
@@ -653,11 +890,37 @@ const ruleTypeItems = [
   { value: 'gift', title: 'Gift' },
 ]
 
+// ── Step discount ─────────────────────────────────────────────────────────────
+
+const stepDescription = computed(() => {
+  if (draft.type !== 'step_discount') return ''
+  if (!draft.stepValue || !draft.value) return ''
+  const isQty = draft.stepType === 'QTY'
+  const isPercent = draft.amountType === 'PERCENT'
+  const fmt = v => isPercent ? `${v}%` : `€${v}`
+  const thr = v => isQty ? `${v} item(s)` : `€${v}`
+  const applyLabel = draft.stepApplyTo === 'cheapest' ? 'the cheapest item' : (draft.scope === 'item' ? 'each qualifying item' : 'the cart total')
+  const unlimited = !draft.stepMaxSteps || Number(draft.stepMaxSteps) === 0
+  const maxLabel = unlimited ? 'indefinitely' : `up to ${draft.stepMaxSteps} time(s)`
+
+  const validTiers = draft.steps.filter(s => s.threshold !== '' && s.value !== '')
+  let discPart
+  if (validTiers.length) {
+    const tierList = validTiers.map((s, i) => {
+      const threshold = draft.stepValue ? thr((i + 1) * Number(draft.stepValue)) : thr(s.threshold)
+      return `${threshold} → ${fmt(s.value)} off`
+    }).join(', ')
+    discPart = `tiers: ${tierList}`
+  } else {
+    discPart = `get ${fmt(draft.value)} off ${applyLabel}`
+  }
+
+  return `Every ${thr(draft.stepValue)} purchased: ${discPart}. Repeats ${maxLabel}.`
+})
+
 const amountTypeItems = [
-  { value: 'PERCENT_CART', title: '% off cart' },
-  { value: 'FIXED_CART', title: '€ off cart' },
-  { value: 'PERCENT_LINE', title: '% off line' },
-  { value: 'FIXED_LINE', title: '€ off line' },
+  { value: 'PERCENT', title: 'Percentage (%)' },
+  { value: 'FIXED', title: 'Fixed amount (€)' },
 ]
 
 const channelOptions = [
@@ -666,10 +929,10 @@ const channelOptions = [
 ]
 
 
-const breadcrumbs = computed(() => [
-  { title: 'Promotions', to: '/promotions' },
-  { title: isEdit.value ? 'Edit rule' : 'New promotion rule', disabled: true },
-])
+const breadcrumbs = computed(() => isTemplateEdit.value
+  ? [{ title: 'Templates', to: '/templates' }, { title: 'Edit template', disabled: true }]
+  : [{ title: 'Promotions', to: '/promotions' }, { title: isEdit.value ? 'Edit rule' : 'New promotion rule', disabled: true }]
+)
 
 const conditionValidation = computed(() => validateConditions(draft.conditions))
 const giftConflicts = computed(() => detectGiftConflicts(draft.gifts, draft.conditions))
@@ -690,11 +953,17 @@ function removeCondition(idx) {
   draft.conditions.splice(idx, 1)
 }
 
-function onConditionSave(condition) {
+function onConditionSave(conditions) {
   if (editingConditionIdx.value !== null) {
-    draft.conditions[editingConditionIdx.value] = condition
+    draft.conditions[editingConditionIdx.value] = conditions[0]
   } else {
-    draft.conditions.push(condition)
+    draft.conditions.push(...conditions)
+  }
+}
+
+function onConditionsCsvImport(conditions) {
+  for (const c of conditions) {
+    draft.conditions.push({ ...c, id: uuid() })
   }
 }
 
@@ -713,27 +982,57 @@ async function save() {
   saving.value = true
   saveError.value = null
   try {
-    const payload = JSON.parse(JSON.stringify(toRaw(draft)))
-    payload.status = resolveStatus(payload.status, payload.startDate, payload.endDate, payload.pauseScheduled, payload.pauseStart, payload.pauseEnd)
-    if (isEdit.value) {
-      await store.update(route.params.id, payload)
+    if (isTemplateEdit.value) {
+      const snapshot = JSON.parse(JSON.stringify(toRaw(draft)))
+      const INSTANCE_FIELDS = ['name', 'status', 'startDate', 'endDate', 'pauseScheduled', 'pauseStart', 'pauseEnd', 'processingOrder', 'nonCombinableRules']
+      INSTANCE_FIELDS.forEach(f => delete snapshot[f])
+      await templatesStore.update(route.params.id, {
+        label: tplLabel.value,
+        description: tplDescription.value,
+        category: tplCategory.value || undefined,
+        ruleType: draft.type,
+        ruleSnapshot: snapshot,
+      })
+      router.push('/templates')
     } else {
-      await store.create(payload)
+      const payload = JSON.parse(JSON.stringify(toRaw(draft)))
+      payload.status = resolveStatus(payload.status, payload.startDate, payload.endDate, payload.pauseScheduled, payload.pauseStart, payload.pauseEnd)
+      if (isEdit.value) {
+        await store.update(route.params.id, payload)
+      } else {
+        await store.create(payload)
+      }
+      router.push('/promotions')
     }
-    router.push('/promotions')
   } catch (e) {
-    saveError.value = e?.response?.data?.error ?? e?.message ?? 'Failed to save rule'
+    saveError.value = e?.response?.data?.error ?? e?.message ?? 'Failed to save'
   } finally {
     saving.value = false
   }
 }
 
 onMounted(async () => {
-  await Promise.all([
-    sgStore.fetchAll(),
-    store.fetchAll(),
-  ])
-  if (isEdit.value) {
+  await Promise.all([sgStore.fetchAll(), store.fetchAll()])
+  if (isTemplateEdit.value) {
+    if (!templatesStore.items.length) await templatesStore.fetchAll()
+    const tpl = templatesStore.items.find(t => t.id === route.params.id)
+    if (tpl) {
+      tplLabel.value = tpl.label ?? ''
+      tplDescription.value = tpl.description ?? ''
+      tplCategory.value = tpl.category ?? ''
+      store.resetDraft()
+      if (tpl.ruleSnapshot) {
+        Object.assign(draft, tpl.ruleSnapshot)
+      } else {
+        Object.assign(draft, {
+          type: tpl.ruleType ?? 'discount',
+          value: tpl.defaultValue ?? '',
+          valueUnit: tpl.defaultValueUnit ?? '%',
+          conditions: tpl.defaultConditions ? [...tpl.defaultConditions] : [],
+        })
+      }
+    }
+  } else if (isEdit.value) {
     await store.fetchOne(route.params.id)
   } else if (!route.query.fromTemplate) {
     store.resetDraft()

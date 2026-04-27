@@ -5,7 +5,7 @@ import { v4 as uuid } from 'uuid'
 
 const emptyDraft = () => ({
   name: '', type: 'discount', value: '', valueUnit: '%',
-  amountType: 'PERCENT_CART',
+  amountType: 'PERCENT',
   scope: 'cart',
   steps: [], priority: 10, status: 'draft',
   startDate: null, endDate: null,
@@ -19,12 +19,17 @@ const emptyDraft = () => ({
   processingOrder: null,
   tags: [],
   stepType: 'SPENT',
+  stepValue: '',
   stepMaxSteps: '',
+  stepApplyTo: 'all',
   giftStepType: 'SPENT', giftStepValue: '', giftMaxSteps: '',
   channels: ['web', 'mobile_app'],
   multiBuyQty: '', multiFreeQty: '',
   multiSelectionMode: 'CHEAPEST', multiMaxSteps: '',
   nonCombinableRules: [],
+  usageLimitsEnabled: false,
+  maxUsagePerCustomer: null,
+  maxUsagePerRule: null,
 })
 
 export const usePromotionsStore = defineStore('promotions', () => {

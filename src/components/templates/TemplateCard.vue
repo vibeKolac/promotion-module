@@ -1,10 +1,28 @@
 <template>
   <v-card border elevation="0" class="pa-4 h-100 d-flex flex-column" style="cursor:pointer" @click="$emit('select', template)">
-    <div class="mb-3">
+    <div class="d-flex align-start mb-3">
       <v-avatar :color="typeColor" variant="tonal" size="40">
         <v-icon :color="typeColor" size="22">{{ categoryIcon }}</v-icon>
       </v-avatar>
+      <v-spacer />
+      <v-menu location="bottom end">
+        <template #activator="{ props: menuProps }">
+          <v-btn
+            v-bind="menuProps"
+            icon="mdi-dots-vertical"
+            variant="text"
+            size="small"
+            density="comfortable"
+            @click.stop
+          />
+        </template>
+        <v-list density="compact" min-width="160">
+          <v-list-item prepend-icon="mdi-pencil-outline" title="Edit" @click.stop="$emit('edit', template)" />
+          <v-list-item prepend-icon="mdi-delete-outline" title="Delete" class="text-error" @click.stop="$emit('delete', template)" />
+        </v-list>
+      </v-menu>
     </div>
+
     <div class="d-flex align-center mb-2 gap-2">
       <v-chip :color="typeColor" variant="tonal" size="x-small" label>{{ template.ruleType?.replace('_', ' ') }}</v-chip>
       <v-chip v-if="template.popularity === 'high'" color="primary" variant="tonal" size="x-small" label>Popular</v-chip>
@@ -23,7 +41,8 @@
 <script setup>
 import { computed } from 'vue'
 const props = defineProps({ template: { type: Object, required: true } })
-defineEmits(['select'])
+defineEmits(['select', 'edit', 'delete'])
+
 const typeColor = computed(() => ({
   discount: 'primary',
   step_discount: 'success',

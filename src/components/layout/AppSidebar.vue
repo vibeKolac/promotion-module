@@ -14,16 +14,28 @@
         Promotions
       </v-list-subheader>
 
-      <v-list-item
-        v-for="item in navItems"
-        :key="item.to"
-        :to="item.to"
-        :prepend-icon="item.icon"
-        :title="item.title"
-        rounded="sm"
-        active-color="primary"
-        @click="mobile && $emit('update:modelValue', false)"
-      />
+      <template v-for="item in navItems" :key="item.to">
+        <v-list-item
+          v-if="!item.autoDisabled"
+          :to="item.to"
+          :prepend-icon="item.icon"
+          :title="item.title"
+          rounded="sm"
+          active-color="primary"
+          @click="mobile && $emit('update:modelValue', false)"
+        />
+        <v-list-item
+          v-else
+          :prepend-icon="item.icon"
+          :title="item.title"
+          rounded="sm"
+          disabled
+        >
+          <template #append>
+            <v-chip size="x-small" color="default" variant="tonal" label>Auto</v-chip>
+          </template>
+        </v-list-item>
+      </template>
 
       <v-divider class="my-2" />
       <v-list-subheader class="text-uppercase text-caption font-weight-bold">
@@ -45,21 +57,25 @@
 </template>
 
 <script setup>
+import { computed } from 'vue'
 import { useDisplay } from 'vuetify'
+import { useSettingsStore } from '../../stores/settings'
 
 defineProps({ modelValue: { type: Boolean, default: true } })
 defineEmits(['update:modelValue'])
 
 const { mobile } = useDisplay()
+const settings = useSettingsStore()
 
-const navItems = [
+const navItems = computed(() => [
   { to: '/promotions', icon: 'mdi-tag-multiple', title: 'Promotion Rules' },
-  { to: '/stacking-groups', icon: 'mdi-layers', title: 'Stacking Groups' },
+  { to: '/promotions/reporting', icon: 'mdi-chart-bar', title: 'Reporting' },
+  { to: '/stacking-groups', icon: 'mdi-layers', title: 'Stacking Groups', autoDisabled: settings.prioritizationMode === 'automatic' },
   { to: '/templates', icon: 'mdi-file-document-outline', title: 'Templates' },
   { to: '/tags', icon: 'mdi-label-outline', title: 'Tags' },
-]
+])
 
 const settingsItems = [
-  { to: '/settings/accounting', icon: 'mdi-calculator', title: 'Accounting' },
+  { to: '/settings/general', icon: 'mdi-cog-outline', title: 'General' },
 ]
 </script>

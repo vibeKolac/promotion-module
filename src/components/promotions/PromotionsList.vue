@@ -43,7 +43,7 @@
 
     <AiRecommendationsPanel class="mb-4" />
 
-    <RulePriorityPreview :rules="store.items" :groups="sgStore.items" class="mb-4" />
+    <RulePriorityPreview v-if="settingsStore.prioritizationMode !== 'automatic'" :rules="store.items" :groups="sgStore.items" class="mb-4" />
 
     <!-- Stacking group filter + tabs row -->
     <div class="d-flex flex-wrap align-center gap-2 mb-4">
@@ -52,7 +52,6 @@
         <v-tab value="paused">Paused <v-chip size="x-small" class="ml-1">{{ pausedItems.length }}</v-chip></v-tab>
         <v-tab value="draft">Draft <v-chip size="x-small" class="ml-1">{{ draftItems.length }}</v-chip></v-tab>
         <v-tab value="ended">Ended <v-chip size="x-small" class="ml-1">{{ endedItems.length }}</v-chip></v-tab>
-        <v-tab v-if="!mobile" value="performance">Performance</v-tab>
       </v-tabs>
       <v-spacer />
       <SelectInput
@@ -143,21 +142,25 @@
           </v-btn>
         </div>
         <div class="d-flex align-center gap-2 flex-wrap">
-          <v-btn size="small" color="success" @click="bulkActivate">
-            <v-icon size="16" class="mr-1">mdi-play</v-icon>Activate
-          </v-btn>
-          <v-btn size="small" variant="outlined" color="warning" @click="bulkPause">
-            <v-icon size="16" class="mr-1">mdi-pause</v-icon>Pause
-          </v-btn>
+          <template v-if="activeTab !== 'ended'">
+            <v-btn size="small" color="success" @click="bulkActivate">
+              <v-icon size="16" class="mr-1">mdi-play</v-icon>Activate
+            </v-btn>
+            <v-btn size="small" variant="outlined" color="warning" @click="bulkPause">
+              <v-icon size="16" class="mr-1">mdi-pause</v-icon>Pause
+            </v-btn>
+          </template>
           <v-btn size="small" variant="outlined" @click="bulkDuplicate">
             <v-icon size="16" class="mr-1">mdi-content-copy</v-icon>Duplicate
           </v-btn>
-          <v-btn size="small" variant="outlined" color="primary" @click="bulkDialogOpen = true">
-            <v-icon size="16" class="mr-1">mdi-filter</v-icon>Edit Conditions
-          </v-btn>
-          <v-btn size="small" variant="outlined" color="error" @click="openBulkDelete">
-            <v-icon size="16" class="mr-1">mdi-delete</v-icon>Delete
-          </v-btn>
+          <template v-if="activeTab !== 'ended'">
+            <v-btn size="small" variant="outlined" color="primary" @click="bulkDialogOpen = true">
+              <v-icon size="16" class="mr-1">mdi-filter</v-icon>Edit Conditions
+            </v-btn>
+            <v-btn size="small" variant="outlined" color="error" @click="openBulkDelete">
+              <v-icon size="16" class="mr-1">mdi-delete</v-icon>Delete
+            </v-btn>
+          </template>
         </div>
       </div>
     </v-card>
@@ -172,16 +175,11 @@
       Rules whose end date has passed. These rules are no longer applied at checkout.
     </v-alert>
 
-    <!-- Performance tab banner -->
-    <v-alert v-if="activeTab === 'performance'" type="info" variant="tonal" density="compact" class="mb-3" icon="mdi-chart-bar">
-      Rules sorted by performance score. Revenue figures are estimates.
-    </v-alert>
-
     <!-- Shared table for all tabs -->
     <v-card border elevation="0">
       <v-data-table
         v-model="selected"
-        :headers="activeTab === 'performance' ? performanceHeaders : headers"
+        :headers="headers"
         :items="tabItems"
         :loading="store.loading"
         :row-props="() => ({ style: 'cursor: pointer' })"
@@ -260,27 +258,29 @@
               />
             </template>
             <v-list density="compact" min-width="180">
-              <v-list-item prepend-icon="mdi-pencil" title="Edit" :to="`/promotions/${item.id}/edit`" />
+              <v-list-item v-if="item.status !== 'ended'" prepend-icon="mdi-pencil" title="Edit" :to="`/promotions/${item.id}/edit`" />
               <v-list-item prepend-icon="mdi-content-copy" title="Duplicate" @click="duplicateRule(item.id)" />
-              <v-list-item
-                v-if="item.status !== 'paused' && item.status !== 'draft'"
-                prepend-icon="mdi-pause"
-                title="Pause"
-                @click="pauseRule(item.id)"
-              />
-              <v-list-item
-                v-else
-                prepend-icon="mdi-play"
-                title="Resume"
-                @click="resumeRule(item.id)"
-              />
-              <v-divider />
-              <v-list-item
-                prepend-icon="mdi-delete"
-                title="Delete"
-                class="text-error"
-                @click="openDelete(item)"
-              />
+              <template v-if="item.status !== 'ended'">
+                <v-list-item
+                  v-if="item.status !== 'paused' && item.status !== 'draft'"
+                  prepend-icon="mdi-pause"
+                  title="Pause"
+                  @click="pauseRule(item.id)"
+                />
+                <v-list-item
+                  v-else
+                  prepend-icon="mdi-play"
+                  title="Resume"
+                  @click="resumeRule(item.id)"
+                />
+                <v-divider />
+                <v-list-item
+                  prepend-icon="mdi-delete"
+                  title="Delete"
+                  class="text-error"
+                  @click="openDelete(item)"
+                />
+              </template>
             </v-list>
           </v-menu>
         </template>
@@ -331,9 +331,11 @@ import CsvImportDialog from './CsvImportDialog.vue'
 import { downloadCSV, exportRulesToCSV } from '../../utils/csvRuleImportExport'
 import RulePriorityPreview from './RulePriorityPreview.vue'
 import AiRecommendationsPanel from '../ai/AiRecommendationsPanel.vue'
+import { useSettingsStore } from '../../stores/settings'
 
 const router = useRouter()
 const store = usePromotionsStore()
+const settingsStore = useSettingsStore()
 const uiStore = useUiStore()
 
 function onRowClick(event, { item }) {
@@ -378,10 +380,6 @@ const pausedItems = computed(() =>
 const draftItems = computed(() =>
   applyFiltersAll(store.items.filter(r => r.status === 'draft'))
 )
-const performanceItems = computed(() =>
-  applyFilters([...store.items].filter(r => r.performance !== undefined))
-    .sort((a, b) => (b.performance ?? 0) - (a.performance ?? 0))
-)
 
 function applyStackingFilter(rules) {
   if (stackingGroupFilter.value === 'all') return rules
@@ -396,7 +394,6 @@ const tabItems = computed(() => {
   if (activeTab.value === 'paused') return pausedItems.value
   if (activeTab.value === 'draft') return draftItems.value
   if (activeTab.value === 'ended') return endedItems.value
-  if (activeTab.value === 'performance') return performanceItems.value
   return activeItems.value
 })
 
@@ -536,17 +533,6 @@ const headers = computed(() => [
   { title: '', key: 'actions', sortable: false, width: 60 },
 ])
 
-const performanceHeaders = computed(() => [
-  { title: 'Name', key: 'name', sortable: true },
-  ...(mobile.value ? [] : [
-    { title: 'Type', key: 'type' },
-    { title: 'Performance', key: 'performance', sortable: true },
-    { title: 'Revenue', key: 'revenue' },
-    { title: 'Created by', key: 'createdBy' },
-    { title: 'Tags', key: 'tags', sortable: false },
-  ]),
-  { title: '', key: 'actions', sortable: false, width: 60 },
-])
 
 function formatDate(iso) {
   if (!iso) return '—'

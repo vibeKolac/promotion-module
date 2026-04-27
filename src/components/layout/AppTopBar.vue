@@ -8,7 +8,7 @@
     </div>
     <v-spacer />
     <span v-if="!mobile" class="text-caption text-medium-emphasis mr-4">client v0.1.0</span>
-    <v-btn icon="mdi-account-circle" variant="text" class="mr-2" />
+    <v-btn icon="mdi-account-circle" variant="text" class="mr-2" @click="openAnalysis" />
   </v-app-bar>
 </template>
 
@@ -16,6 +16,10 @@
 import { useDisplay } from 'vuetify'
 defineEmits(['toggle-nav'])
 const { mobile } = useDisplay()
+
+function openAnalysis() {
+  window.open('/promotions-analysis.html', '_blank', 'width=1280,height=800,noopener')
+}
 </script>
 
 <style scoped>
