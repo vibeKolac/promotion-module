@@ -439,52 +439,14 @@
 
         <!-- Conditions -->
         <v-card border elevation="0" class="pa-5 mt-4">
-          <div class="d-flex align-center flex-wrap gap-2 mb-4">
-            <span class="text-body-1 font-weight-bold flex-grow-1">Targeting conditions</span>
-            <v-btn
-              prepend-icon="mdi-download-outline"
-              variant="text"
-              size="small"
-              class="text-uppercase"
-              @click="downloadConditionsTemplate()"
-            >
-              Template
-            </v-btn>
-            <v-btn
-              prepend-icon="mdi-upload"
-              variant="outlined"
-              size="small"
-              class="text-uppercase"
-              @click="conditionCsvImportOpen = true"
-            >
-              Import CSV
-            </v-btn>
-            <v-btn
-              prepend-icon="mdi-plus"
-              variant="outlined"
-              color="primary"
-              size="small"
-              class="text-uppercase"
-              @click="openAddCondition"
-            >
-              Add condition
-            </v-btn>
-          </div>
-
-          <div v-if="draft.conditions.length" class="d-flex flex-wrap gap-2 mb-4">
-            <ConditionChip
-              v-for="(cond, idx) in draft.conditions"
-              :key="cond.id"
-              :condition="cond"
-              :scope="draft.scope"
-              @edit="openEditCondition(idx)"
-              @remove="removeCondition(idx)"
-            />
-          </div>
-
-          <v-alert v-else type="info" variant="tonal" density="compact" icon="mdi-information">
-            No conditions set — this rule applies to all products.
-          </v-alert>
+          <ConditionsEditor
+            v-model="draft.conditions"
+            :scope="draft.scope"
+            title="Targeting conditions"
+            show-preset
+          >
+            <template #empty>No conditions set — this rule applies to all products.</template>
+          </ConditionsEditor>
 
           <ReachEstimateBar :conditions="draft.conditions" :scope="draft.scope" class="mt-3" />
 
@@ -612,19 +574,6 @@
 
     <v-snackbar :model-value="!!saveError" color="error" timeout="6000" @update:model-value="saveError = null">{{ saveError }}</v-snackbar>
 
-    <!-- Condition builder dialog -->
-    <ConditionBuilderDialog
-      v-model="conditionDialogOpen"
-      :initial-condition="editingCondition"
-      :scope="draft.scope"
-      @save="onConditionSave"
-    />
-
-    <!-- Condition CSV import dialog -->
-    <ConditionCsvImportDialog
-      v-model="conditionCsvImportOpen"
-      @import="onConditionsCsvImport"
-    />
 
     <!-- Save as template dialog -->
     <DialogCard v-model="templateDialogOpen" max-width="480">
@@ -668,11 +617,8 @@ import { useUiStore } from '../../stores/ui'
 import { useSettingsStore } from '../../stores/settings'
 import { validateConditions } from '../../utils/conditionValidator'
 import { detectGiftConflicts } from '../../utils/giftConflictDetector'
-import { downloadConditionsTemplate } from '../../utils/csvRuleImportExport'
+import ConditionsEditor from './ConditionsEditor.vue'
 import { v4 as uuid } from 'uuid'
-import ConditionChip from './ConditionChip.vue'
-import ConditionBuilderDialog from './ConditionBuilderDialog.vue'
-import ConditionCsvImportDialog from './ConditionCsvImportDialog.vue'
 import ReachEstimateBar from './ReachEstimateBar.vue'
 import StepDiscountEditor from './StepDiscountEditor.vue'
 import GiftItemsSection from './GiftItemsSection.vue'
@@ -700,8 +646,6 @@ const isEdit = computed(() => !!route.params.id && !isTemplateEdit.value)
 
 const saving = ref(false)
 const saveError = ref(null)
-const conditionDialogOpen = ref(false)
-const conditionCsvImportOpen = ref(false)
 
 // Template edit metadata
 const tplLabel = ref('')
@@ -772,8 +716,6 @@ async function confirmCreateTemplate() {
   }
 }
 const validationErrors = ref({})
-const editingCondition = ref(null)
-const editingConditionIdx = ref(null)
 const pauseAdjustWarning = ref(false)
 const pauseErrors = ref({})
 
@@ -937,35 +879,6 @@ const breadcrumbs = computed(() => isTemplateEdit.value
 const conditionValidation = computed(() => validateConditions(draft.conditions))
 const giftConflicts = computed(() => detectGiftConflicts(draft.gifts, draft.conditions))
 
-function openAddCondition() {
-  editingCondition.value = null
-  editingConditionIdx.value = null
-  conditionDialogOpen.value = true
-}
-
-function openEditCondition(idx) {
-  editingCondition.value = { ...draft.conditions[idx] }
-  editingConditionIdx.value = idx
-  conditionDialogOpen.value = true
-}
-
-function removeCondition(idx) {
-  draft.conditions.splice(idx, 1)
-}
-
-function onConditionSave(conditions) {
-  if (editingConditionIdx.value !== null) {
-    draft.conditions[editingConditionIdx.value] = conditions[0]
-  } else {
-    draft.conditions.push(...conditions)
-  }
-}
-
-function onConditionsCsvImport(conditions) {
-  for (const c of conditions) {
-    draft.conditions.push({ ...c, id: uuid() })
-  }
-}
 
 function validate() {
   const errors = {}

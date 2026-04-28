@@ -22,9 +22,10 @@ export const useSettingsStore = defineStore('settings', () => {
   const excludedCategories = ref(saved.excludedCategories ?? [])
   const excludedSkus = ref(saved.excludedSkus ?? [])
   const excludedProductTypes = ref(saved.excludedProductTypes ?? [])
+  const cartDiscountCalculation = ref(saved.cartDiscountCalculation ?? 'per_item')
 
   watch(
-    [multiBuyFreePrice, giftFreePrice, giftOosMulti, prioritizationMode, excludedCategories, excludedSkus, excludedProductTypes],
+    [multiBuyFreePrice, giftFreePrice, giftOosMulti, prioritizationMode, excludedCategories, excludedSkus, excludedProductTypes, cartDiscountCalculation],
     () => {
       localStorage.setItem(STORAGE_KEY, JSON.stringify({
         multiBuyFreePrice: multiBuyFreePrice.value,
@@ -34,6 +35,7 @@ export const useSettingsStore = defineStore('settings', () => {
         excludedCategories: excludedCategories.value,
         excludedSkus: excludedSkus.value,
         excludedProductTypes: excludedProductTypes.value,
+        cartDiscountCalculation: cartDiscountCalculation.value,
       }))
     },
     { deep: true },
@@ -47,7 +49,8 @@ export const useSettingsStore = defineStore('settings', () => {
     if (values.excludedCategories !== undefined) excludedCategories.value = values.excludedCategories
     if (values.excludedSkus !== undefined) excludedSkus.value = values.excludedSkus
     if (values.excludedProductTypes !== undefined) excludedProductTypes.value = values.excludedProductTypes
+    if (values.cartDiscountCalculation !== undefined) cartDiscountCalculation.value = values.cartDiscountCalculation
   }
 
-  return { multiBuyFreePrice, giftFreePrice, giftOosMulti, prioritizationMode, excludedCategories, excludedSkus, excludedProductTypes, save }
+  return { multiBuyFreePrice, giftFreePrice, giftOosMulti, prioritizationMode, excludedCategories, excludedSkus, excludedProductTypes, cartDiscountCalculation, save }
 })

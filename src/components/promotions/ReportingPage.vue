@@ -89,6 +89,23 @@
         style="max-width: 160px; min-width: 130px"
       />
 
+      <v-divider v-if="!mobile" vertical class="mx-1" style="align-self:stretch; opacity:.3" />
+
+      <TextInput
+        v-model="dateFrom"
+        label="Active from"
+        type="date"
+        hide-details
+        style="max-width: 160px; min-width: 140px"
+      />
+      <TextInput
+        v-model="dateTo"
+        label="Active to"
+        type="date"
+        hide-details
+        style="max-width: 160px; min-width: 140px"
+      />
+
       <v-btn
         v-if="hasActiveFilters"
         variant="text"
@@ -128,6 +145,11 @@
 
         <template #item.usageCount="{ item }">
           <span v-if="item.usageCount !== undefined">{{ item.usageCount.toLocaleString() }}</span>
+          <span v-else class="text-medium-emphasis">—</span>
+        </template>
+
+        <template #item.completedOrders="{ item }">
+          <span v-if="item.completedOrders !== undefined">{{ item.completedOrders.toLocaleString() }}</span>
           <span v-else class="text-medium-emphasis">—</span>
         </template>
 
@@ -188,6 +210,8 @@ const typeFilter = ref([])
 const statusFilter = ref([])
 const tagFilter = ref([])
 const createdByFilter = ref('')
+const dateFrom = ref('')
+const dateTo = ref('')
 
 const TYPE_LABELS = { discount: 'Discount', gift: 'Gift', multi_buy: 'Multi-buy', step_discount: 'Step discount' }
 const STATUS_LABELS = { active: 'Active', scheduled: 'Scheduled', paused: 'Paused', draft: 'Draft', ended: 'Ended' }
@@ -274,7 +298,9 @@ const hasActiveFilters = computed(() =>
   typeFilter.value.length > 0 ||
   statusFilter.value.length > 0 ||
   tagFilter.value.length > 0 ||
-  createdByFilter.value !== ''
+  createdByFilter.value !== '' ||
+  dateFrom.value !== '' ||
+  dateTo.value !== ''
 )
 
 const activeFilterCount = computed(() => {
@@ -284,6 +310,8 @@ const activeFilterCount = computed(() => {
   if (statusFilter.value.length) n++
   if (tagFilter.value.length) n++
   if (createdByFilter.value) n++
+  if (dateFrom.value) n++
+  if (dateTo.value) n++
   return n
 })
 
@@ -293,6 +321,8 @@ function clearFilters() {
   statusFilter.value = []
   tagFilter.value = []
   createdByFilter.value = ''
+  dateFrom.value = ''
+  dateTo.value = ''
 }
 
 // ── Filtered + sorted items ───────────────────────────────────────────────────
@@ -314,6 +344,12 @@ const filteredItems = computed(() => {
   if (createdByFilter.value) {
     result = result.filter(r => r.createdBy === createdByFilter.value)
   }
+  if (dateFrom.value) {
+    result = result.filter(r => !r.endDate || r.endDate >= dateFrom.value)
+  }
+  if (dateTo.value) {
+    result = result.filter(r => !r.startDate || r.startDate <= dateTo.value)
+  }
   return result.sort((a, b) => (b.performance ?? 0) - (a.performance ?? 0))
 })
 
@@ -321,6 +357,7 @@ const headers = computed(() => [
   { title: 'Name', key: 'name', sortable: true },
   { title: 'Performance', key: 'performance', sortable: true },
   { title: 'Usages', key: 'usageCount', sortable: true },
+  { title: 'Completed Orders', key: 'completedOrders', sortable: true },
   ...(mobile.value ? [] : [
     { title: 'Type', key: 'type' },
     { title: 'Estimated Revenue', key: 'revenue' },

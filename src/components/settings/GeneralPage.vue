@@ -125,6 +125,48 @@
 
         <!-- Accounting -->
         <div class="text-overline text-medium-emphasis mb-3">Accounting</div>
+        <v-card border elevation="0" class="pa-5 mb-4">
+          <div class="text-body-1 font-weight-bold mb-1">Cart-scope discount calculation</div>
+          <p class="text-caption text-medium-emphasis mb-5">
+            Controls how discounts from cart-scoped rules are calculated and shown to the customer on the frontend.
+          </p>
+
+          <v-radio-group v-model="form.cartDiscountCalculation" density="compact" hide-details>
+            <v-radio value="per_item">
+              <template #label>
+                <div>
+                  <div class="text-body-2">Distribute per item</div>
+                  <div class="text-caption text-medium-emphasis">
+                    The discount is split proportionally across all eligible items. Each item shows its adjusted price.
+                    Preferred for accurate per-line tax handling and itemised invoices.
+                  </div>
+                </div>
+              </template>
+            </v-radio>
+            <v-radio value="cart_total" class="mt-3">
+              <template #label>
+                <div>
+                  <div class="text-body-2">Single cart-level deduction</div>
+                  <div class="text-caption text-medium-emphasis">
+                    Items keep their original prices. The total discount appears as one "Promotions" line in the cart summary.
+                    Simpler frontend display; tax is calculated before the deduction.
+                  </div>
+                </div>
+              </template>
+            </v-radio>
+          </v-radio-group>
+
+          <v-alert
+            v-if="form.cartDiscountCalculation === 'cart_total'"
+            type="warning"
+            variant="tonal"
+            density="compact"
+            class="mt-4"
+          >
+            Tax is applied to original item prices. Verify this complies with local tax regulations before using in production.
+          </v-alert>
+        </v-card>
+
         <v-card border elevation="0" class="pa-5">
           <div class="text-body-1 font-weight-bold mb-1">Free product prices</div>
           <p class="text-caption text-medium-emphasis mb-5">
@@ -181,6 +223,7 @@ const form = reactive({
   prioritizationMode: store.prioritizationMode,
   multiBuyFreePrice: store.multiBuyFreePrice,
   giftFreePrice: store.giftFreePrice,
+  cartDiscountCalculation: store.cartDiscountCalculation,
 })
 
 const saving = ref(false)
@@ -202,6 +245,7 @@ async function save() {
     prioritizationMode: form.prioritizationMode,
     multiBuyFreePrice: form.multiBuyFreePrice,
     giftFreePrice: form.giftFreePrice,
+    cartDiscountCalculation: form.cartDiscountCalculation,
   })
   saving.value = false
   savedSnack.value = true

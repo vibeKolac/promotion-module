@@ -27,9 +27,21 @@ const routes = [
     component: () => import('../components/stackingGroups/StackingGroupsPage.vue'),
   },
   {
-    path: '/templates',
-    component: () => import('../components/templates/TemplatesPage.vue'),
+    path: '/templates-presets',
+    component: () => import('../components/templates/TemplatesPresetsHub.vue'),
+    redirect: '/templates-presets/templates',
+    children: [
+      {
+        path: 'templates',
+        component: () => import('../components/templates/TemplatesPage.vue'),
+      },
+      {
+        path: 'condition-presets',
+        component: () => import('../components/templates/ConditionPresetsPage.vue'),
+      },
+    ],
   },
+  { path: '/templates', redirect: '/templates-presets/templates' },
   {
     path: '/templates/:id/edit',
     component: () => import('../components/promotions/PromotionForm.vue'),

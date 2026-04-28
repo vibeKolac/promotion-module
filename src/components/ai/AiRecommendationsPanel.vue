@@ -5,7 +5,10 @@
       <div class="d-flex align-center gap-2">
         <v-icon icon="mdi-creation" color="primary" />
         <div>
-          <div class="text-body-2 font-weight-bold">AI Recommendations</div>
+          <div class="d-flex align-center gap-2">
+            <span class="text-body-2 font-weight-bold">AI Recommendations</span>
+            <v-chip size="x-small" color="purple" variant="tonal" label>Post-MVP</v-chip>
+          </div>
           <div class="text-caption text-medium-emphasis">Based on your catalog and current promotions</div>
         </div>
       </div>

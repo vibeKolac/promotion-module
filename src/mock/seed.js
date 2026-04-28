@@ -19,7 +19,7 @@ export const promotions = [
       { id: 'c2', field: 'subtotal', mode: 'include', values: ['50'], operator: '>=' },
     ],
     gifts: [], nonCombinableRules: [], tags: ['tag-4'],
-    performance: 87, revenue: '€24,500', usageCount: 1842,
+    performance: 87, revenue: '€24,500', usageCount: 1842, completedOrders: 7,
     createdBy: 'Anna K.', createdAt: '2026-03-18T10:00:00Z', updatedAt: '2026-03-18T10:00:00Z',
   },
   {
@@ -29,7 +29,7 @@ export const promotions = [
     startDate: '2026-03-20', endDate: '2026-04-30', stackingGroupId: 'sg-1',
     conditions: [{ id: 'c3', field: 'categories', mode: 'include', values: ['Skincare'] }],
     gifts: [], nonCombinableRules: [{ type: 'group', id: 'sg-2' }], tags: ['tag-1'],
-    performance: 62, revenue: '€12,300', usageCount: 934,
+    performance: 62, revenue: '€12,300', usageCount: 934, completedOrders: 5,
     createdBy: 'Martin P.', createdAt: '2026-03-15T08:00:00Z', updatedAt: '2026-03-15T08:00:00Z',
   },
   {
@@ -51,7 +51,7 @@ export const promotions = [
     conditions: [{ id: 'c5', field: 'subtotal', mode: 'include', values: ['150'], operator: '>=' }],
     gifts: [{ id: 'g1', sku: 'DM-TRAVEL-KIT', quantity: 1, price: 0 }],
     nonCombinableRules: [{ type: 'rule', id: 'promo-2' }], tags: ['tag-2'],
-    performance: 78, revenue: '€18,900', usageCount: 1203,
+    performance: 78, revenue: '€18,900', usageCount: 1203, completedOrders: 3,
     createdBy: 'Lukas J.', createdAt: '2026-03-01T09:00:00Z', updatedAt: '2026-03-01T09:00:00Z',
   },
   {
@@ -79,7 +79,7 @@ export const promotions = [
     startDate: '2026-02-10', endDate: '2026-02-16', stackingGroupId: 'sg-1',
     conditions: [{ id: 'c7', field: 'brands', mode: 'include', values: ['La Roche-Posay'] }],
     gifts: [], nonCombinableRules: [], tags: ['tag-1', 'tag-3'],
-    performance: 91, revenue: '€31,700', usageCount: 2561,
+    performance: 91, revenue: '€31,700', usageCount: 2561, completedOrders: 4,
     createdBy: 'Anna K.', createdAt: '2026-02-01T09:00:00Z', updatedAt: '2026-02-16T23:59:00Z',
   },
 ]
