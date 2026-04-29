@@ -2,23 +2,61 @@
 <template>
   <Transition name="maxik-slide">
     <div v-if="visible" class="maxik-wrapper" @click.stop>
+
       <!-- Speech bubble -->
       <Transition name="bubble-pop">
-        <div v-if="bubbleVisible" class="maxik-bubble">
-          <button class="maxik-dismiss" @click="dismiss" aria-label="Dismiss">×</button>
-          <div class="maxik-bubble-title">Hi, I'm Maxík! 👋</div>
-          <div class="maxik-bubble-text">Need help setting something up? I'm here for you!</div>
-          <div class="maxik-bubble-actions">
-            <button class="maxik-btn-help" @click="dismiss">Show me around</button>
-            <button class="maxik-btn-skip" @click="dismiss">I'm good, thanks</button>
-          </div>
-        </div>
+        <v-card
+          v-if="bubbleVisible"
+          elevation="4"
+          rounded="xl"
+          width="252"
+          class="maxik-bubble pa-1 mr-4"
+        >
+          <v-card-text class="pa-3 pb-2">
+            <div class="d-flex align-center justify-space-between mb-1">
+              <span class="text-body-2 font-weight-bold">Hi, I'm Maxík! 👋</span>
+              <v-btn
+                icon="mdi-close"
+                size="x-small"
+                variant="text"
+                density="comfortable"
+                @click="dismiss"
+              />
+            </div>
+            <p class="text-caption text-medium-emphasis mb-0" style="line-height:1.45">
+              Need help setting something up?<br>I'm here for you!
+            </p>
+          </v-card-text>
+
+          <v-card-actions class="pa-3 pt-1 flex-column align-stretch" style="gap:6px">
+            <v-btn
+              color="primary"
+              variant="flat"
+              size="small"
+              rounded="lg"
+              block
+              @click="dismiss"
+            >
+              Show me around
+            </v-btn>
+            <v-btn
+              variant="outlined"
+              size="small"
+              rounded="lg"
+              block
+              @click="dismiss"
+            >
+              I'm good, thanks
+            </v-btn>
+          </v-card-actions>
+        </v-card>
       </Transition>
 
-      <!-- Maxík image -->
+      <!-- Maxík character -->
       <div class="maxik-character" @click="bubbleVisible = !bubbleVisible">
         <img src="/maxik.png" alt="Maxík" class="maxik-img" draggable="false" />
       </div>
+
     </div>
   </Transition>
 </template>
@@ -81,7 +119,10 @@ onUnmounted(() => {
   pointer-events: all;
 }
 
-/* Character */
+.maxik-bubble {
+  border: 1px solid rgba(var(--v-theme-primary), 0.15) !important;
+}
+
 .maxik-character {
   cursor: pointer;
   filter: drop-shadow(0 8px 24px rgba(0,0,0,.22));
@@ -92,7 +133,6 @@ onUnmounted(() => {
   width: 130px;
   height: auto;
   display: block;
-  /* clip so he peeks from the right edge */
   margin-right: -10px;
 }
 
@@ -100,89 +140,6 @@ onUnmounted(() => {
   0%, 100% { transform: translateY(0); }
   50%       { transform: translateY(-10px); }
 }
-
-/* Speech bubble */
-.maxik-bubble {
-  position: relative;
-  background: #fff;
-  border-radius: 16px;
-  box-shadow: 0 8px 32px rgba(0,0,0,.18);
-  padding: 14px 16px 12px;
-  width: 230px;
-  margin-right: 18px;
-  border: 1.5px solid #e8f5e9;
-}
-
-.maxik-bubble::after {
-  content: '';
-  position: absolute;
-  bottom: -10px;
-  right: 36px;
-  border: 10px solid transparent;
-  border-top-color: #fff;
-  border-bottom: 0;
-  filter: drop-shadow(0 2px 2px rgba(0,0,0,.08));
-}
-
-.maxik-dismiss {
-  position: absolute;
-  top: 8px;
-  right: 10px;
-  background: none;
-  border: none;
-  font-size: 1.1rem;
-  line-height: 1;
-  cursor: pointer;
-  color: #aaa;
-  padding: 0 2px;
-}
-.maxik-dismiss:hover { color: #555; }
-
-.maxik-bubble-title {
-  font-size: .82rem;
-  font-weight: 700;
-  color: #1c1c1c;
-  margin-bottom: 5px;
-  padding-right: 18px;
-}
-
-.maxik-bubble-text {
-  font-size: .74rem;
-  color: #555;
-  line-height: 1.45;
-  margin-bottom: 10px;
-}
-
-.maxik-bubble-actions {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-}
-
-.maxik-btn-help {
-  background: #4CB844;
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  padding: 7px 12px;
-  font-size: .74rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background .15s;
-}
-.maxik-btn-help:hover { background: #3da036; }
-
-.maxik-btn-skip {
-  background: none;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  padding: 6px 12px;
-  font-size: .72rem;
-  color: #888;
-  cursor: pointer;
-  transition: border-color .15s, color .15s;
-}
-.maxik-btn-skip:hover { border-color: #aaa; color: #555; }
 
 /* Slide-in from right */
 .maxik-slide-enter-active { transition: transform .55s cubic-bezier(.22,1,.36,1), opacity .4s ease; }
