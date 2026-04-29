@@ -262,7 +262,7 @@ function generateRuleName(parsed, originalInput) {
 
 /**
  * Parse natural language rule descriptions into structured promotion objects.
- * @param {string} input - e.g. "20% off Nike sneakers over €100 for the next 7 days"
+ * @param {string} input - e.g. "20% off Dr.Max vitamins over €50 for the next 7 days"
  * @returns {object} { type, value, valueUnit, conditions, confidence, missingFields, name,
  *                     startDate, endDate, stepValue?, stepType?, buyQty?, freeQty?, gifts? }
  */

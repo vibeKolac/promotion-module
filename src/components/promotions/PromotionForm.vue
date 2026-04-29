@@ -48,7 +48,7 @@
     >
       <div class="d-flex align-center">
         <div class="flex-grow-1">
-          <strong>AI Assistant</strong> — type a description like "20% off Nike over $100" and I'll fill the form.
+          <strong>AI Assistant</strong> — type a description like "20% off Dr.Max vitamins over €50" and I'll fill the form.
         </div>
         <v-btn variant="outlined" color="primary" size="small" class="ml-4" @click="uiStore.openAiPanel()">
           Open Chat

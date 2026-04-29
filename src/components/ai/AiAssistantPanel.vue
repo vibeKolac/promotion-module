@@ -54,7 +54,7 @@
         <div v-if="!uiStore.aiMessages.length" class="text-center text-medium-emphasis pa-8">
           <v-icon size="40" class="mb-3">mdi-chat-outline</v-icon>
           <div class="text-body-2">Describe a promotion in plain language</div>
-          <div class="text-caption mt-1">e.g. "20% off Nike sneakers over $100"</div>
+          <div class="text-caption mt-1">e.g. "20% off Dr.Max vitamins over €50"</div>
         </div>
 
         <div v-for="msg in uiStore.aiMessages" :key="msg.id" class="mb-3">

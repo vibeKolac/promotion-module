@@ -93,7 +93,7 @@ html,body{height:100%;overflow:hidden;font-family:'Inter',sans-serif;background:
       <span style="color:var(--R)">Dr.Max</span><span style="color:var(--G)">+</span>
     </div>
     <div style="font-size:2.6rem;font-weight:900;line-height:1.1;letter-spacing:-.02em;margin-bottom:10px">Promotions Module<br>As-Is Analysis</div>
-    <div style="font-size:1rem;opacity:.65;font-weight:400;margin-bottom:28px">Cross-country workshop findings · 2025–2026</div>
+    <div style="font-size:1rem;opacity:.65;font-weight:400;margin-bottom:28px">Cross-country workshop findings · 2026</div>
     <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:28px">
       <span style="background:rgba(0,0,0,.18);border-radius:50px;padding:6px 16px;font-size:.82rem;font-weight:600">🇸🇰 Slovakia</span>
       <span style="background:rgba(253,230,138,.18);color:#FDE68A;border:1px solid rgba(253,230,138,.3);border-radius:50px;padding:6px 16px;font-size:.82rem;font-weight:600">🇨🇿 Czech Republic <span style="font-size:.68rem;opacity:.7">pending</span></span>
@@ -101,80 +101,35 @@ html,body{height:100%;overflow:hidden;font-family:'Inter',sans-serif;background:
       <span style="background:rgba(0,0,0,.18);border-radius:50px;padding:6px 16px;font-size:.82rem;font-weight:600">🇷🇴 Romania</span>
       <span style="background:rgba(0,0,0,.18);border-radius:50px;padding:6px 16px;font-size:.82rem;font-weight:600">🇮🇹 Italy</span>
     </div>
-    <div style="font-size:.72rem;opacity:.4;letter-spacing:.04em;text-transform:uppercase;margin-bottom:16px">Input for UX design &amp; development · Source: Magento data + country workshops</div>
-    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:16px;text-align:left">
-      <div style="background:rgba(0,0,0,.18);border-radius:9px;padding:9px 11px">
-        <div style="font-size:.65rem;font-weight:700;margin-bottom:3px">📊 Magento export</div>
-        <div style="font-size:.6rem;opacity:.6;line-height:1.4">Orders 2025, all rule types, all countries</div>
-      </div>
-      <div style="background:rgba(0,0,0,.18);border-radius:9px;padding:9px 11px">
-        <div style="font-size:.65rem;font-weight:700;margin-bottom:3px">🎙️ IT workshops</div>
-        <div style="font-size:.6rem;opacity:.6;line-height:1.4">2× recordings (Mar 3 + Mar 10, 2026)</div>
-      </div>
-      <div style="background:rgba(0,0,0,.18);border-radius:9px;padding:9px 11px">
-        <div style="font-size:.65rem;font-weight:700;margin-bottom:3px">🎙️ RO workshop</div>
-        <div style="font-size:.6rem;opacity:.6;line-height:1.4">Recording Apr 9, 2026</div>
-      </div>
-      <div style="background:rgba(0,0,0,.18);border-radius:9px;padding:9px 11px">
-        <div style="font-size:.65rem;font-weight:700;margin-bottom:3px">🎙️ SK / PL</div>
-        <div style="font-size:.6rem;opacity:.6;line-height:1.4">Workshop recordings available</div>
-      </div>
+    <div style="font-size:.72rem;opacity:.4;letter-spacing:.04em;text-transform:uppercase;margin-bottom:10px">Input for UX design &amp; development · Source: Magento data + country workshops</div>
+    <div style="font-size:.78rem;line-height:1.6;opacity:.75;margin-bottom:16px">Analysis of Cart Price Rules usage across all active Dr.Max markets, based on <strong>2025 Magento order data</strong>. Collected via country workshops to capture the as-is status — how promotion rules are set up, used, and where the current solution falls short.</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:16px;text-align:left">
+      <a href="https://mydrmax.atlassian.net/wiki/spaces/GLECOM/pages/5520097300/Promotions+analysis+output+cross+country" target="_blank" style="background:rgba(0,0,0,.18);border-radius:9px;padding:9px 11px;text-decoration:none;color:inherit;display:block;transition:background .15s" onmouseover="this.style.background='rgba(0,0,0,.32)'" onmouseout="this.style.background='rgba(0,0,0,.18)'">
+        <div style="font-size:.65rem;font-weight:700;margin-bottom:3px">📄 Promotions analysis output — cross country</div>
+        <div style="font-size:.6rem;opacity:.6;line-height:1.4">Confluence · GLECOM</div>
+      </a>
+      <a href="https://mydrmax.atlassian.net/wiki/spaces/GLECOM/pages/5520097307/Magento+Administration+Usage+Report" target="_blank" style="background:rgba(0,0,0,.18);border-radius:9px;padding:9px 11px;text-decoration:none;color:inherit;display:block;transition:background .15s" onmouseover="this.style.background='rgba(0,0,0,.32)'" onmouseout="this.style.background='rgba(0,0,0,.18)'">
+        <div style="font-size:.65rem;font-weight:700;margin-bottom:3px">📄 Magento Administration Usage Report</div>
+        <div style="font-size:.6rem;opacity:.6;line-height:1.4">Confluence · GLECOM</div>
+      </a>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;text-align:left">
-      <div class="toc-item" onclick="goTo(1)"><span class="toc-num">01</span><span class="toc-lbl">Intro</span></div>
-      <div class="toc-item" onclick="goTo(2)"><span class="toc-num">02</span><span class="toc-lbl">Rule Types &amp; Conditions</span></div>
-      <div class="toc-item" onclick="goTo(3)"><span class="toc-num">03</span><span class="toc-lbl">Fake Rules</span></div>
-      <div class="toc-item" onclick="goTo(4)"><span class="toc-num">04</span><span class="toc-lbl">How Countries Work With Magento</span></div>
-      <div class="toc-item" onclick="goTo(5)"><span class="toc-num">05</span><span class="toc-lbl">What Works Well</span></div>
-      <div class="toc-item" onclick="goTo(6)"><span class="toc-num">06</span><span class="toc-lbl">Pain Points &amp; Workarounds</span></div>
-      <div class="toc-item" onclick="goTo(7)"><span class="toc-num">07</span><span class="toc-lbl">Challenges &amp; Risks</span></div>
-      <div class="toc-item" onclick="goTo(8)"><span class="toc-num">08</span><span class="toc-lbl">Legal &amp; ERP Constraints</span></div>
-      <div class="toc-item" onclick="goTo(9)"><span class="toc-num">09</span><span class="toc-lbl">Open Points</span></div>
-      <div class="toc-item" onclick="goTo(10)"><span class="toc-num">10</span><span class="toc-lbl">Features &amp; Next Steps</span></div>
+      <div class="toc-item" onclick="goTo(1)"><span class="toc-num">01</span><span class="toc-lbl">Rule Types &amp; Conditions</span></div>
+      <div class="toc-item" onclick="goTo(2)"><span class="toc-num">02</span><span class="toc-lbl">Fake Rules</span></div>
+      <div class="toc-item" onclick="goTo(3)"><span class="toc-num">03</span><span class="toc-lbl">How Countries Work With Magento</span></div>
+      <div class="toc-item" onclick="goTo(4)"><span class="toc-num">04</span><span class="toc-lbl">What Works Well</span></div>
+      <div class="toc-item" onclick="goTo(5)"><span class="toc-num">05</span><span class="toc-lbl">Pain Points &amp; Workarounds</span></div>
+      <div class="toc-item" onclick="goTo(6)"><span class="toc-num">06</span><span class="toc-lbl">Challenges &amp; Risks</span></div>
+      <div class="toc-item" onclick="goTo(7)"><span class="toc-num">07</span><span class="toc-lbl">Legal &amp; ERP Constraints</span></div>
+      <div class="toc-item" onclick="goTo(8)"><span class="toc-num">08</span><span class="toc-lbl">Open Points</span></div>
+      <div class="toc-item" onclick="goTo(9)"><span class="toc-num">09</span><span class="toc-lbl">Features &amp; Next Steps</span></div>
     </div>
   </div>
 </div>
 
-<!-- ─── SLIDE 2: INTRO ─── -->
-<div class="slide" id="s1">
-  <div class="shdr"><h2>Intro</h2><div style="display:flex;align-items:center;gap:9px"><span class="stag">📋 Intro</span><span class="snum">2 / 11</span></div></div>
-  <div class="sbody">
-    <div class="g2 mb16">
-      <div class="card">
-        <div class="cttl">Purpose of this document</div>
-        <p style="font-size:.83rem;line-height:1.6;opacity:.9">Analysis of Cart Price Rules usage across all active Dr.Max markets, based on <strong>2025 Magento order data</strong>. Collected via country workshops to capture the as-is status — how promotion rules are set up, used, and where the current solution falls short.</p>
-        <div style="margin-top:12px;font-size:.75rem;line-height:1.5;opacity:.75">This document serves as the foundation for redesigning the Promotions Module — informing UX design decisions and the development team about current reality across markets.</div>
-      </div>
-      <div>
-        <div class="g2 mb12">
-          <div class="card" style="text-align:center">
-            <div class="sv">34</div>
-            <div class="sl">Rule type options<br>available in Magento</div>
-          </div>
-          <div class="card" style="text-align:center">
-            <div class="sv">26</div>
-            <div class="sl">Actively used in 2025<br>(≥1 completed order)</div>
-          </div>
-        </div>
-<div class="ins"><span class="ins-ico">🇨🇿</span><div class="ins-txt">Czech Republic workshop <strong>not yet completed</strong>. CZ data from Magento export is included in quantitative slides; qualitative findings are pending.</div></div>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="cttl">Data sources</div>
-      <div class="g4">
-        <div><div style="font-size:.72rem;font-weight:700;margin-bottom:3px">📊 Magento export</div><div style="font-size:.68rem;opacity:.7">Orders 2025, all rule types, all countries</div></div>
-        <div><div style="font-size:.72rem;font-weight:700;margin-bottom:3px">🎙️ IT workshops</div><div style="font-size:.68rem;opacity:.7">2× recordings (Mar 3 + Mar 10, 2026)</div></div>
-        <div><div style="font-size:.72rem;font-weight:700;margin-bottom:3px">🎙️ RO workshop</div><div style="font-size:.68rem;opacity:.7">Recording Apr 9, 2026</div></div>
-        <div><div style="font-size:.72rem;font-weight:700;margin-bottom:3px">🎙️ SK / PL</div><div style="font-size:.68rem;opacity:.7">Workshop recordings available</div></div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ─── SLIDE 3: RULE TYPES & CONDITIONS ─── -->
+<!-- ─── SLIDE 2: RULE TYPES & CONDITIONS ─── -->
 <div class="slide" id="s2">
-  <div class="shdr"><h2>Rule Types &amp; Conditions</h2><div style="display:flex;align-items:center;gap:9px"><span class="stag">📑 cartpriceRuleNames</span><span class="snum">3 / 11</span></div></div>
+  <div class="shdr"><h2>Rule Types &amp; Conditions</h2><div style="display:flex;align-items:center;gap:9px"><span class="stag">📑 cartpriceRuleNames</span><span class="snum">2 / 10</span></div></div>
   <div class="sbody">
     <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;flex-wrap:wrap">
       <span style="font-size:.67rem;opacity:.5">Ranked by global volume · bar = ratio of markets using · pill lit = market actively uses it</span>
@@ -271,7 +226,7 @@ html,body{height:100%;overflow:hidden;font-family:'Inter',sans-serif;background:
 </div>
 
 <div class="slide" id="s10b">
-  <div class="shdr"><h2>Fake Rules — Promotional Text Workaround</h2><div style="display:flex;align-items:center;gap:9px"><span class="stag">🎭 Workaround Pattern</span><span class="snum">4 / 11</span></div></div>
+  <div class="shdr"><h2>Fake Rules — Promotional Text Workaround</h2><div style="display:flex;align-items:center;gap:9px"><span class="stag">🎭 Workaround Pattern</span><span class="snum">3 / 10</span></div></div>
   <div class="sbody">
     <div class="g2 mb12">
       <div>
@@ -310,7 +265,7 @@ html,body{height:100%;overflow:hidden;font-family:'Inter',sans-serif;background:
 
 <!-- ─── SLIDE 12: MAGENTO ADMIN USAGE ─── -->
 <div class="slide" id="s10">
-  <div class="shdr"><h2>How Countries Work With Magento</h2><div style="display:flex;align-items:center;gap:9px"><span class="stag">⚙️ Magento Admin Field Usage</span><span class="snum">5 / 11</span></div></div>
+  <div class="shdr"><h2>How Countries Work With Magento</h2><div style="display:flex;align-items:center;gap:9px"><span class="stag">⚙️ Magento Admin Field Usage</span><span class="snum">4 / 10</span></div></div>
   <div class="sbody">
     <div class="ins mb14"><span class="ins-ico">📋</span><div class="ins-txt">Based on Confluence Magento Administration Usage Report — field-by-field analysis from IT, RO, SK, PL workshops. CZ workshop pending.</div></div>
     <div class="g2 mb12">
@@ -403,7 +358,7 @@ html,body{height:100%;overflow:hidden;font-family:'Inter',sans-serif;background:
 
 <!-- ─── SLIDE 12: WHAT WORKS ─── -->
 <div class="slide" id="s11">
-  <div class="shdr"><h2>What Works Well</h2><div style="display:flex;align-items:center;gap:9px"><span class="stag">✅ Strengths of Current Solution</span><span class="snum">6 / 11</span></div></div>
+  <div class="shdr"><h2>What Works Well</h2><div style="display:flex;align-items:center;gap:9px"><span class="stag">✅ Strengths of Current Solution</span><span class="snum">5 / 10</span></div></div>
   <div class="sbody">
     <div class="g3 mb14">
       <div class="card">
@@ -451,7 +406,7 @@ html,body{height:100%;overflow:hidden;font-family:'Inter',sans-serif;background:
 
 <!-- ─── SLIDE 14: PAIN POINTS ─── -->
 <div class="slide" id="s12">
-  <div class="shdr"><h2>Pain Points &amp; Workarounds</h2><div style="display:flex;align-items:center;gap:9px"><span class="stag">🔍 Workshop Findings</span><span class="snum">7 / 11</span></div></div>
+  <div class="shdr"><h2>Pain Points &amp; Workarounds</h2><div style="display:flex;align-items:center;gap:9px"><span class="stag">🔍 Workshop Findings</span><span class="snum">6 / 10</span></div></div>
   <div class="sbody">
     <div class="g2 mb12">
       <div>
@@ -499,7 +454,7 @@ html,body{height:100%;overflow:hidden;font-family:'Inter',sans-serif;background:
 
 <!-- ─── SLIDE 15: CHALLENGES & RISKS ─── -->
 <div class="slide" id="s14b">
-  <div class="shdr"><h2>Challenges &amp; Risks</h2><div style="display:flex;align-items:center;gap:9px"><span class="stag">⚠️ System &amp; Migration</span><span class="snum">8 / 11</span></div></div>
+  <div class="shdr"><h2>Challenges &amp; Risks</h2><div style="display:flex;align-items:center;gap:9px"><span class="stag">⚠️ System &amp; Migration</span><span class="snum">7 / 10</span></div></div>
   <div class="sbody">
     <div class="g2 mb12">
       <div class="card">
@@ -512,7 +467,7 @@ html,body{height:100%;overflow:hidden;font-family:'Inter',sans-serif;background:
       <div class="card">
         <div class="cttl">Migration risks</div>
         <div class="ins r mb8"><span class="ins-ico">🇸🇰</span><div class="ins-txt"><strong>SK-exclusive rule types.</strong> gift_from_qty_cart_max, gift_extra_realspent_cart, and by_fixed_per_qty are used only in SK — may be local Magento customizations. Technical confirmation required before migration scope is set.</div></div>
-        <div class="ins r mb8"><span class="ins-ico">🇨🇿</span><div class="ins-txt"><strong>CZ Marketplace integration.</strong> mp_fixed_spent_cart handles ~250K orders not present in any other market. Architecture unclear — must be understood before redesign.</div></div>
+        <div class="ins r mb8"><span class="ins-ico">🛒</span><div class="ins-txt"><strong>Marketplace cart integration (SK + CZ).</strong> mp_fixed_spent_cart handles ~250K orders across SK and CZ — not used in any other market. Architecture unclear — must be understood before redesign.</div></div>
         <div class="ins y mb8"><span class="ins-ico">🇷🇴</span><div class="ins-txt"><strong>RO data quality.</strong> 5,520 rule instances including stale and fake rules. Requires cleanup strategy and stakeholder sign-off before migration.</div></div>
         <div class="ins y mb8"><span class="ins-ico">🇨🇿</span><div class="ins-txt"><strong>CZ workshop gap.</strong> Qualitative data not yet collected. Architecture decisions made before CZ workshop may need revisiting.</div></div>
         <div class="ins y"><span class="ins-ico">🛒</span><div class="ins-txt"><strong>Accounting marketplace (SK → all markets).</strong> Different marketplace types require distinct financial accounting flows in SK — will soon apply across all markets as marketplace presence expands.</div></div>
@@ -544,7 +499,7 @@ html,body{height:100%;overflow:hidden;font-family:'Inter',sans-serif;background:
 
 <!-- ─── SLIDE 16: LEGAL & ERP ─── -->
 <div class="slide" id="s13">
-  <div class="shdr"><h2>Legal &amp; ERP Constraints</h2><div style="display:flex;align-items:center;gap:9px"><span class="stag">⚖️ Compliance Requirements</span><span class="snum">9 / 11</span></div></div>
+  <div class="shdr"><h2>Legal &amp; ERP Constraints</h2><div style="display:flex;align-items:center;gap:9px"><span class="stag">⚖️ Compliance Requirements</span><span class="snum">8 / 10</span></div></div>
   <div class="sbody">
     <div class="ins mb14"><span class="ins-ico">📌</span><div class="ins-txt">These requirements are non-negotiable — they must be preserved in any redesign of the Promotions Module. The new system must continue to support all of these out of the box.</div></div>
     <div class="g2 mb14">
@@ -569,7 +524,7 @@ html,body{height:100%;overflow:hidden;font-family:'Inter',sans-serif;background:
 
 <!-- ─── SLIDE 17: OPEN POINTS ─── -->
 <div class="slide" id="s16b">
-  <div class="shdr"><h2>Open Points — Team Discussion</h2><div style="display:flex;align-items:center;gap:9px"><span class="stag">💬 Unresolved</span><span class="snum">10 / 11</span></div></div>
+  <div class="shdr"><h2>Open Points — Team Discussion</h2><div style="display:flex;align-items:center;gap:9px"><span class="stag">💬 Unresolved</span><span class="snum">9 / 10</span></div></div>
   <div class="sbody">
     <div class="g2 mb12">
       <div>
@@ -608,7 +563,7 @@ html,body{height:100%;overflow:hidden;font-family:'Inter',sans-serif;background:
 
 <!-- ─── SLIDE 18: FEATURES & NEXT STEPS ─── -->
 <div class="slide" id="s14">
-  <div class="shdr"><h2>Features &amp; Next Steps</h2><div style="display:flex;align-items:center;gap:9px"><span class="stag">🚀 WIP + Handoff</span><span class="snum">11 / 11</span></div></div>
+  <div class="shdr"><h2>Features &amp; Next Steps</h2><div style="display:flex;align-items:center;gap:9px"><span class="stag">🚀 WIP + Handoff</span><span class="snum">10 / 10</span></div></div>
   <div class="sbody">
     <div class="g2 mb14">
       <div class="card">
@@ -656,8 +611,8 @@ html,body{height:100%;overflow:hidden;font-family:'Inter',sans-serif;background:
     <div class="card">
       <div class="cttl">Analysis references</div>
       <div style="display:flex;gap:10px;flex-wrap:wrap">
-        <div style="background:rgba(0,52,204,.35);border-radius:6px;padding:5px 12px;font-size:.72rem;font-weight:600">📄 Confluence: Promotions analysis output cross country</div>
-        <div style="background:rgba(0,52,204,.35);border-radius:6px;padding:5px 12px;font-size:.72rem;font-weight:600">📄 Confluence: Magento Administration Usage Report</div>
+        <a href="https://mydrmax.atlassian.net/wiki/spaces/GLECOM/pages/5520097300/Promotions+analysis+output+cross+country" target="_blank" style="background:rgba(0,52,204,.35);border-radius:6px;padding:5px 12px;font-size:.72rem;font-weight:600;color:inherit;text-decoration:none">📄 Confluence: Promotions analysis output cross country</a>
+        <a href="https://mydrmax.atlassian.net/wiki/spaces/GLECOM/pages/5520097307/Magento+Administration+Usage+Report" target="_blank" style="background:rgba(0,52,204,.35);border-radius:6px;padding:5px 12px;font-size:.72rem;font-weight:600;color:inherit;text-decoration:none">📄 Confluence: Magento Administration Usage Report</a>
       </div>
     </div>
   </div>
@@ -668,7 +623,7 @@ html,body{height:100%;overflow:hidden;font-family:'Inter',sans-serif;background:
 <div class="nav" id="nav">
   <button class="nbtn" id="pb" onclick="go(-1)" disabled>◀</button>
   <div id="dots" style="display:flex;gap:5px;align-items:center"></div>
-  <span class="ncnt" id="cnt">1 / 11</span>
+  <span class="ncnt" id="cnt">1 / 10</span>
   <button class="nbtn" id="nb" onclick="go(1)">▶</button>
 </div>
 
