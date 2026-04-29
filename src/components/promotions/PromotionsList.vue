@@ -8,16 +8,6 @@
     <div class="d-flex align-center flex-wrap mb-6 py-2" style="gap: 12px">
       <h1 class="text-h5 font-weight-bold">Promotion rules management</h1>
       <v-spacer />
-      <v-btn
-        v-if="!mobile"
-        color="primary"
-        prepend-icon="mdi-robot"
-        class="text-uppercase px-5"
-        variant="outlined"
-        @click="uiStore.openAiPanel()"
-      >
-        AI Assistant
-      </v-btn>
       <v-btn v-if="!mobile" variant="outlined" class="px-5" prepend-icon="mdi-download" @click="exportCSV">Export CSV</v-btn>
       <v-btn v-if="!mobile" variant="outlined" class="px-5" prepend-icon="mdi-upload" @click="csvImportOpen = true">Import CSV</v-btn>
       <v-btn
@@ -314,7 +304,6 @@ import { ref, computed, watch, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useDisplay } from 'vuetify'
 import { usePromotionsStore } from '../../stores/promotions'
-import { useUiStore } from '../../stores/ui'
 import { useStackingGroupsStore } from '../../stores/stackingGroups'
 import { useTagsStore } from '../../stores/tags'
 import StatusBadge from '../shared/StatusBadge.vue'
@@ -333,7 +322,6 @@ import { useSettingsStore } from '../../stores/settings'
 const router = useRouter()
 const store = usePromotionsStore()
 const settingsStore = useSettingsStore()
-const uiStore = useUiStore()
 
 function onRowClick(event, { item }) {
   // Skip navigation when clicking checkbox or the actions menu

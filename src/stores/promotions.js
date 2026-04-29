@@ -112,22 +112,6 @@ export const usePromotionsStore = defineStore('promotions', () => {
     }
   }
 
-  function applyParsedRule(parsed) {
-    if (parsed.type) formDraft.type = parsed.type
-    if (parsed.value) formDraft.value = parsed.value
-    if (parsed.valueUnit) formDraft.valueUnit = parsed.valueUnit
-    if (parsed.name) formDraft.name = parsed.name
-    if (parsed.startDate !== undefined) formDraft.startDate = parsed.startDate
-    if (parsed.endDate !== undefined) formDraft.endDate = parsed.endDate
-    if (parsed.priority) formDraft.priority = parsed.priority
-    if (parsed.conditions?.length) {
-      formDraft.conditions = parsed.conditions.map(c => ({ ...c, id: uuid() }))
-    }
-    if (parsed.gifts?.length) {
-      formDraft.gifts = parsed.gifts.map(g => ({ ...g, id: uuid() }))
-    }
-  }
-
   function resetDraft() {
     Object.assign(formDraft, emptyDraft())
   }
@@ -246,5 +230,5 @@ export const usePromotionsStore = defineStore('promotions', () => {
     }
   }
 
-  return { items, loading, error, formDraft, fetchAll, fetchOne, create, update, remove, updateStatus, duplicate, applyParsedRule, resetDraft, bulkUpdateConditions, bulkUpdateStatus, bulkDuplicate, bulkRemove, importFromCSV, updateMany }
+  return { items, loading, error, formDraft, fetchAll, fetchOne, create, update, remove, updateStatus, duplicate, resetDraft, bulkUpdateConditions, bulkUpdateStatus, bulkDuplicate, bulkRemove, importFromCSV, updateMany }
 })
