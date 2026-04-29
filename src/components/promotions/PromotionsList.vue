@@ -8,14 +8,14 @@
     <div class="d-flex align-center flex-wrap mb-6 py-2" style="gap: 12px">
       <h1 class="text-h5 font-weight-bold">Promotion rules management</h1>
       <v-spacer />
-      <v-btn v-if="!mobile" variant="outlined" class="px-5" prepend-icon="mdi-download" @click="exportCSV">
-        Export CSV
-        <v-chip size="x-small" color="warning" variant="tonal" label class="ml-2">Exploring</v-chip>
-      </v-btn>
-      <v-btn v-if="!mobile" variant="outlined" class="px-5" prepend-icon="mdi-upload" @click="csvImportOpen = true">
-        Import CSV
-        <v-chip size="x-small" color="warning" variant="tonal" label class="ml-2">Exploring</v-chip>
-      </v-btn>
+      <div v-if="!mobile" style="position: relative; display: inline-flex; padding-top: 10px">
+        <v-chip size="x-small" color="warning" variant="tonal" label style="position: absolute; top: 0; left: 50%; transform: translateX(-50%); z-index: 1; pointer-events: none">Exploring</v-chip>
+        <v-btn variant="outlined" class="px-5" prepend-icon="mdi-download" @click="exportCSV">Export CSV</v-btn>
+      </div>
+      <div v-if="!mobile" style="position: relative; display: inline-flex; padding-top: 10px">
+        <v-chip size="x-small" color="warning" variant="tonal" label style="position: absolute; top: 0; left: 50%; transform: translateX(-50%); z-index: 1; pointer-events: none">Exploring</v-chip>
+        <v-btn variant="outlined" class="px-5" prepend-icon="mdi-upload" @click="csvImportOpen = true">Import CSV</v-btn>
+      </div>
       <v-btn
         color="primary"
         prepend-icon="mdi-plus"
