@@ -4,7 +4,7 @@
     <v-app>
       <AppTopBar @toggle-nav="drawerOpen = !drawerOpen" />
       <AppSidebar v-model="drawerOpen" />
-      <AiAssistantPanel />
+      <MaxikHelper />
       <v-main>
         <router-view />
       </v-main>
@@ -16,7 +16,7 @@
 import { ref } from 'vue'
 import AppTopBar from './components/layout/AppTopBar.vue'
 import AppSidebar from './components/layout/AppSidebar.vue'
-import AiAssistantPanel from './components/ai/AiAssistantPanel.vue'
+import MaxikHelper from './components/MaxikHelper.vue'
 import PasswordGate from './components/PasswordGate.vue'
 
 const drawerOpen = ref(true)

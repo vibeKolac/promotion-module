@@ -38,24 +38,6 @@
       <SelectInput v-model="tplCategory" :data="templateCategoryItems" label="Category" />
     </v-card>
 
-    <!-- AI Assistant banner -->
-    <v-alert
-      color="primary"
-      variant="tonal"
-      icon="mdi-creation"
-      class="mb-5"
-      density="compact"
-    >
-      <div class="d-flex align-center">
-        <div class="flex-grow-1">
-          <strong>AI Assistant</strong> — type a description like "20% off Dr.Max vitamins over €50" and I'll fill the form.
-        </div>
-        <v-btn variant="outlined" color="primary" size="small" class="ml-4" @click="uiStore.openAiPanel()">
-          Open Chat
-        </v-btn>
-      </div>
-    </v-alert>
-
     <!-- Two-column grid -->
     <v-row class="mb-4">
       <!-- Left: Basic info -->
@@ -613,7 +595,6 @@ import { ref, computed, watch, onMounted, toRaw } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { usePromotionsStore } from '../../stores/promotions'
 import { useStackingGroupsStore } from '../../stores/stackingGroups'
-import { useUiStore } from '../../stores/ui'
 import { useSettingsStore } from '../../stores/settings'
 import { validateConditions } from '../../utils/conditionValidator'
 import { detectGiftConflicts } from '../../utils/giftConflictDetector'
@@ -637,7 +618,6 @@ const route = useRoute()
 const router = useRouter()
 const store = usePromotionsStore()
 const sgStore = useStackingGroupsStore()
-const uiStore = useUiStore()
 const settingsStore = useSettingsStore()
 const templatesStore = useTemplatesStore()
 
