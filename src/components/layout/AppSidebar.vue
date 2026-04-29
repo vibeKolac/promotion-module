@@ -14,9 +14,9 @@
         Promotions
       </v-list-subheader>
 
-      <template v-for="item in navItems" :key="item.to">
+      <template v-for="item in navItems" :key="item.to ?? item.title">
         <v-list-item
-          v-if="!item.autoDisabled"
+          v-if="!item.autoDisabled && !item.postMvp"
           :to="item.to"
           :prepend-icon="item.icon"
           :title="item.title"
@@ -25,7 +25,7 @@
           @click="mobile && $emit('update:modelValue', false)"
         />
         <v-list-item
-          v-else
+          v-else-if="item.autoDisabled"
           :prepend-icon="item.icon"
           :title="item.title"
           rounded="sm"
@@ -33,6 +33,17 @@
         >
           <template #append>
             <v-chip size="x-small" color="default" variant="tonal" label>Auto</v-chip>
+          </template>
+        </v-list-item>
+        <v-list-item
+          v-else
+          :prepend-icon="item.icon"
+          :title="item.title"
+          rounded="sm"
+          disabled
+        >
+          <template #append>
+            <v-chip size="x-small" color="purple" variant="tonal" label>Post MVP</v-chip>
           </template>
         </v-list-item>
       </template>
@@ -73,6 +84,7 @@ const navItems = computed(() => [
   { to: '/stacking-groups', icon: 'mdi-layers', title: 'Stacking Groups', autoDisabled: settings.prioritizationMode === 'automatic' },
   { to: '/templates-presets', icon: 'mdi-file-document-outline', title: 'Templates & Presets' },
   { to: '/tags', icon: 'mdi-label-outline', title: 'Tags' },
+  { icon: 'mdi-creation', title: 'AI Recommendations', postMvp: true },
 ])
 
 const settingsItems = [

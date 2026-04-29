@@ -41,8 +41,6 @@
       @update:model-value="onSearch"
     />
 
-    <AiRecommendationsPanel class="mb-4" />
-
     <RulePriorityPreview v-if="settingsStore.prioritizationMode !== 'automatic'" :rules="store.items" :groups="sgStore.items" class="mb-4" />
 
     <!-- Stacking group filter + tabs row -->
@@ -330,7 +328,6 @@ import BulkEditConditionsDialog from './BulkEditConditionsDialog.vue'
 import CsvImportDialog from './CsvImportDialog.vue'
 import { downloadCSV, exportRulesToCSV } from '../../utils/csvRuleImportExport'
 import RulePriorityPreview from './RulePriorityPreview.vue'
-import AiRecommendationsPanel from '../ai/AiRecommendationsPanel.vue'
 import { useSettingsStore } from '../../stores/settings'
 
 const router = useRouter()
