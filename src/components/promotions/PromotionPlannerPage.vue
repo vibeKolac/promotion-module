@@ -23,12 +23,13 @@
                   <span class="text-subtitle-1 font-weight-bold">AI Recommendations</span>
                   <v-chip size="x-small" color="warning" variant="tonal" label class="ml-2">Exploring</v-chip>
                 </div>
-                <div class="text-caption text-medium-emphasis">Smart suggestions based on your catalog and history</div>
+                <div class="text-caption text-medium-emphasis">Smart suggestions based on your catalog, history, and market signals</div>
               </div>
             </div>
             <p class="text-body-2 text-medium-emphasis">
-              Automatically surface promotion ideas tailored to your product catalog, seasonal trends, and past performance.
-              Get confidence scores and one-click apply to speed up rule creation.
+              Smart suggestions based on your catalog and history, news, and current market situations.
+              Surface promotion ideas tailored to seasonal trends, competitor activity, and past performance —
+              with confidence scores and one-click apply to speed up rule creation.
             </p>
           </v-card-text>
         </v-card>
