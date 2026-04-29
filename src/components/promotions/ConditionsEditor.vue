@@ -13,34 +13,49 @@
       <v-btn v-if="showPreset" prepend-icon="mdi-filter-variant" variant="outlined" size="small" class="text-uppercase" @click="presetPickerOpen = true">
         Use preset
       </v-btn>
+      <v-btn prepend-icon="mdi-layers-plus" variant="outlined" size="small" class="text-uppercase" @click="openAddGroup">
+        Add group
+      </v-btn>
       <v-btn prepend-icon="mdi-plus" variant="outlined" color="primary" size="small" class="text-uppercase" @click="openAdd">
         Add condition
       </v-btn>
     </div>
 
     <!-- Conditions list with AND / OR toggles -->
-    <div v-if="modelValue.length" class="d-flex flex-wrap align-center gap-2 mb-2">
-      <template v-for="(cond, idx) in modelValue" :key="cond.id">
-        <v-chip
-          v-if="idx > 0"
-          size="x-small"
-          :color="cond.logicalOp === 'OR' ? 'warning' : 'primary'"
-          variant="tonal"
-          label
-          style="cursor: pointer; min-width: 38px; justify-content: center; user-select: none"
-          title="Click to toggle AND / OR"
-          @click="toggleOp(idx)"
-        >
-          {{ cond.logicalOp === 'OR' ? 'OR' : 'AND' }}
-        </v-chip>
+    <div v-if="modelValue.length" class="conditions-list mb-2">
+      <div v-for="(cond, idx) in modelValue" :key="cond.id" class="condition-row">
+        <!-- Operator column -->
+        <div class="condition-op">
+          <v-chip
+            v-if="idx > 0"
+            size="x-small"
+            :color="cond.logicalOp === 'OR' ? 'warning' : 'primary'"
+            variant="tonal"
+            label
+            style="cursor: pointer; min-width: 38px; justify-content: center; user-select: none; font-weight: 600"
+            title="Click to toggle AND / OR"
+            @click="toggleOp(idx)"
+          >
+            {{ cond.logicalOp === 'OR' ? 'OR' : 'AND' }}
+          </v-chip>
+        </div>
 
+        <!-- Group or leaf -->
+        <ConditionGroupRow
+          v-if="cond.type === 'group'"
+          :group="cond"
+          :scope="scope"
+          @update:group="onGroupUpdate(idx, $event)"
+          @remove="remove(idx)"
+        />
         <ConditionChip
+          v-else
           :condition="cond"
           :scope="scope"
           @edit="openEdit(idx)"
           @remove="remove(idx)"
         />
-      </template>
+      </div>
     </div>
 
     <v-alert v-else type="info" variant="tonal" density="compact" icon="mdi-information">
@@ -72,6 +87,7 @@
 import { ref } from 'vue'
 import { v4 as uuid } from 'uuid'
 import ConditionChip from './ConditionChip.vue'
+import ConditionGroupRow from './ConditionGroupRow.vue'
 import ConditionBuilderDialog from './ConditionBuilderDialog.vue'
 import ConditionCsvImportDialog from './ConditionCsvImportDialog.vue'
 import ConditionPresetPickerDialog from './ConditionPresetPickerDialog.vue'
@@ -110,6 +126,23 @@ function openAdd() {
   editingCondition.value = null
   editingIdx.value = null
   builderOpen.value = true
+}
+
+function openAddGroup() {
+  const isFirst = props.modelValue.length === 0
+  const newGroup = {
+    id: uuid(),
+    type: 'group',
+    conditions: [],
+    logicalOp: isFirst ? undefined : 'AND',
+  }
+  emit_([...props.modelValue, newGroup])
+}
+
+function onGroupUpdate(idx, updatedGroup) {
+  const next = [...props.modelValue]
+  next[idx] = updatedGroup
+  emit_(next)
 }
 
 function openEdit(idx) {
@@ -163,3 +196,23 @@ function onPresetApply({ conditions, mode }) {
   }
 }
 </script>
+
+<style scoped>
+.conditions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.condition-row {
+  display: flex;
+  align-items: flex-start;
+  padding-top: 2px;
+  gap: 8px;
+}
+.condition-op {
+  width: 44px;
+  flex-shrink: 0;
+  display: flex;
+  justify-content: flex-end;
+}
+</style>

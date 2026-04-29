@@ -94,19 +94,12 @@
           />
         </div>
 
-        <!-- Combobox -->
-        <v-combobox
+        <!-- Values picker -->
+        <ValuesPickerPanel
           v-else-if="!getTypeDef(selectedFields[0])?.quantifiable"
           v-model="localConditions[selectedFields[0]].values"
-          :label="getTypeDef(selectedFields[0])?.title + ' values'"
-          :items="getTypeOptions(selectedFields[0])"
-          variant="outlined"
-          density="compact"
-          multiple
-          chips
-          closable-chips
-          hint="Select from the list or type to add custom values"
-          persistent-hint
+          :options="getTypeOptions(selectedFields[0])"
+          :label="getTypeDef(selectedFields[0])?.title"
           class="mb-3"
         />
 
@@ -201,19 +194,12 @@
                 />
               </div>
 
-              <!-- Combobox -->
-              <v-combobox
+              <!-- Values picker -->
+              <ValuesPickerPanel
                 v-else-if="!getTypeDef(field)?.quantifiable"
                 v-model="localConditions[field].values"
-                :label="getTypeDef(field)?.title + ' values'"
-                :items="getTypeOptions(field)"
-                variant="outlined"
-                density="compact"
-                multiple
-                chips
-                closable-chips
-                hint="Select from the list or type to add custom values"
-                persistent-hint
+                :options="getTypeOptions(field)"
+                :label="getTypeDef(field)?.title"
                 class="mb-3"
               />
 
@@ -264,6 +250,7 @@ import { validateCondition } from '../../utils/conditionValidator'
 import DialogCard from '../_common/DialogCard.vue'
 import SelectInput from '../_common/SelectInput.vue'
 import NumberInput from '../_common/NumberInput.vue'
+import ValuesPickerPanel from './ValuesPickerPanel.vue'
 
 // ─── Type definitions ──────────────────────────────────────────────────────
 

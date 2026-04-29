@@ -8,7 +8,27 @@
     </div>
     <v-spacer />
     <span v-if="!mobile" class="text-caption text-medium-emphasis mr-4">client v0.1.0</span>
-    <v-btn icon="mdi-account-circle" variant="text" class="mr-2" @click="openAnalysis" />
+    <v-menu location="bottom end">
+      <template #activator="{ props: menuProps }">
+        <v-btn v-bind="menuProps" icon="mdi-account-circle" variant="text" class="mr-2" />
+      </template>
+      <v-list density="compact" min-width="240">
+        <v-list-item
+          prepend-icon="mdi-presentation"
+          title="Promotions analysis"
+          subtitle="Prototype presentation"
+          @click="openAnalysis"
+        />
+        <v-list-item
+          prepend-icon="mdi-book-open-outline"
+          title="Analysis output"
+          subtitle="Cross-country Confluence page"
+          href="https://mydrmax.atlassian.net/wiki/spaces/GLECOM/pages/5520097300/Promotions+analysis+output+cross+country"
+          target="_blank"
+          rel="noopener"
+        />
+      </v-list>
+    </v-menu>
   </v-app-bar>
 </template>
 

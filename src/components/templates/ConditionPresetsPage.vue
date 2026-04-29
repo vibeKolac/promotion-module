@@ -53,8 +53,9 @@
             v-for="cond in preset.conditions"
             :key="cond.id"
             size="x-small"
-            color="primary"
+            :color="cond.type === 'group' ? 'deep-purple' : 'primary'"
             variant="tonal"
+            :prepend-icon="cond.type === 'group' ? 'mdi-layers-outline' : undefined"
             label
           >
             {{ conditionLabel(cond) }}
@@ -146,6 +147,10 @@ const FIELD_LABELS = {
 }
 
 function conditionLabel(cond) {
+  if (cond.type === 'group') {
+    const count = cond.conditions?.length ?? 0
+    return `Group (${count})`
+  }
   const fieldLabel = FIELD_LABELS[cond.field] ?? cond.field
   if (cond.values?.length) {
     const preview = cond.values.slice(0, 2).join(', ')
