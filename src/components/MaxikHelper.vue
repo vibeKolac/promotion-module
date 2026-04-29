@@ -67,13 +67,14 @@ import { ref, onMounted, onUnmounted } from 'vue'
 const visible = ref(false)
 const bubbleVisible = ref(false)
 
-let inactivityTimer = null
 const INACTIVITY_MS = 30_000
+const POLL_MS = 2_000
 
-function resetTimer() {
-  clearTimeout(inactivityTimer)
-  if (visible.value) return
-  inactivityTimer = setTimeout(show, INACTIVITY_MS)
+let lastActivity = Date.now()
+let pollInterval = null
+
+function onActivity() {
+  lastActivity = Date.now()
 }
 
 function show() {
@@ -85,20 +86,24 @@ function dismiss() {
   bubbleVisible.value = false
   setTimeout(() => {
     visible.value = false
-    resetTimer()
+    lastActivity = Date.now() // reset clock after dismissal
   }, 350)
 }
 
 const EVENTS = ['mousemove', 'mousedown', 'keydown', 'scroll', 'touchstart']
 
 onMounted(() => {
-  EVENTS.forEach(e => window.addEventListener(e, resetTimer, { passive: true }))
-  resetTimer()
+  EVENTS.forEach(e => window.addEventListener(e, onActivity, { passive: true }))
+  pollInterval = setInterval(() => {
+    if (!visible.value && Date.now() - lastActivity >= INACTIVITY_MS) {
+      show()
+    }
+  }, POLL_MS)
 })
 
 onUnmounted(() => {
-  clearTimeout(inactivityTimer)
-  EVENTS.forEach(e => window.removeEventListener(e, resetTimer))
+  clearInterval(pollInterval)
+  EVENTS.forEach(e => window.removeEventListener(e, onActivity))
 })
 </script>
 
