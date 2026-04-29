@@ -51,6 +51,10 @@ const routes = [
     component: () => import('../components/tags/TagsPage.vue'),
   },
   {
+    path: '/promotion-planner',
+    component: () => import('../components/promotions/PromotionPlannerPage.vue'),
+  },
+  {
     path: '/settings/general',
     component: () => import('../components/settings/GeneralPage.vue'),
   },

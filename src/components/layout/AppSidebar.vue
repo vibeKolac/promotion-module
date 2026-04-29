@@ -37,10 +37,12 @@
         </v-list-item>
         <v-list-item
           v-else-if="item.exploring"
+          :to="item.to"
           :prepend-icon="item.icon"
           :title="item.title"
           rounded="sm"
-          disabled
+          active-color="primary"
+          @click="mobile && $emit('update:modelValue', false)"
         >
           <template #append>
             <v-chip size="x-small" color="warning" variant="tonal" label>Exploring</v-chip>
@@ -84,7 +86,7 @@ const navItems = computed(() => [
   { to: '/stacking-groups', icon: 'mdi-layers', title: 'Stacking Groups', autoDisabled: settings.prioritizationMode === 'automatic' },
   { to: '/templates-presets', icon: 'mdi-file-document-outline', title: 'Templates & Presets' },
   { to: '/tags', icon: 'mdi-label-outline', title: 'Tags' },
-  { icon: 'mdi-creation', title: 'Promotion Planner', exploring: true },
+  { to: '/promotion-planner', icon: 'mdi-creation', title: 'Promotion Planner', exploring: true },
 ])
 
 const settingsItems = [
