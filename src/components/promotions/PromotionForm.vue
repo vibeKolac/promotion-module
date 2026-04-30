@@ -527,7 +527,7 @@
         </template>
         <template v-else>
           <v-card border elevation="0" class="pa-5 mb-4">
-            <div class="text-body-1 font-weight-bold mb-4">Stacking group</div>
+            <div class="text-body-1 font-weight-bold mb-4">Priority group</div>
             <StackingGroupSelect v-model="draft.stackingGroupId" />
           </v-card>
 

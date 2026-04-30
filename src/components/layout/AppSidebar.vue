@@ -83,7 +83,7 @@ const settings = useSettingsStore()
 const navItems = computed(() => [
   { to: '/promotions', icon: 'mdi-tag-multiple', title: 'Promotion Rules' },
   { to: '/promotions/reporting', icon: 'mdi-chart-bar', title: 'Reporting' },
-  { to: '/stacking-groups', icon: 'mdi-layers', title: 'Stacking Groups', autoDisabled: settings.prioritizationMode === 'automatic' },
+  { to: '/stacking-groups', icon: 'mdi-layers', title: 'Promotion priority and grouping', autoDisabled: settings.prioritizationMode === 'automatic' },
   { to: '/templates-presets', icon: 'mdi-file-document-outline', title: 'Templates & Presets' },
   { to: '/tags', icon: 'mdi-label-outline', title: 'Tags' },
   { to: '/promotion-planner', icon: 'mdi-creation', title: 'Promotion Planner', exploring: true },

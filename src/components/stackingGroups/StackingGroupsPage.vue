@@ -1,10 +1,10 @@
 <!-- src/components/stackingGroups/StackingGroupsPage.vue -->
 <template>
   <v-container fluid class="pa-3 pa-sm-6">
-    <v-breadcrumbs :items="[{ title: 'Stacking groups', disabled: true }]" density="compact" class="pa-0 mb-2" />
+    <v-breadcrumbs :items="[{ title: 'Promotion priority and grouping', disabled: true }]" density="compact" class="pa-0 mb-2" />
 
     <div class="d-flex align-center mb-5">
-      <h1 class="text-h5 font-weight-bold">Stacking groups</h1>
+      <h1 class="text-h5 font-weight-bold">Promotion priority and grouping</h1>
       <v-spacer />
       <v-btn variant="outlined" prepend-icon="mdi-plus" class="text-uppercase" @click="openCreate">
         New group

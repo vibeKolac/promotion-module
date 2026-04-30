@@ -65,7 +65,7 @@
       <template #title>Add non-combinable restriction</template>
 
           <p class="text-caption text-medium-emphasis mb-4">
-            Select a stacking group or a specific rule that cannot run at the same time as this rule.
+            Select a priority group or a specific rule that cannot run at the same time as this rule.
           </p>
 
           <v-btn-toggle
@@ -77,7 +77,7 @@
             rounded="lg"
           >
             <v-btn value="group" size="small" prepend-icon="mdi-layers-triple">
-              Stacking group
+              Priority group
             </v-btn>
             <v-btn value="rule" size="small" prepend-icon="mdi-tag-outline">
               Specific rule

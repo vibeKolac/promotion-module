@@ -5,10 +5,10 @@
       :model-value="modelValue"
       :items="groupItems"
       :loading="store.loading"
-      label="Assign to stacking group"
+      label="Assign to priority group"
       variant="outlined"
       density="compact"
-      hint="Rules in the same group stack together."
+      hint="Rules in the same priority group stack together."
       persistent-hint
       @update:model-value="$emit('update:modelValue', $event)"
     />

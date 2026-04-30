@@ -52,7 +52,7 @@
 
     <RulePriorityPreview v-if="settingsStore.prioritizationMode !== 'automatic'" :rules="store.items" :groups="sgStore.items" class="mb-4" />
 
-    <!-- Stacking group filter + tabs row -->
+    <!-- Priority group filter + tabs row -->
     <div class="d-flex flex-wrap align-center gap-2 mb-4">
       <v-tabs v-model="activeTab" color="primary" density="compact">
         <v-tab value="active">Active <v-chip size="x-small" class="ml-1">{{ activeItems.length }}</v-chip></v-tab>

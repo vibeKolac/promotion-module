@@ -104,7 +104,7 @@
               <template #label>
                 <div>
                   <div class="text-body-2">Manual</div>
-                  <div class="text-caption text-medium-emphasis">Stacking groups, processing order, and non-combinable rules are configured per rule.</div>
+                  <div class="text-caption text-medium-emphasis">Priority groups, processing order, and non-combinable rules are configured per rule.</div>
                 </div>
               </template>
             </v-radio>
@@ -112,7 +112,7 @@
               <template #label>
                 <div>
                   <div class="text-body-2">Automatic</div>
-                  <div class="text-caption text-medium-emphasis">Prioritization and combinability are resolved by the system. Stacking groups are disabled.</div>
+                  <div class="text-caption text-medium-emphasis">Prioritization and combinability are resolved by the system. Priority groups are disabled.</div>
                 </div>
               </template>
             </v-radio>
