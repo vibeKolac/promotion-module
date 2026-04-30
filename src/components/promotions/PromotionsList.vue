@@ -8,13 +8,26 @@
     <div class="d-flex align-center flex-wrap mb-6 py-2" style="gap: 12px">
       <h1 class="text-h5 font-weight-bold">Promotion rules management</h1>
       <v-spacer />
-      <div v-if="!mobile" style="position: relative; display: inline-flex; padding-top: 10px">
-        <v-chip size="x-small" color="warning" variant="tonal" label style="position: absolute; top: 0; left: 50%; transform: translateX(-50%); z-index: 1; pointer-events: none">Exploring</v-chip>
-        <v-btn variant="outlined" class="px-5" prepend-icon="mdi-download" @click="exportCSV">Export CSV</v-btn>
-      </div>
-      <div v-if="!mobile" style="position: relative; display: inline-flex; padding-top: 10px">
-        <v-chip size="x-small" color="warning" variant="tonal" label style="position: absolute; top: 0; left: 50%; transform: translateX(-50%); z-index: 1; pointer-events: none">Exploring</v-chip>
-        <v-btn variant="outlined" class="px-5" prepend-icon="mdi-upload" @click="csvImportOpen = true">Import CSV</v-btn>
+      <!-- Bulk CSV section -->
+      <div v-if="!mobile" style="position: relative; padding-top: 10px">
+        <v-chip
+          size="x-small"
+          color="warning"
+          variant="tonal"
+          label
+          prepend-icon="mdi-flask-outline"
+          style="position: absolute; top: 0; left: 12px; z-index: 1; pointer-events: none; font-weight: 600; letter-spacing: 0.4px"
+        >Exploring</v-chip>
+        <div style="border: 1.5px dashed rgba(245,158,11,0.55); border-radius: 8px; padding: 10px 14px; background: rgba(245,158,11,0.04); display: flex; align-items: center; gap: 10px">
+          <v-icon color="warning" size="18" style="opacity:0.75">mdi-table-arrow-right</v-icon>
+          <div style="display:flex; flex-direction:column; gap:1px; margin-right:2px">
+            <span style="font-size:11px; font-weight:700; color:#78350f; line-height:1.3; white-space:nowrap">Bulk Data</span>
+            <span style="font-size:10px; color:#92400e; opacity:0.7; line-height:1.3; white-space:nowrap">CSV import / export</span>
+          </div>
+          <v-divider vertical style="height:28px; opacity:0.25" />
+          <v-btn variant="outlined" size="small" class="px-3" prepend-icon="mdi-download" @click="exportCSV">Export</v-btn>
+          <v-btn variant="outlined" size="small" class="px-3" prepend-icon="mdi-upload" @click="csvImportOpen = true">Import</v-btn>
+        </div>
       </div>
       <v-btn
         color="primary"
