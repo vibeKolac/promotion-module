@@ -21,6 +21,7 @@ const promotions = [
     performance: 87,
     revenue: '€24,500',
     usageCount: 1842,
+    erpId: '7631',
     createdBy: 'Anna K.',
     createdAt: '2026-03-18T10:00:00Z',
     updatedAt: '2026-03-18T10:00:00Z',
@@ -45,6 +46,7 @@ const promotions = [
     performance: 62,
     revenue: '€12,300',
     usageCount: 934,
+    erpId: '7632',
     createdBy: 'Martin P.',
     createdAt: '2026-03-15T08:00:00Z',
     updatedAt: '2026-03-15T08:00:00Z',
@@ -89,6 +91,7 @@ const promotions = [
     gifts: [
       { id: 'g1', sku: 'DM-TRAVEL-KIT', quantity: 1, price: 0 },
     ],
+    erpId: '7640',
     performance: 78,
     revenue: '€18,900',
     usageCount: 1203,
@@ -167,6 +170,24 @@ const promotions = [
   },
 ]
 
+const erpEntries = [
+  { id: '7631', name: 'Skincare Summer Promo 2025' },
+  { id: '7632', name: 'Flash Sale Q4 2025' },
+  { id: '7633', name: 'Vichy Brand Discount' },
+  { id: '7634', name: 'Loyalty Club Reward 2026' },
+  { id: '7635', name: "Valentine's Special Offer" },
+  { id: '7636', name: 'Sun Care Summer 2026' },
+  { id: '7637', name: 'Bebelo Multi-buy Deal' },
+  { id: '7638', name: 'La Roche-Posay Event' },
+  { id: '7640', name: 'Travel Kit Free Gift' },
+  { id: '7650', name: 'New Customer Welcome' },
+  { id: '7651', name: 'Brand Week — Eucerin' },
+  { id: '7652', name: 'Back to School Sale' },
+  { id: '7700', name: 'DrMax Birthday Campaign' },
+  { id: '7701', name: 'Easter Special Discount' },
+  { id: '7702', name: 'Autumn Health Week' },
+]
+
 const stackingGroups = [
   { id: 'sg-1', name: 'Flash Sales', description: 'All flash sale promotions', color: '#EF4444', priority: 10, isDefault: false, createdAt: '2026-01-01T00:00:00Z', updatedAt: '2026-01-01T00:00:00Z' },
   { id: 'sg-2', name: 'Loyalty', description: 'Loyalty program discounts', color: '#10B981', priority: 20, isDefault: false, createdAt: '2026-01-01T00:00:00Z', updatedAt: '2026-01-01T00:00:00Z' },
@@ -212,4 +233,4 @@ const templates = [
   },
 ]
 
-module.exports = { promotions, stackingGroups, templates }
+module.exports = { promotions, stackingGroups, templates, erpEntries }

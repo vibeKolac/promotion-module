@@ -30,6 +30,7 @@ const emptyDraft = () => ({
   usageLimitsEnabled: false,
   maxUsagePerCustomer: null,
   maxUsagePerRule: null,
+  erpId: null,
 })
 
 export const usePromotionsStore = defineStore('promotions', () => {

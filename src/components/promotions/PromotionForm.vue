@@ -514,6 +514,47 @@
           </template>
         </v-card>
 
+        <!-- ERP Voucher ID -->
+        <v-card border elevation="0" class="pa-5 mb-4">
+          <div class="d-flex align-center mb-1">
+            <v-icon color="teal-darken-1" size="18" class="mr-2">mdi-link-variant</v-icon>
+            <span class="text-body-1 font-weight-bold">ERP Link</span>
+          </div>
+          <p class="text-caption text-medium-emphasis mb-3">
+            Connect this rule to an ERP voucher entry for accounting reconciliation.
+          </p>
+          <v-autocomplete
+            v-model="draft.erpId"
+            :items="erpEntriesStore.items"
+            :loading="erpEntriesStore.loading"
+            item-value="id"
+            :item-title="entry => `${entry.id} — ${entry.name}`"
+            label="ERP entry"
+            variant="outlined"
+            density="compact"
+            clearable
+            hide-details="auto"
+            placeholder="Search by ID or name…"
+            no-data-text="No matching ERP entries"
+            prepend-inner-icon="mdi-database-search-outline"
+          >
+            <template #item="{ item, props: itemProps }">
+              <v-list-item v-bind="itemProps" :title="undefined">
+                <template #prepend>
+                  <v-chip size="x-small" color="teal" variant="tonal" label class="mr-2 font-weight-bold">
+                    {{ item.raw.id }}
+                  </v-chip>
+                </template>
+                <v-list-item-title class="text-body-2">{{ item.raw.name }}</v-list-item-title>
+              </v-list-item>
+            </template>
+            <template #selection="{ item }">
+              <v-chip size="small" color="teal" variant="tonal" label class="mr-1">{{ item.raw.id }}</v-chip>
+              <span class="text-body-2">{{ item.raw.name }}</span>
+            </template>
+          </v-autocomplete>
+        </v-card>
+
         <template v-if="settingsStore.prioritizationMode === 'automatic'">
           <v-card border elevation="0" class="pa-5 mb-4">
             <div class="d-flex align-center gap-2 mb-2">
@@ -613,6 +654,7 @@ import NumberInput from '../_common/NumberInput.vue'
 import SelectInput from '../_common/SelectInput.vue'
 import DialogCard from '../_common/DialogCard.vue'
 import { useTemplatesStore } from '../../stores/templates'
+import { useErpEntriesStore } from '../../stores/erpEntries'
 
 const route = useRoute()
 const router = useRouter()
@@ -620,6 +662,7 @@ const store = usePromotionsStore()
 const sgStore = useStackingGroupsStore()
 const settingsStore = useSettingsStore()
 const templatesStore = useTemplatesStore()
+const erpEntriesStore = useErpEntriesStore()
 
 const isTemplateEdit = computed(() => route.path.startsWith('/templates/'))
 const isEdit = computed(() => !!route.params.id && !isTemplateEdit.value)
@@ -905,7 +948,7 @@ async function save() {
 }
 
 onMounted(async () => {
-  await Promise.all([sgStore.fetchAll(), store.fetchAll()])
+  await Promise.all([sgStore.fetchAll(), store.fetchAll(), erpEntriesStore.fetchAll()])
   if (isTemplateEdit.value) {
     if (!templatesStore.items.length) await templatesStore.fetchAll()
     const tpl = templatesStore.items.find(t => t.id === route.params.id)

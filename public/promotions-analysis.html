@@ -268,6 +268,13 @@ html,body{height:100%;overflow:hidden;font-family:'Inter',sans-serif;background:
   <div class="shdr"><h2>How Countries Work With Magento</h2><div style="display:flex;align-items:center;gap:9px"><span class="stag">⚙️ Magento Admin Field Usage</span><span class="snum">4 / 10</span></div></div>
   <div class="sbody">
     <div class="ins mb14"><span class="ins-ico">📋</span><div class="ins-txt">Based on Confluence Magento Administration Usage Report — field-by-field analysis from IT, RO, SK, PL workshops. CZ workshop pending.</div></div>
+    <div style="display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-bottom:12px;font-size:.64rem;background:rgba(0,0,0,.15);border-radius:8px;padding:7px 12px">
+      <span style="opacity:.45;font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin-right:2px">Legend:</span>
+      <span style="color:#FDE68A;background:rgba(253,230,138,.1);border-radius:4px;padding:1px 8px"><strong>vouchers</strong> = only for vouchers</span>
+      <span style="color:#FDE68A;background:rgba(253,230,138,.1);border-radius:4px;padding:1px 8px"><strong>limited</strong> = used in limited cases or unclear how</span>
+      <span style="color:#FDE68A;background:rgba(253,230,138,.1);border-radius:4px;padding:1px 8px"><strong>rare</strong> = used very rarely</span>
+      <span style="color:#86efac;background:rgba(134,239,172,.1);border-radius:4px;padding:1px 8px"><strong>mand.</strong> = mandatory (Magento can't enforce it — country treats it as mandatory)</span>
+    </div>
     <div class="g2 mb12">
       <div class="card">
         <div class="cttl">Core rule configuration — used across all markets</div>
@@ -298,7 +305,7 @@ html,body{height:100%;overflow:hidden;font-family:'Inter',sans-serif;background:
             <tr><td>Gift SKU</td><td class="y">✓</td><td class="y">✓</td><td class="y">✓</td><td class="y">✓</td></tr>
             <tr><td>Global Max Usage</td><td class="y">✓</td><td class="y">✓</td><td class="yl">Rare</td><td class="yl">Rare</td></tr>
             <tr><td>Non-combinable rule</td><td class="yl">Rare</td><td class="yl">Vouchers</td><td class="yl">Rare</td><td class="yl">Rare</td></tr>
-            <tr><td>Farmis Voucher ID/Code</td><td class="y">Mand.</td><td class="y">Mand.</td><td class="y">Mand.</td><td class="y">Mand.</td></tr>
+            <tr><td>Farmis Voucher ID/Code</td><td class="yl" title="Mandatory — IT enters dummy values to satisfy the requirement">⚠️ Dummy values</td><td class="y" title="Used — even though the field is specific for CZ">✓</td><td class="yl" title="Mandatory — SK enters dummy values to satisfy the requirement">⚠️ Dummy values</td><td class="yl" title="Mandatory — PL enters dummy values to satisfy the requirement">⚠️ Dummy values</td></tr>
             <tr><td>Reservation Allowed</td><td class="y">Critical</td><td class="r">No</td><td class="r">No</td><td class="r">No</td></tr>
             <tr><td>Apply to Shipping</td><td class="r">No</td><td class="r">No</td><td class="r">No</td><td class="r">No</td></tr>
           </tbody>
@@ -313,7 +320,7 @@ html,body{height:100%;overflow:hidden;font-family:'Inter',sans-serif;background:
           <tbody>
             <tr><td>No coupon (auto-applies)</td><td class="y">✓</td><td class="y">✓</td><td class="y">✓</td><td class="y">✓</td></tr>
             <tr><td>Specific coupon code</td><td class="y">✓</td><td class="y">✓</td><td class="y">✓</td><td class="y">✓</td></tr>
-            <tr><td>Auto-generated coupons</td><td class="y">✓</td><td class="yl">Heavy</td><td class="y">✓</td><td class="y">✓</td></tr>
+            <tr><td>Auto-generated coupons</td><td class="y">✓</td><td class="y">✓</td><td class="y">✓</td><td class="y">✓</td></tr>
             <tr><td>Uses per coupon</td><td class="y">✓</td><td class="y">Mand.</td><td class="y">✓</td><td class="y">✓</td></tr>
             <tr><td>Uses per customer</td><td class="yl">Limited</td><td class="yl">Vouchers</td><td class="yl">Limited</td><td class="yl">Limited</td></tr>
             <tr><td>Coupon EAN (barcode/POS)</td><td class="r">No</td><td class="r">No</td><td class="r">No</td><td class="r">No</td></tr>

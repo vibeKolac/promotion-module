@@ -8,6 +8,24 @@ export const tags = [
   { id: 'tag-4', name: 'Brand Deal', color: '#6366F1', visibleOnFrontend: false },
 ]
 
+export const erpEntries = [
+  { id: '7631', name: 'Skincare Summer Promo 2025' },
+  { id: '7632', name: 'Flash Sale Q4 2025' },
+  { id: '7633', name: 'Vichy Brand Discount' },
+  { id: '7634', name: 'Loyalty Club Reward 2026' },
+  { id: '7635', name: "Valentine's Special Offer" },
+  { id: '7636', name: 'Sun Care Summer 2026' },
+  { id: '7637', name: 'Bebelo Multi-buy Deal' },
+  { id: '7638', name: 'La Roche-Posay Event' },
+  { id: '7640', name: 'Travel Kit Free Gift' },
+  { id: '7650', name: 'New Customer Welcome' },
+  { id: '7651', name: 'Brand Week — Eucerin' },
+  { id: '7652', name: 'Back to School Sale' },
+  { id: '7700', name: 'DrMax Birthday Campaign' },
+  { id: '7701', name: 'Easter Special Discount' },
+  { id: '7702', name: 'Autumn Health Week' },
+]
+
 export const promotions = [
   {
     id: 'promo-1', name: '20% off Vichy over €50', type: 'discount',
@@ -19,6 +37,7 @@ export const promotions = [
       { id: 'c2', field: 'subtotal', mode: 'include', values: ['50'], operator: '>=' },
     ],
     gifts: [], nonCombinableRules: [], tags: ['tag-4'],
+    erpId: '7631',
     performance: 87, revenue: '€24,500', usageCount: 1842, completedOrders: 7,
     createdBy: 'Anna K.', createdAt: '2026-03-18T10:00:00Z', updatedAt: '2026-03-18T10:00:00Z',
   },
@@ -29,6 +48,7 @@ export const promotions = [
     startDate: '2026-03-20', endDate: '2026-04-30', stackingGroupId: 'sg-1',
     conditions: [{ id: 'c3', field: 'categories', mode: 'include', values: ['Skincare'] }],
     gifts: [], nonCombinableRules: [{ type: 'group', id: 'sg-2' }], tags: ['tag-1'],
+    erpId: '7632',
     performance: 62, revenue: '€12,300', usageCount: 934, completedOrders: 5,
     createdBy: 'Martin P.', createdAt: '2026-03-15T08:00:00Z', updatedAt: '2026-03-15T08:00:00Z',
   },
@@ -51,6 +71,7 @@ export const promotions = [
     conditions: [{ id: 'c5', field: 'subtotal', mode: 'include', values: ['150'], operator: '>=' }],
     gifts: [{ id: 'g1', sku: 'DM-TRAVEL-KIT', quantity: 1, price: 0 }],
     nonCombinableRules: [{ type: 'rule', id: 'promo-2' }], tags: ['tag-2'],
+    erpId: '7640',
     performance: 78, revenue: '€18,900', usageCount: 1203, completedOrders: 3,
     createdBy: 'Lukas J.', createdAt: '2026-03-01T09:00:00Z', updatedAt: '2026-03-01T09:00:00Z',
   },

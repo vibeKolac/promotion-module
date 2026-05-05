@@ -7,6 +7,7 @@ const db = {
   promotions: JSON.parse(JSON.stringify(seed.promotions)),
   stackingGroups: JSON.parse(JSON.stringify(seed.stackingGroups)),
   templates: JSON.parse(JSON.stringify(seed.templates)),
+  erpEntries: JSON.parse(JSON.stringify(seed.erpEntries)),
 }
 
 const app = express()
@@ -16,6 +17,7 @@ app.use(express.json())
 app.use('/api/promotions', require('./routes/promotions')(db))
 app.use('/api/stacking-groups', require('./routes/stackingGroups')(db))
 app.use('/api/templates', require('./routes/templates')(db))
+app.use('/api/erp-entries', require('./routes/erpEntries')())
 app.use('/api/parse', require('./routes/parse')())
 
 const PORT = process.env.PORT || 3001
