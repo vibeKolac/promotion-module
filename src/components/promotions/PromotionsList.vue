@@ -161,9 +161,6 @@
             <v-icon size="16" class="mr-1">mdi-content-copy</v-icon>Duplicate
           </v-btn>
           <template v-if="activeTab !== 'ended'">
-            <v-btn size="small" variant="outlined" color="primary" @click="bulkDialogOpen = true">
-              <v-icon size="16" class="mr-1">mdi-filter</v-icon>Edit Conditions
-            </v-btn>
             <v-btn size="small" variant="outlined" color="error" @click="openBulkDelete">
               <v-icon size="16" class="mr-1">mdi-delete</v-icon>Delete
             </v-btn>
@@ -310,7 +307,6 @@
         This action cannot be undone. The selected {{ selected.length }} rule{{ selected.length > 1 ? 's' : '' }} will be permanently deleted.
       </template>
     </ConfirmModal>
-    <BulkEditConditionsDialog v-model="bulkDialogOpen" :selected-count="selected.length" @apply="onBulkApply" />
     <CsvImportDialog v-model="csvImportOpen" @import="onCSVImport" />
     <v-snackbar v-model="errorSnack" color="error" timeout="4000">{{ store.error }}</v-snackbar>
     <v-snackbar v-model="duplicateSnack" color="success" timeout="3000">Rule duplicated — added to Draft tab</v-snackbar>
@@ -332,7 +328,6 @@ import SelectInput from '../_common/SelectInput.vue'
 import { useDebounceFn } from '@vueuse/core'
 import { detectConflicts } from '../../utils/ruleConflictDetector'
 import ConflictBadge from './ConflictBadge.vue'
-import BulkEditConditionsDialog from './BulkEditConditionsDialog.vue'
 import CsvImportDialog from './CsvImportDialog.vue'
 import { downloadCSV, exportRulesToCSV } from '../../utils/csvRuleImportExport'
 import RulePriorityPreview from './RulePriorityPreview.vue'
@@ -365,7 +360,6 @@ const bulkDeleteModal = ref(null)
 const deletingItem = ref(null)
 const deleting = ref(false)
 const selected = ref([])
-const bulkDialogOpen = ref(false)
 const csvImportOpen = ref(false)
 const duplicateSnack = ref(false)
 const bulkSnack = ref(false)
@@ -498,15 +492,6 @@ function applyFilters(rules) {
 
 function exportCSV() {
   downloadCSV(exportRulesToCSV(store.items), 'promotions.csv')
-}
-
-async function onBulkApply(payload) {
-  try {
-    await store.bulkUpdateConditions(selected.value, payload)
-    selected.value = []
-  } catch {
-    // store.error is set; user will see it via errorSnack
-  }
 }
 
 async function onCSVImport(rules) {
