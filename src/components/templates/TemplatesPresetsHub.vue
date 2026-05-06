@@ -3,13 +3,15 @@
   <v-container fluid class="pa-3 pa-sm-6">
     <v-breadcrumbs :items="[{ title: 'Templates & Presets', disabled: true }]" density="compact" class="pa-0 mb-2" />
 
-    <h1 class="text-h5 font-weight-bold mb-4">Templates &amp; Presets</h1>
+    <div class="d-flex align-center gap-2 mb-4">
+      <h1 class="text-h5 font-weight-bold">Templates &amp; Presets</h1>
+      <v-chip size="x-small" color="warning" variant="tonal" label>Exploring</v-chip>
+    </div>
 
     <v-tabs :model-value="activeTab" color="primary" class="mb-5 border-b" @update:model-value="navigate">
       <v-tab value="templates" prepend-icon="mdi-file-document-outline">Templates</v-tab>
       <v-tab value="condition-presets" prepend-icon="mdi-filter-variant">
         Condition Presets
-        <v-chip size="x-small" color="purple" variant="tonal" label class="ml-2">Post-MVP</v-chip>
       </v-tab>
     </v-tabs>
 

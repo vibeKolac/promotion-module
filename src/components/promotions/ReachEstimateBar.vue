@@ -12,6 +12,7 @@
     <span class="text-body-2 font-weight-bold" :class="`text-${reach.color}`">
       {{ reach.label }} ~{{ reach.percentage }}%
     </span>
+    <v-chip size="x-small" color="warning" variant="tonal" label>Exploring</v-chip>
   </div>
 </template>
 

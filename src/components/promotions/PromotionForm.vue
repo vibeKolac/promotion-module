@@ -52,41 +52,6 @@
             class="mb-3"
           />
 
-          <v-row dense class="mb-3">
-            <v-col cols="12">
-              <SelectInput
-                v-model="draft.type"
-                :data="ruleTypeItems"
-                label="Rule type *"
-              />
-            </v-col>
-          </v-row>
-
-          <!-- Rule scope -->
-          <div class="mb-4">
-            <div class="text-caption font-weight-bold text-medium-emphasis mb-2">RULE SCOPE</div>
-            <v-btn-toggle
-              v-model="draft.scope"
-              mandatory
-              density="compact"
-              variant="outlined"
-              color="primary"
-              class="mb-1"
-              :disabled="draft.type === 'multi_buy'"
-            >
-              <v-btn value="cart" size="small" prepend-icon="mdi-cart-outline">Cart</v-btn>
-              <v-btn value="item" size="small" prepend-icon="mdi-package-variant">Item</v-btn>
-            </v-btn-toggle>
-            <div class="text-caption text-medium-emphasis mt-1">
-              <template v-if="draft.scope === 'cart'">
-                Discount and conditions apply to the whole cart.
-              </template>
-              <template v-else>
-                Discount and conditions apply per item / line.
-              </template>
-            </div>
-          </div>
-
           <v-row dense>
             <v-col cols="6">
               <v-date-input
@@ -196,6 +161,41 @@
             </v-btn-toggle>
             <div v-if="!draft.channels.length" class="text-caption text-error mt-1">
               At least one channel must be selected.
+            </div>
+          </div>
+
+          <v-row dense class="mt-4 mb-3">
+            <v-col cols="12">
+              <SelectInput
+                v-model="draft.type"
+                :data="ruleTypeItems"
+                label="Rule type *"
+              />
+            </v-col>
+          </v-row>
+
+          <!-- Rule scope -->
+          <div class="mb-4">
+            <div class="text-caption font-weight-bold text-medium-emphasis mb-2">RULE SCOPE</div>
+            <v-btn-toggle
+              v-model="draft.scope"
+              mandatory
+              density="compact"
+              variant="outlined"
+              color="primary"
+              class="mb-1"
+              :disabled="draft.type === 'multi_buy'"
+            >
+              <v-btn value="cart" size="small" prepend-icon="mdi-cart-outline">Cart</v-btn>
+              <v-btn value="item" size="small" prepend-icon="mdi-package-variant">Item</v-btn>
+            </v-btn-toggle>
+            <div class="text-caption text-medium-emphasis mt-1">
+              <template v-if="draft.scope === 'cart'">
+                Discount and conditions apply to the whole cart.
+              </template>
+              <template v-else>
+                Discount and conditions apply per item / line.
+              </template>
             </div>
           </div>
 
@@ -431,6 +431,17 @@
           </ConditionsEditor>
 
           <ReachEstimateBar :conditions="draft.conditions" :scope="draft.scope" class="mt-3" />
+
+          <v-alert
+            v-if="conditionsDescription"
+            color="blue-grey"
+            variant="tonal"
+            density="compact"
+            icon="mdi-text-box-check-outline"
+            class="mt-3 text-caption"
+          >
+            {{ conditionsDescription }}
+          </v-alert>
 
           <!-- Validation feedback -->
           <template v-if="conditionValidation.warnings.length || conditionValidation.suggestions.length">
@@ -901,6 +912,106 @@ const breadcrumbs = computed(() => isTemplateEdit.value
 
 const conditionValidation = computed(() => validateConditions(draft.conditions))
 const giftConflicts = computed(() => detectGiftConflicts(draft.gifts, draft.conditions))
+
+// ── Conditions plain-English description ──────────────────────────────────────
+
+function _opLabel(op) {
+  return { '>=': 'at least', '>': 'more than', '<=': 'at most', '<': 'less than' }[op] ?? op
+}
+
+function _fmtList(vals) {
+  if (!vals?.length) return '—'
+  if (vals.length === 1) return `"${vals[0]}"`
+  if (vals.length === 2) return `"${vals[0]}" or "${vals[1]}"`
+  return `"${vals[0]}", "${vals[1]}" or ${vals.length - 2} more`
+}
+
+const conditionsDescription = computed(() => {
+  const conds = (draft.conditions ?? []).filter(c => {
+    if (!c.values?.length) return false
+    if (c.values.length === 1 && c.values[0] === '') return false
+    return true
+  })
+  if (!conds.length) return null
+
+  const parts = []
+
+  for (const c of conds) {
+    const vals = c.values ?? []
+    const inc = c.mode !== 'exclude'
+
+    switch (c.field) {
+      case 'categories':
+        parts.push(inc
+          ? `product is in categor${vals.length > 1 ? 'ies' : 'y'} ${_fmtList(vals)}`
+          : `product is NOT in categor${vals.length > 1 ? 'ies' : 'y'} ${_fmtList(vals)}`)
+        break
+      case 'brands':
+        parts.push(inc ? `brand is ${_fmtList(vals)}` : `brand is NOT ${_fmtList(vals)}`)
+        break
+      case 'skus':
+        if (vals.length <= 3)
+          parts.push(inc ? `SKU is ${_fmtList(vals)}` : `SKU is NOT ${_fmtList(vals)}`)
+        else
+          parts.push(inc ? `SKU is one of ${vals.length} specific products` : `${vals.length} specific SKUs are excluded`)
+        break
+      case 'product_lines':
+        parts.push(inc ? `product line is ${_fmtList(vals)}` : `product line is NOT ${_fmtList(vals)}`)
+        break
+      case 'subtotal': {
+        if (!vals[0]) break
+        const label = draft.scope === 'cart' ? 'cart subtotal' : 'item price'
+        parts.push(`${label} is ${_opLabel(c.operator)} €${vals[0]}`)
+        break
+      }
+      case 'quantity': {
+        if (!vals[0]) break
+        const label = draft.scope === 'cart' ? 'total cart quantity' : 'item line quantity'
+        parts.push(`${label} is ${_opLabel(c.operator)} ${vals[0]}`)
+        break
+      }
+      case 'weight': {
+        if (!vals[0]) break
+        const label = draft.scope === 'cart' ? 'total cart weight' : 'item weight'
+        parts.push(`${label} is ${_opLabel(c.operator)} ${vals[0]} kg`)
+        break
+      }
+      case 'customer_group':
+        parts.push(inc ? `customer is in group ${_fmtList(vals)}` : `customer is NOT in group ${_fmtList(vals)}`)
+        break
+      case 'coupon_code':
+        if (vals[0]) parts.push(`coupon code is ${_fmtList(vals)}`)
+        break
+      case 'exclude_on_sale':
+        if (vals[0] === 'true') parts.push('on-sale products are excluded')
+        break
+      case 'pim_status':
+        parts.push(inc ? `PIM status is ${_fmtList(vals)}` : `PIM status is NOT ${_fmtList(vals)}`)
+        break
+      case 'attribute_set':
+        parts.push(inc ? `attribute set is ${_fmtList(vals)}` : `attribute set is NOT ${_fmtList(vals)}`)
+        break
+      case 'source':
+        parts.push(inc ? `source is ${_fmtList(vals)}` : `source is NOT ${_fmtList(vals)}`)
+        break
+      case 'seller':
+        parts.push(inc ? `seller is ${_fmtList(vals)}` : `seller is NOT ${_fmtList(vals)}`)
+        break
+      case 'warehouse_type':
+        parts.push(inc ? `warehouse type is ${_fmtList(vals)}` : `warehouse type is NOT ${_fmtList(vals)}`)
+        break
+    }
+  }
+
+  if (!parts.length) return null
+
+  const joined = parts.length === 1
+    ? parts[0]
+    : parts.slice(0, -1).join(', ') + ', and ' + parts[parts.length - 1]
+
+  const scopePhrase = draft.scope === 'cart' ? 'the cart' : 'each qualifying item'
+  return `Applies to ${scopePhrase} where ${joined}.`
+})
 
 
 function validate() {
