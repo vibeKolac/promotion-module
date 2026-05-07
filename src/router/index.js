@@ -55,6 +55,18 @@ const routes = [
     component: () => import('../components/promotions/PromotionPlannerPage.vue'),
   },
   {
+    path: '/free-shipping',
+    component: () => import('../components/freeShipping/FreeShippingPage.vue'),
+  },
+  {
+    path: '/bundles',
+    component: () => import('../components/bundles/BundlesPage.vue'),
+  },
+  {
+    path: '/coupons',
+    component: () => import('../components/coupons/CouponsPage.vue'),
+  },
+  {
     path: '/settings/general',
     component: () => import('../components/settings/GeneralPage.vue'),
   },

@@ -8,10 +8,6 @@
       <v-chip size="small" color="warning" variant="tonal" label class="ml-3">Exploring</v-chip>
     </div>
 
-    <p class="text-body-2 text-medium-emphasis mb-6">
-      These features are under exploration. Share your feedback to help shape the direction.
-    </p>
-
     <v-row>
       <v-col cols="12" md="6">
         <v-card border flat rounded="lg" height="100%">

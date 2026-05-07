@@ -87,6 +87,9 @@ const navItems = computed(() => [
   { to: '/templates-presets', icon: 'mdi-file-document-outline', title: 'Templates & Presets' },
   { to: '/tags', icon: 'mdi-label-outline', title: 'Tags' },
   { to: '/promotion-planner', icon: 'mdi-creation', title: 'Promotion Planner', exploring: true },
+  { to: '/free-shipping', icon: 'mdi-truck-fast-outline', title: 'Free Shipping', exploring: true },
+  { to: '/bundles', icon: 'mdi-package-variant-closed', title: 'Bundles', exploring: true },
+  { to: '/coupons', icon: 'mdi-ticket-percent-outline', title: 'Coupons', exploring: true },
 ])
 
 const settingsItems = [
