@@ -6,7 +6,7 @@
 import MockAdapter from 'axios-mock-adapter'
 import axios from 'axios'
 import { v4 as uuid } from 'uuid'
-import { promotions as seedPromotions, stackingGroups as seedGroups, templates as seedTemplates, tags as seedTags, internalTags as seedInternalTags, promotionOrders as seedOrders } from './seed.js'
+import { promotions as seedPromotions, stackingGroups as seedGroups, templates as seedTemplates, tags as seedTags, internalTags as seedInternalTags, promotionOrders as seedOrders, erpEntries as seedErpEntries } from './seed.js'
 
 // Mutable in-memory copies — survive the session, reset on hard reload
 const db = {
@@ -177,6 +177,10 @@ export function installMock() {
     db.promotions.forEach(p => { p.internalTags = (p.internalTags ?? []).filter(t => t !== id) })
     return [204]
   })
+
+  // ── ERP Entries (read-only reference data) ──────────────────────────────────
+
+  mock.onGet('/api/erp-entries').reply(() => [200, seedErpEntries])
 
   // ── Passthrough anything else ───────────────────────────────────────────────
   mock.onAny().passThrough()

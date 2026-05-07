@@ -11,7 +11,7 @@
         type="number"
         min="1"
         hide-details
-        style="max-width: 160px"
+        class="threshold-field"
         :readonly="!!autoThreshold"
         :bg-color="autoThreshold ? 'grey-lighten-4' : undefined"
         @update:model-value="!autoThreshold && update(idx, 'threshold', $event)"
@@ -20,15 +20,23 @@
       <span class="text-medium-emphasis">→</span>
       <v-text-field
         :model-value="step.value"
-        :label="amountType === 'PERCENT' ? 'Discount %' : 'Discount €'"
-        :suffix="amountType === 'PERCENT' ? '%' : '€'"
+        :label="(step.amountType ?? amountType) === 'PERCENT' ? 'Discount %' : 'Discount €'"
         variant="outlined"
         density="compact"
         type="number"
         min="0"
         hide-details
-        style="max-width: 140px"
+        class="value-field no-arrows"
         @update:model-value="update(idx, 'value', $event)"
+      />
+      <v-select
+        :model-value="step.amountType ?? amountType"
+        :items="[{ title: '%', value: 'PERCENT' }, { title: '€', value: 'FIXED' }]"
+        variant="outlined"
+        density="compact"
+        hide-details
+        class="type-field"
+        @update:model-value="update(idx, 'amountType', $event)"
       />
       <v-btn icon="mdi-delete" variant="text" color="error" size="small" @click="remove(idx)" />
     </div>
@@ -90,6 +98,7 @@ function addStep() {
       id: uuid(),
       threshold: sv > 0 ? (i + 1) * sv : '',
       value: '',
+      amountType: props.amountType,
     })))
   } else {
     const nextIdx = props.modelValue.length
@@ -97,7 +106,31 @@ function addStep() {
       id: uuid(),
       threshold: sv > 0 ? (nextIdx + 1) * sv : '',
       value: '',
+      amountType: props.amountType,
     }])
   }
 }
 </script>
+
+<style scoped>
+.threshold-field {
+  max-width: 160px;
+}
+
+.type-field {
+  max-width: 80px;
+}
+
+.value-field {
+  max-width: 140px;
+}
+
+.no-arrows :deep(input[type=number])::-webkit-outer-spin-button,
+.no-arrows :deep(input[type=number])::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+}
+
+.no-arrows :deep(input[type=number]) {
+  -moz-appearance: textfield;
+}
+</style>

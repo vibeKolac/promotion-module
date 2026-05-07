@@ -7,7 +7,7 @@
       :color="reach.color"
       rounded
       height="6"
-      style="flex: 1"
+      class="reach-bar"
     />
     <span class="text-body-2 font-weight-bold" :class="`text-${reach.color}`">
       {{ reach.label }} ~{{ reach.percentage }}%
@@ -27,3 +27,9 @@ const props = defineProps({
 
 const reach = computed(() => estimateReach(props.conditions, props.scope))
 </script>
+
+<style scoped>
+.reach-bar {
+  flex: 1;
+}
+</style>

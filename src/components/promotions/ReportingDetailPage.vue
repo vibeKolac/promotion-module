@@ -55,7 +55,7 @@
       placeholder="Search by customer name or order ID"
       hide-details
       class="mb-4"
-      :style="mobile ? '' : 'max-width: 480px'"
+      :class="mobile ? '' : 'search-input'"
     />
 
     <!-- Filter bar -->
@@ -67,18 +67,18 @@
         :color="orderTypeFilter.includes(t) ? 'primary' : undefined"
         :variant="orderTypeFilter.includes(t) ? 'flat' : 'outlined'"
         size="small"
-        style="cursor:pointer"
+        class="clickable-link"
         @click="toggleOrderType(t)"
       >{{ t }}</v-chip>
 
-      <v-divider v-if="!mobile" vertical class="mx-1" style="align-self:stretch; opacity:.3" />
+      <v-divider v-if="!mobile" vertical class="mx-1 filter-divider" />
 
       <SelectInput
         v-model="dateFilter"
         :data="dateFilterItems"
         label="Order created"
         hide-details
-        style="max-width: 200px; min-width: 160px"
+        class="filter-select filter-select--md"
       />
 
       <v-btn
@@ -276,3 +276,23 @@ onMounted(async () => {
   }
 })
 </script>
+
+<style scoped>
+.search-input {
+  max-width: 480px;
+}
+
+.filter-divider {
+  align-self: stretch;
+  opacity: 0.3;
+}
+
+.filter-select {
+  flex-shrink: 0;
+}
+
+.filter-select--md {
+  max-width: 200px;
+  min-width: 160px;
+}
+</style>

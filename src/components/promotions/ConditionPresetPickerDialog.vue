@@ -4,7 +4,7 @@
     <v-card>
       <v-card-title class="text-h6 pa-5 pb-3">Apply condition preset</v-card-title>
 
-      <v-card-text class="pa-5 pt-0" style="max-height: 60vh">
+      <v-card-text class="pa-5 pt-0 dialog-scroll">
         <p class="text-caption text-medium-emphasis mb-4">
           Select a preset to load its conditions into the rule.
         </p>
@@ -20,7 +20,7 @@
           class="mb-4"
         />
 
-        <v-alert v-if="!filtered.length" type="info" variant="tonal" density="compact">
+        <v-alert v-if="!filtered.length" color="grey" variant="tonal" density="compact">
           No presets found.
           <router-link to="/templates-presets/condition-presets" class="ml-1">Manage presets</router-link>
         </v-alert>
@@ -31,9 +31,8 @@
             :key="preset.id"
             border
             elevation="0"
-            class="pa-3"
+            class="pa-3 clickable-link"
             :class="{ 'border-primary': selected === preset.id }"
-            style="cursor: pointer"
             @click="selected = preset.id"
           >
             <div class="d-flex align-center gap-2 mb-1">
@@ -140,3 +139,9 @@ function apply() {
   selected.value = null
 }
 </script>
+
+<style scoped>
+.dialog-scroll {
+  max-height: 60vh;
+}
+</style>

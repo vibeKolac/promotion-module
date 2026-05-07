@@ -1,5 +1,5 @@
 <template>
-  <v-card border elevation="0" class="pa-4 h-100 d-flex flex-column" style="cursor:pointer" @click="$emit('select', template)">
+  <v-card border elevation="0" class="pa-4 h-100 d-flex flex-column clickable-link" @click="$emit('select', template)">
     <div class="d-flex align-start mb-3">
       <v-avatar :color="typeColor" variant="tonal" size="40">
         <v-icon :color="typeColor" size="22">{{ categoryIcon }}</v-icon>

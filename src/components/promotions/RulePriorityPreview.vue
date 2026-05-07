@@ -32,12 +32,10 @@
           <div
             v-for="(rule, i) in result.applied"
             :key="rule.id"
-            class="d-flex align-center gap-3 pa-3 mb-2 rounded bg-white"
-            style="border:1px solid rgba(var(--v-theme-success),0.3)"
+            class="d-flex align-center gap-3 pa-3 mb-2 rounded bg-white rule-applied"
           >
             <div
-              class="text-caption font-weight-bold rounded-circle d-flex align-center justify-center flex-shrink-0"
-              style="width:28px;height:28px;background:rgba(var(--v-theme-success),0.15)"
+              class="text-caption font-weight-bold rounded-circle d-flex align-center justify-center flex-shrink-0 rule-rank"
             >{{ i + 1 }}</div>
             <div class="flex-grow-1">
               <div class="text-body-2 font-weight-bold">{{ rule.name }}</div>
@@ -56,8 +54,7 @@
           <div
             v-for="{ rule, reason } in result.skipped"
             :key="rule.id"
-            class="d-flex align-center gap-3 pa-3 mb-2 rounded"
-            style="border:1px solid rgba(0,0,0,0.08);opacity:0.65"
+            class="d-flex align-center gap-3 pa-3 mb-2 rounded rule-skipped"
           >
             <v-icon icon="mdi-close-circle-outline" size="20" color="medium-emphasis" />
             <div class="flex-grow-1">
@@ -74,8 +71,7 @@
           <div
             v-for="{ rule, reason } in result.inactive"
             :key="rule.id"
-            class="d-flex align-center gap-3 pa-3 mb-2 rounded"
-            style="border:1px solid rgba(0,0,0,0.08);opacity:0.55"
+            class="d-flex align-center gap-3 pa-3 mb-2 rounded rule-inactive"
           >
             <v-icon icon="mdi-minus-circle-outline" size="20" color="medium-emphasis" />
             <div class="flex-grow-1">
@@ -86,7 +82,7 @@
           </div>
         </div>
 
-        <v-alert type="info" variant="tonal" density="compact" icon="mdi-information">
+        <v-alert color="grey" variant="tonal" density="compact" icon="mdi-information">
           Rules apply by group priority first, then rule priority within each group. Gift rules can stack with discount rules.
         </v-alert>
       </div>
@@ -121,3 +117,25 @@ function groupName(rule) {
   return rule.stackingGroupId ? groupMap.value.get(rule.stackingGroupId) : null
 }
 </script>
+
+<style scoped>
+.rule-applied {
+  border: 1px solid rgba(var(--v-theme-success), 0.3);
+}
+
+.rule-rank {
+  width: 28px;
+  height: 28px;
+  background: rgba(var(--v-theme-success), 0.15);
+}
+
+.rule-skipped {
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  opacity: 0.65;
+}
+
+.rule-inactive {
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  opacity: 0.55;
+}
+</style>

@@ -12,7 +12,7 @@
         variant="outlined"
         density="compact"
         hide-details
-        style="max-width: 280px"
+        class="input-search"
         clearable
       />
       <v-btn color="primary" prepend-icon="mdi-plus" variant="flat" size="small" class="text-uppercase" @click="openCreate">
@@ -68,7 +68,7 @@
         </div>
       </v-card>
     </div>
-    <v-alert v-else type="info" variant="tonal" density="compact">No condition presets found.</v-alert>
+    <v-alert v-else color="grey" variant="tonal" density="compact">No condition presets found.</v-alert>
 
     <!-- Create / Edit dialog -->
     <v-dialog v-model="formDialogOpen" max-width="560" scrollable>

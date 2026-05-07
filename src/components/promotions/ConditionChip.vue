@@ -35,7 +35,7 @@ const LABELS = {
 }
 
 const SCOPE_LABELS = {
-  cart: { subtotal: 'Cart subtotal (ex. VAT)', quantity: 'Cart qty', weight: 'Cart weight' },
+  cart: { subtotal: 'Cart subtotal (incl. VAT)', quantity: 'Cart qty', weight: 'Cart weight' },
   item: { subtotal: 'Item price (incl. VAT)', quantity: 'Line qty', weight: 'Item weight' },
 }
 

@@ -9,6 +9,17 @@ import * as directives from 'vuetify/directives'
 export default createVuetify({
   components: { ...components, ...labsComponents },
   directives,
+  date: {
+    formats: {
+      keyboardDate: (date) => {
+        const d = new Date(date)
+        const day   = String(d.getDate()).padStart(2, '0')
+        const month = String(d.getMonth() + 1).padStart(2, '0')
+        const year  = d.getFullYear()
+        return `${day}/${month}/${year}`
+      },
+    },
+  },
   theme: {
     defaultTheme: 'light',
     themes: {
@@ -27,6 +38,16 @@ export default createVuetify({
   defaults: {
     VBtn: {
       style: 'letter-spacing: 0.05em',
+    },
+    VDateInput: {
+      placeholder: 'dd/mm/yyyy',
+      displayFormat: (date) => {
+        const d = new Date(date)
+        const day   = String(d.getDate()).padStart(2, '0')
+        const month = String(d.getMonth() + 1).padStart(2, '0')
+        const year  = d.getFullYear()
+        return `${day}/${month}/${year}`
+      },
     },
   },
 })

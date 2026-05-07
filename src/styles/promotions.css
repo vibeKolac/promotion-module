@@ -1,0 +1,63 @@
+/* Shared styles for the promotions module */
+
+/* AND / OR toggle chip between condition rows */
+.logic-op-chip {
+  cursor: pointer;
+  font-weight: 600;
+  min-width: 52px;
+  justify-content: center;
+  user-select: none;
+}
+
+/* Sticky save bar fixed to the bottom of the viewport */
+.sticky-save-bar {
+  position: fixed;
+  bottom: 0;
+  left: var(--v-layout-left, 0);
+  right: 0;
+  background: white;
+  border-top: 1px solid rgba(0, 0, 0, 0.12);
+  z-index: 100;
+  padding: 12px 32px;
+}
+
+.sticky-save-bar__inner {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  width: 100%;
+}
+
+.sticky-save-bar__description {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Inline clickable anchor that looks like a link but is a plain <a> */
+.clickable-link {
+  cursor: pointer;
+}
+
+/* Drag handle icon */
+.cursor-grab {
+  cursor: grab;
+}
+
+/* Narrow input fields used in settings pages */
+.input-narrow {
+  max-width: 260px;
+}
+
+/* Search / filter inputs in list pages */
+.input-search {
+  max-width: 280px;
+}
+
+/* Login / gate background */
+.gate-bg {
+  background: #f8fafc;
+}
+
+.gate-center {
+  min-height: 100vh;
+}

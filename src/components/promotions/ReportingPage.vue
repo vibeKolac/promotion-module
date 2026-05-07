@@ -7,7 +7,7 @@
       <h1 class="text-h5 font-weight-bold">Reporting</h1>
     </div>
 
-    <v-alert type="info" variant="tonal" density="compact" class="mb-4" icon="mdi-chart-bar">
+    <v-alert color="grey" variant="tonal" density="compact" class="mb-4" icon="mdi-chart-bar">
       Basic reporting is available here. For more detail, check the
       <a href="#" class="text-decoration-underline">Power BI report</a>.
       Revenue figures are estimates.
@@ -15,11 +15,11 @@
 
     <!-- Summary row -->
     <div class="d-flex flex-wrap gap-3 mb-5">
-      <v-card border elevation="0" class="pa-4" style="min-width:320px; flex:3 1 320px">
+      <v-card border elevation="0" class="pa-4 chart-card">
         <div class="text-caption text-medium-emphasis mb-2">Distribution</div>
-        <Bar :data="chartData" :options="chartOptions" style="max-height:100px" />
+        <Bar :data="chartData" :options="chartOptions" class="chart-bar" />
       </v-card>
-      <v-card border elevation="0" class="pa-4 d-flex flex-column justify-center" style="min-width:180px; flex:1 1 180px">
+      <v-card border elevation="0" class="pa-4 d-flex flex-column justify-center stat-card">
         <div class="text-caption text-medium-emphasis mb-1">Total estimated revenue</div>
         <div class="text-h5 font-weight-bold text-success">{{ totalRevenue }}</div>
       </v-card>
@@ -32,7 +32,7 @@
       placeholder="Search by name"
       hide-details
       class="mb-4"
-      :style="mobile ? '' : 'max-width: 480px'"
+      :class="mobile ? '' : 'search-input'"
     />
 
     <!-- Filter bar -->
@@ -44,11 +44,11 @@
         :color="typeFilter.includes(t) ? 'primary' : undefined"
         :variant="typeFilter.includes(t) ? 'flat' : 'outlined'"
         size="small"
-        style="cursor:pointer"
+        class="clickable-link"
         @click="toggleType(t)"
       >{{ TYPE_LABELS[t] ?? t }}</v-chip>
 
-      <v-divider v-if="!mobile" vertical class="mx-1" style="align-self:stretch; opacity:.3" />
+      <v-divider v-if="!mobile" vertical class="mx-1 filter-divider" />
 
       <span class="text-caption text-medium-emphasis mr-1">Status:</span>
       <v-chip
@@ -57,21 +57,21 @@
         :color="statusFilter.includes(s) ? 'primary' : undefined"
         :variant="statusFilter.includes(s) ? 'flat' : 'outlined'"
         size="small"
-        style="cursor:pointer"
+        class="clickable-link"
         @click="toggleStatus(s)"
       >{{ STATUS_LABELS[s] ?? s }}</v-chip>
 
-      <v-divider v-if="!mobile && tagsStore.items.length" vertical class="mx-1" style="align-self:stretch; opacity:.3" />
+      <v-divider v-if="!mobile && tagsStore.items.length" vertical class="mx-1 filter-divider" />
 
       <template v-if="tagsStore.items.length">
-        <span class="text-caption text-medium-emphasis mr-1">Tags:</span>
+        <span class="text-caption text-medium-emphasis mr-1">Action Labels:</span>
         <v-chip
           v-for="tag in tagsStore.items"
           :key="tag.id"
-          :color="tagFilter.includes(tag.id) ? tag.color : undefined"
+          :color="tagFilter.includes(tag.id) ? 'primary' : undefined"
           :variant="tagFilter.includes(tag.id) ? 'flat' : 'outlined'"
           size="small"
-          style="cursor:pointer"
+          class="clickable-link"
           @click="toggleTag(tag.id)"
         >
           <v-icon v-if="tagFilter.includes(tag.id)" start size="12">mdi-check</v-icon>
@@ -79,31 +79,39 @@
         </v-chip>
       </template>
 
-      <v-divider v-if="!mobile" vertical class="mx-1" style="align-self:stretch; opacity:.3" />
+      <v-divider v-if="!mobile" vertical class="mx-1 filter-divider" />
 
       <SelectInput
         v-model="createdByFilter"
         :data="createdByFilterItems"
         label="Created by"
         hide-details
-        style="max-width: 160px; min-width: 130px"
+        class="filter-select filter-select--sm"
       />
 
-      <v-divider v-if="!mobile" vertical class="mx-1" style="align-self:stretch; opacity:.3" />
+      <v-divider v-if="!mobile" vertical class="mx-1 filter-divider" />
 
-      <TextInput
+      <v-date-input
         v-model="dateFrom"
         label="Active from"
-        type="date"
+        variant="outlined"
+        density="compact"
+        prepend-inner-icon="mdi-calendar"
+        prepend-icon=""
+        clearable
         hide-details
-        style="max-width: 160px; min-width: 140px"
+        class="filter-select filter-select--date"
       />
-      <TextInput
+      <v-date-input
         v-model="dateTo"
         label="Active to"
-        type="date"
+        variant="outlined"
+        density="compact"
+        prepend-inner-icon="mdi-calendar"
+        prepend-icon=""
+        clearable
         hide-details
-        style="max-width: 160px; min-width: 140px"
+        class="filter-select filter-select--date"
       />
 
       <v-btn
@@ -163,7 +171,7 @@
               <v-chip
                 v-for="tagId in item.tags"
                 :key="tagId"
-                :color="tagsStore.items.find(t => t.id === tagId)?.color"
+                color="primary"
                 size="x-small"
                 label
                 variant="flat"
@@ -362,7 +370,7 @@ const headers = computed(() => [
     { title: 'Type', key: 'type' },
     { title: 'Estimated Revenue', key: 'revenue' },
     { title: 'Created by', key: 'createdBy' },
-    { title: 'Tags', key: 'tags', sortable: false },
+    { title: 'Action Labels', key: 'tags', sortable: false },
   ]),
 ])
 
@@ -375,3 +383,42 @@ onMounted(async () => {
   await Promise.all([store.fetchAll(), tagsStore.fetchAll()])
 })
 </script>
+
+<style scoped>
+.chart-card {
+  min-width: 320px;
+  flex: 3 1 320px;
+}
+
+.chart-bar {
+  max-height: 100px;
+}
+
+.stat-card {
+  min-width: 180px;
+  flex: 1 1 180px;
+}
+
+.search-input {
+  max-width: 480px;
+}
+
+.filter-divider {
+  align-self: stretch;
+  opacity: 0.3;
+}
+
+.filter-select {
+  flex-shrink: 0;
+}
+
+.filter-select--sm {
+  max-width: 160px;
+  min-width: 130px;
+}
+
+.filter-select--date {
+  max-width: 160px;
+  min-width: 140px;
+}
+</style>

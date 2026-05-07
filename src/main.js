@@ -4,6 +4,7 @@ if (import.meta.env.VITE_USE_MOCK === 'true') {
   installMock()
 }
 
+import './styles/promotions.css'
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import vuetify from './plugins/vuetify'

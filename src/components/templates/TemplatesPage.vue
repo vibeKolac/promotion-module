@@ -12,7 +12,7 @@
         variant="outlined"
         density="compact"
         hide-details
-        style="max-width: 280px"
+        class="input-search"
         clearable
       />
     </div>
@@ -28,7 +28,7 @@
         <TemplateCard :template="tpl" @select="applyTemplate" @edit="openEdit" @delete="openDelete" />
       </div>
     </div>
-    <v-alert v-else type="info" variant="tonal" density="compact">No templates match the current filter.</v-alert>
+    <v-alert v-else color="grey" variant="tonal" density="compact">No templates match the current filter.</v-alert>
 
     <!-- Delete dialog -->
     <v-dialog v-model="deleteDialogOpen" max-width="400">

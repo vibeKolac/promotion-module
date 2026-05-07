@@ -71,7 +71,7 @@
           >
             <template #item="{ element: rule }">
               <div class="rule-row d-flex align-center px-4 py-2">
-                <v-icon class="drag-handle mr-3" size="18" color="medium-emphasis" style="cursor:grab">
+                <v-icon class="drag-handle cursor-grab mr-3" size="18" color="medium-emphasis">
                   mdi-drag-vertical
                 </v-icon>
                 <span
@@ -84,7 +84,7 @@
                 </v-chip>
                 <v-spacer />
                 <StatusBadge :status="rule.status" class="mr-4" />
-                <span class="text-caption text-medium-emphasis" style="min-width:72px; text-align:right">
+                <span class="text-caption text-medium-emphasis priority-label">
                   priority {{ rule.priority }}
                 </span>
                 <v-btn
@@ -297,4 +297,9 @@ function onSaved() {}
 .status-dot--paused   { background: #f59e0b; }
 .status-dot--draft    { background: #94a3b8; }
 .status-dot--scheduled { background: #3b82f6; }
+
+.priority-label {
+  min-width: 72px;
+  text-align: right;
+}
 </style>

@@ -2,8 +2,8 @@
   <slot v-if="unlocked" />
 
   <v-app v-else>
-    <v-main style="background: #f8fafc;">
-      <div class="d-flex align-center justify-center" style="min-height: 100vh;">
+    <v-main class="gate-bg">
+      <div class="d-flex align-center justify-center gate-center">
         <v-card border elevation="0" width="360" class="pa-8">
           <div class="text-center mb-6">
             <v-icon size="40" color="primary" class="mb-3">mdi-shield-lock-outline</v-icon>

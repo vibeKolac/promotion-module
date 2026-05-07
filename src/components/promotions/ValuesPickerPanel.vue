@@ -9,7 +9,7 @@
           Clear all
         </v-btn>
       </div>
-      <div v-if="modelValue.length" class="d-flex flex-wrap gap-1 pa-2 rounded border" style="min-height: 36px">
+      <div v-if="modelValue.length" class="d-flex flex-wrap gap-1 pa-2 rounded border values-box">
         <v-chip v-for="val in modelValue" :key="val" size="small" closable @click:close="remove(val)">
           {{ val }}
         </v-chip>
@@ -30,7 +30,7 @@
     />
 
     <!-- Options list for predefined values -->
-    <div v-if="options.length" class="mt-1 rounded border" style="max-height: 200px; overflow-y: auto">
+    <div v-if="options.length" class="mt-1 rounded border options-list">
       <v-list density="compact" class="pa-0">
         <!-- Add typed value (when it's not an exact existing option) -->
         <v-list-item
@@ -128,3 +128,14 @@ function addCustom() {
   search.value = ''
 }
 </script>
+
+<style scoped>
+.values-box {
+  min-height: 36px;
+}
+
+.options-list {
+  max-height: 200px;
+  overflow-y: auto;
+}
+</style>

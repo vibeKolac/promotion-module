@@ -5,7 +5,7 @@
       <v-card-title class="pa-5 pb-2">Import conditions from CSV</v-card-title>
       <v-card-text class="pa-5 pt-2">
 
-        <v-alert variant="tonal" color="info" density="compact" icon="mdi-information-outline" class="mb-4 text-caption">
+        <v-alert variant="tonal" color="grey" density="compact" icon="mdi-information-outline" class="mb-4 text-caption">
           Columns: <strong>type, field, mode, values, operator</strong>.
           Leave <em>type</em> empty for a plain condition; use <code>group_start</code> / <code>group_end</code> rows to wrap conditions in a group.
           Separate multiple values with <code>|</code>.

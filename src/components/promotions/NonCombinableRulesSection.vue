@@ -6,18 +6,17 @@
       <div
         v-for="(entry, idx) in enrichedEntries"
         :key="`${entry.type}-${entry.id}`"
-        class="d-flex align-center px-3 py-2 rounded"
-        style="background: rgba(0,0,0,0.04)"
+        class="d-flex align-center px-3 py-2 rounded rule-entry"
       >
         <v-icon
           size="16"
           class="mr-2"
-          :color="entry.type === 'group' ? entry.color : 'grey-darken-1'"
+          :color="entry.type === 'all' ? 'error' : entry.type === 'group' ? entry.color : 'grey-darken-1'"
         >
-          {{ entry.type === 'group' ? 'mdi-layers-triple' : 'mdi-tag-outline' }}
+          {{ entry.type === 'all' ? 'mdi-cancel' : entry.type === 'group' ? 'mdi-layers-triple' : 'mdi-tag-outline' }}
         </v-icon>
         <span class="text-body-2 flex-grow-1">
-          <span class="text-medium-emphasis mr-1">{{ entry.type === 'group' ? 'Group:' : 'Rule:' }}</span>
+          <span class="text-medium-emphasis mr-1">{{ entry.type === 'all' ? '' : entry.type === 'group' ? 'Group:' : 'Rule:' }}</span>
           {{ entry.label }}
         </span>
         <v-chip
@@ -41,7 +40,7 @@
 
     <v-alert
       v-else
-      type="info"
+      color="grey"
       variant="tonal"
       density="compact"
       icon="mdi-check-circle-outline"
@@ -50,15 +49,28 @@
       No restrictions — this rule can combine with any other rule.
     </v-alert>
 
-    <v-btn
-      prepend-icon="mdi-plus"
-      variant="outlined"
-      size="small"
-      class="text-uppercase"
-      @click="openDialog"
-    >
-      Add restriction
-    </v-btn>
+    <div class="d-flex align-center gap-2">
+      <v-btn
+        prepend-icon="mdi-plus"
+        variant="outlined"
+        size="small"
+        class="text-uppercase"
+        @click="openDialog"
+      >
+        Add restriction
+      </v-btn>
+      <v-btn
+        prepend-icon="mdi-cancel"
+        variant="tonal"
+        size="small"
+        color="error"
+        class="text-uppercase"
+        :disabled="allNonCombinable"
+        @click="makeAllNonCombinable"
+      >
+        Non-combinable with all
+      </v-btn>
+    </div>
 
     <!-- Add restriction dialog -->
     <DialogCard ref="dialogCard" max-width="480" @after-leave="resetDialog">
@@ -174,6 +186,23 @@ const currentRuleId = computed(() => route.params.id ?? null)
 
 const NON_ENDED_STATUSES = ['active', 'scheduled', 'paused', 'draft']
 
+const allRules = computed(() =>
+  promoStore.items.filter(p =>
+    NON_ENDED_STATUSES.includes(p.status) && p.id !== currentRuleId.value
+  )
+)
+
+const allNonCombinable = computed(() => {
+  const hasAllRulesEntry = props.modelValue.some(e => e.type === 'all')
+  if (hasAllRulesEntry) return true
+  const addedRuleIds = new Set(props.modelValue.filter(e => e.type === 'rule').map(e => e.id))
+  return allRules.value.length > 0 && allRules.value.every(r => addedRuleIds.has(r.id))
+})
+
+function makeAllNonCombinable() {
+  emit('update:modelValue', [{ type: 'all', id: '__all__' }])
+}
+
 const availableGroups = computed(() =>
   sgStore.items
     .filter(g => !props.modelValue.some(e => e.type === 'group' && e.id === g.id))
@@ -192,6 +221,9 @@ const availableRules = computed(() =>
 
 const enrichedEntries = computed(() =>
   props.modelValue.map(entry => {
+    if (entry.type === 'all') {
+      return { ...entry, label: 'All other promotion rules', color: 'error' }
+    }
     if (entry.type === 'group') {
       const g = sgStore.items.find(g => g.id === entry.id)
       return { ...entry, label: g?.name ?? entry.id, color: g?.color ?? '#6B7280' }
@@ -241,3 +273,9 @@ function add() {
   dialogCard.value.close()
 }
 </script>
+
+<style scoped>
+.rule-entry {
+  background: rgba(0, 0, 0, 0.04);
+}
+</style>

@@ -69,8 +69,7 @@
             density="compact"
             hint="Applied to free items in multi-buy rules"
             persistent-hint
-            class="mb-4"
-            style="max-width: 260px"
+            class="mb-4 input-narrow"
           />
 
           <v-text-field
@@ -82,7 +81,7 @@
             density="compact"
             hint="Applied to free items in gift rules"
             persistent-hint
-            style="max-width: 260px"
+            class="input-narrow"
           />
         </v-card>
       </v-col>

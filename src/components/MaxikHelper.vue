@@ -16,11 +16,11 @@
               <span class="text-body-2 font-weight-bold">Hi, I'm Maxík! 👋</span>
               <v-btn icon="mdi-close" size="x-small" variant="text" density="comfortable" @click="dismiss" />
             </div>
-            <p class="text-caption text-medium-emphasis mb-0" style="line-height:1.45">
+            <p class="text-caption text-medium-emphasis mb-0 helper-text">
               Need help setting something up?<br>I'm here for you!
             </p>
           </v-card-text>
-          <v-card-actions class="pa-3 pt-1 flex-column align-stretch" style="gap:6px">
+          <v-card-actions class="pa-3 pt-1 flex-column align-stretch helper-actions">
             <v-btn color="primary" variant="flat" size="small" rounded="lg" block @click="dismiss">
               Show me around
             </v-btn>
@@ -248,4 +248,12 @@ onUnmounted(() => {
 .bubble-pop-leave-active { transition: transform .2s ease, opacity .2s ease; }
 .bubble-pop-enter-from   { transform: scale(.85) translateY(6px); opacity: 0; }
 .bubble-pop-leave-to     { transform: scale(.85) translateY(6px); opacity: 0; }
+
+.helper-text {
+  line-height: 1.45;
+}
+
+.helper-actions {
+  gap: 6px;
+}
 </style>

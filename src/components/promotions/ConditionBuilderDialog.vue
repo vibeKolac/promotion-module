@@ -37,7 +37,7 @@
     </v-card-text>
 
     <!-- ── Step 2: Configure ─────────────────────────────────────────────── -->
-    <v-card-text v-else class="pa-5 pt-2" style="max-height: 65vh; overflow-y: auto;">
+    <v-card-text v-else class="pa-5 pt-2 dialog-scroll">
 
       <!-- Single condition: flat UI -->
       <template v-if="selectedFields.length === 1">
@@ -267,7 +267,6 @@ const CONDITION_TYPES = [
   { value: 'exclude_on_sale', title: 'Exclude on sale', supportsMode: false, quantifiable: false, boolean: true },
   { value: 'pim_status',      title: 'PIM status',      supportsMode: true,  quantifiable: false },
   { value: 'attribute_set',   title: 'Attribute set',   supportsMode: true,  quantifiable: false },
-  { value: 'source',          title: 'Source',          supportsMode: true,  quantifiable: false },
   { value: 'warehouse_type',  title: 'Warehouse type',  supportsMode: true,  quantifiable: false },
   { value: 'seller',          title: 'Seller',          supportsMode: true,  quantifiable: false },
 ]
@@ -291,7 +290,7 @@ const conditionCategories = [
   {
     key: 'advanced', label: 'Advanced', icon: 'mdi-tune',
     description: 'PIM, warehouse, and catalog filters',
-    types: CONDITION_TYPES.filter(t => ['pim_status', 'attribute_set', 'source', 'warehouse_type', 'seller', 'exclude_on_sale'].includes(t.value)),
+    types: CONDITION_TYPES.filter(t => ['pim_status', 'attribute_set', 'warehouse_type', 'seller', 'exclude_on_sale'].includes(t.value)),
   },
 ]
 
@@ -492,13 +491,13 @@ const operatorItems = [
 ]
 
 const SCOPE_FIELD_LABELS = {
-  cart: { subtotal: 'Cart subtotal (ex. VAT)', quantity: 'Total cart quantity', weight: 'Total cart weight' },
+  cart: { subtotal: 'Cart subtotal (incl. VAT)', quantity: 'Total cart quantity', weight: 'Total cart weight' },
   item: { subtotal: 'Item price (incl. VAT)', quantity: 'Item line quantity', weight: 'Item weight' },
 }
 
 const SCOPE_FIELD_HINTS = {
   cart: {
-    subtotal: 'Cart total before VAT — e.g. ≥ 100 means cart net value must reach €100',
+    subtotal: 'Cart product total including VAT — e.g. ≥ 100 means cart value must reach €100 (excl. shipping & payment)',
     quantity: 'Total number of items across all lines in the cart',
     weight: 'Sum of all item weights in the cart (kg)',
   },
@@ -510,7 +509,7 @@ const SCOPE_FIELD_HINTS = {
 }
 
 const SCOPE_HINTS = {
-  cart: { subtotal: 'Threshold on whole-cart subtotal, VAT excluded', quantity: 'Threshold on total cart item count', weight: 'Threshold on total cart weight' },
+  cart: { subtotal: 'Threshold on whole-cart subtotal, VAT included (excl. shipping & payment)', quantity: 'Threshold on total cart item count', weight: 'Threshold on total cart weight' },
   item: { subtotal: 'Threshold on per-item price, VAT included', quantity: 'Threshold on per-line item quantity', weight: 'Threshold on single item weight' },
 }
 
@@ -651,3 +650,10 @@ function handleSave() {
   emit('update:modelValue', false)
 }
 </script>
+
+<style scoped>
+.dialog-scroll {
+  max-height: 65vh;
+  overflow-y: auto;
+}
+</style>
