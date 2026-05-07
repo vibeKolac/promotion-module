@@ -5,26 +5,26 @@
     <v-breadcrumbs :items="breadcrumbs" density="compact" class="pa-0 mb-2" />
 
     <!-- Title row -->
-    <div class="d-flex align-center flex-wrap mb-6 py-2" style="gap: 12px">
+    <div class="d-flex align-center flex-wrap mb-6 py-2 title-row">
       <h1 class="text-h5 font-weight-bold">Promotion rules management</h1>
       <v-spacer />
       <!-- Bulk CSV section -->
-      <div v-if="!mobile" style="position: relative; padding-top: 10px">
+      <div v-if="!mobile" class="bulk-csv-wrapper">
         <v-chip
           size="x-small"
           color="warning"
           variant="tonal"
           label
           prepend-icon="mdi-flask-outline"
-          style="position: absolute; top: 0; left: 12px; z-index: 1; pointer-events: none; font-weight: 600; letter-spacing: 0.4px"
+          class="bulk-csv-badge"
         >Exploring</v-chip>
-        <div style="border: 1.5px dashed rgba(245,158,11,0.55); border-radius: 8px; padding: 10px 14px; background: rgba(245,158,11,0.04); display: flex; align-items: center; gap: 10px">
-          <v-icon color="warning" size="18" style="opacity:0.75">mdi-table-arrow-right</v-icon>
-          <div style="display:flex; flex-direction:column; gap:1px; margin-right:2px">
-            <span style="font-size:11px; font-weight:700; color:#78350f; line-height:1.3; white-space:nowrap">Bulk Data</span>
-            <span style="font-size:10px; color:#92400e; opacity:0.7; line-height:1.3; white-space:nowrap">CSV import / export</span>
+        <div class="bulk-csv-box">
+          <v-icon color="warning" size="18" class="bulk-csv-icon">mdi-table-arrow-right</v-icon>
+          <div class="bulk-csv-labels">
+            <span class="bulk-csv-title">Bulk Data</span>
+            <span class="bulk-csv-subtitle">CSV import / export</span>
           </div>
-          <v-divider vertical style="height:28px; opacity:0.25" />
+          <v-divider vertical class="bulk-csv-divider" />
           <v-btn variant="outlined" size="small" class="px-3" prepend-icon="mdi-download" @click="exportCSV">Export</v-btn>
           <v-btn variant="outlined" size="small" class="px-3" prepend-icon="mdi-upload" @click="csvImportOpen = true">Import</v-btn>
         </div>
@@ -46,11 +46,9 @@
       placeholder="Search in all columns"
       hide-details
       class="mb-4"
-      :style="mobile ? '' : 'max-width: 480px'"
+      :class="mobile ? '' : 'search-input'"
       @update:model-value="onSearch"
     />
-
-    <RulePriorityPreview v-if="settingsStore.prioritizationMode !== 'automatic'" :rules="store.items" :groups="sgStore.items" class="mb-4" />
 
     <!-- Priority group filter + tabs row -->
     <div class="d-flex flex-wrap align-center gap-2 mb-4">
@@ -66,7 +64,7 @@
         :data="stackingGroupFilterItems"
         label=""
         hide-details
-        style="max-width: 200px; min-width: 140px"
+        class="filter-select filter-select--md"
       />
     </div>
 
@@ -79,21 +77,21 @@
         :color="typeFilter.includes(t) ? 'primary' : undefined"
         :variant="typeFilter.includes(t) ? 'flat' : 'outlined'"
         size="small"
-        style="cursor:pointer"
+        class="clickable-link"
         @click="toggleType(t)"
       >{{ typeLabel(t) }}</v-chip>
 
-      <v-divider v-if="!mobile && tagsStore.items.length" vertical class="mx-1" style="align-self:stretch; opacity:.3" />
+      <v-divider v-if="!mobile && tagsStore.items.length" vertical class="mx-1 filter-divider" />
 
       <template v-if="tagsStore.items.length">
-        <span class="text-caption text-medium-emphasis mr-1">Tags:</span>
+        <span class="text-caption text-medium-emphasis mr-1">Action Labels:</span>
         <v-chip
           v-for="tag in tagsStore.items"
           :key="tag.id"
-          :color="tagFilter.includes(tag.id) ? tag.color : undefined"
+          :color="tagFilter.includes(tag.id) ? 'grey-darken-4' : undefined"
           :variant="tagFilter.includes(tag.id) ? 'flat' : 'outlined'"
           size="small"
-          style="cursor:pointer"
+          class="clickable-link"
           @click="toggleTag(tag.id)"
         >
           <v-icon v-if="tagFilter.includes(tag.id)" start size="12">mdi-check</v-icon>
@@ -101,14 +99,32 @@
         </v-chip>
       </template>
 
-      <v-divider v-if="!mobile" vertical class="mx-1" style="align-self:stretch; opacity:.3" />
+      <v-divider v-if="!mobile && internalTagsStore.items.length" vertical class="mx-1 filter-divider" />
+
+      <template v-if="internalTagsStore.items.length">
+        <span class="text-caption text-medium-emphasis mr-1">Internal Tags:</span>
+        <v-chip
+          v-for="tag in internalTagsStore.items"
+          :key="tag.id"
+          :color="internalTagFilter.includes(tag.id) ? 'success' : 'success'"
+          :variant="internalTagFilter.includes(tag.id) ? 'flat' : 'tonal'"
+          size="small"
+          class="clickable-link"
+          @click="toggleInternalTag(tag.id)"
+        >
+          <v-icon v-if="internalTagFilter.includes(tag.id)" start size="12">mdi-check</v-icon>
+          {{ tag.name }}
+        </v-chip>
+      </template>
+
+      <v-divider v-if="!mobile" vertical class="mx-1 filter-divider" />
 
       <SelectInput
         v-model="createdByFilter"
         :data="createdByFilterItems"
         label="Created by"
         hide-details
-        style="max-width: 160px; min-width: 130px"
+        class="filter-select filter-select--sm"
       />
 
       <SelectInput
@@ -116,7 +132,7 @@
         :data="dateFilterItems"
         label="Date"
         hide-details
-        style="max-width: 175px; min-width: 145px"
+        class="filter-select filter-select--date"
       />
 
       <v-btn
@@ -137,8 +153,7 @@
       v-if="selected.length"
       border
       elevation="0"
-      class="pa-3 mb-3"
-      style="background-color: #f0fdf4; border-color: #86efac;"
+      class="pa-3 mb-3 bulk-toolbar"
     >
       <div class="d-flex align-center justify-space-between flex-wrap gap-2">
         <div class="d-flex align-center gap-2">
@@ -150,10 +165,21 @@
         </div>
         <div class="d-flex align-center gap-2 flex-wrap">
           <template v-if="activeTab !== 'ended'">
-            <v-btn size="small" color="success" @click="bulkActivate">
-              <v-icon size="16" class="mr-1">mdi-play</v-icon>Activate
+            <v-btn
+              v-if="activeTab === 'draft' || activeTab === 'paused'"
+              size="small"
+              color="success"
+              @click="bulkActivate"
+            >
+              <v-icon size="16" class="mr-1">mdi-lightning-bolt-outline</v-icon>Activate
             </v-btn>
-            <v-btn size="small" variant="outlined" color="warning" @click="bulkPause">
+            <v-btn
+              v-if="activeTab !== 'draft'"
+              size="small"
+              variant="outlined"
+              color="warning"
+              @click="bulkPause"
+            >
               <v-icon size="16" class="mr-1">mdi-pause</v-icon>Pause
             </v-btn>
           </template>
@@ -175,7 +201,7 @@
     </v-alert>
 
     <!-- Ended tab banner -->
-    <v-alert v-if="activeTab === 'ended'" type="info" variant="tonal" density="compact" class="mb-3" icon="mdi-history">
+    <v-alert v-if="activeTab === 'ended'" color="grey" variant="tonal" density="compact" class="mb-3" icon="mdi-history">
       Rules whose end date has passed. These rules are no longer applied at checkout.
     </v-alert>
 
@@ -230,12 +256,29 @@
               <v-chip
                 v-for="tagId in item.tags"
                 :key="tagId"
-                :color="tagsStore.items.find(t => t.id === tagId)?.color"
                 size="x-small"
                 label
-                variant="flat"
+                variant="outlined"
               >
                 {{ tagsStore.items.find(t => t.id === tagId)?.name ?? tagId }}
+              </v-chip>
+            </template>
+            <span v-else class="text-caption text-medium-emphasis">—</span>
+          </div>
+        </template>
+
+        <template #item.internalTags="{ item }">
+          <div class="d-flex flex-wrap gap-1 py-1">
+            <template v-if="(item.internalTags ?? []).length">
+              <v-chip
+                v-for="tagId in item.internalTags"
+                :key="tagId"
+                color="success"
+                size="x-small"
+                label
+                variant="tonal"
+              >
+                {{ internalTagsStore.items.find(t => t.id === tagId)?.name ?? tagId }}
               </v-chip>
             </template>
             <span v-else class="text-caption text-medium-emphasis">—</span>
@@ -266,16 +309,23 @@
               <v-list-item prepend-icon="mdi-content-copy" title="Duplicate" @click="duplicateRule(item.id)" />
               <template v-if="item.status !== 'ended'">
                 <v-list-item
-                  v-if="item.status !== 'paused' && item.status !== 'draft'"
+                  v-if="item.status === 'active' || item.status === 'scheduled'"
                   prepend-icon="mdi-pause"
                   title="Pause"
                   @click="pauseRule(item.id)"
                 />
                 <v-list-item
-                  v-else
+                  v-else-if="item.status === 'paused'"
                   prepend-icon="mdi-play"
                   title="Resume"
                   @click="resumeRule(item.id)"
+                />
+                <v-list-item
+                  v-else-if="item.status === 'draft'"
+                  prepend-icon="mdi-lightning-bolt-outline"
+                  title="Activate"
+                  :disabled="!item.startDate || !item.endDate"
+                  @click="activateRule(item.id)"
                 />
                 <v-divider />
                 <v-list-item
@@ -321,6 +371,7 @@ import { useDisplay } from 'vuetify'
 import { usePromotionsStore } from '../../stores/promotions'
 import { useStackingGroupsStore } from '../../stores/stackingGroups'
 import { useTagsStore } from '../../stores/tags'
+import { useInternalTagsStore } from '../../stores/internalTags'
 import StatusBadge from '../shared/StatusBadge.vue'
 import ConfirmModal from '../_common/ConfirmModal.vue'
 import TextInput from '../_common/TextInput.vue'
@@ -330,12 +381,8 @@ import { detectConflicts } from '../../utils/ruleConflictDetector'
 import ConflictBadge from './ConflictBadge.vue'
 import CsvImportDialog from './CsvImportDialog.vue'
 import { downloadCSV, exportRulesToCSV } from '../../utils/csvRuleImportExport'
-import RulePriorityPreview from './RulePriorityPreview.vue'
-import { useSettingsStore } from '../../stores/settings'
-
 const router = useRouter()
 const store = usePromotionsStore()
-const settingsStore = useSettingsStore()
 
 function onRowClick(event, { item }) {
   // Skip navigation when clicking checkbox or the actions menu
@@ -344,6 +391,7 @@ function onRowClick(event, { item }) {
 }
 const sgStore = useStackingGroupsStore()
 const tagsStore = useTagsStore()
+const internalTagsStore = useInternalTagsStore()
 const { mobile } = useDisplay()
 
 const conflictsMap = computed(() => detectConflicts(store.items))
@@ -353,6 +401,7 @@ const activeTab = ref('active')
 const stackingGroupFilter = ref('all')
 const typeFilter = ref([])
 const tagFilter = ref([])
+const internalTagFilter = ref([])
 const createdByFilter = ref('')
 const dateFilter = ref('any')
 const deleteModal = ref(null)
@@ -439,14 +488,21 @@ function toggleTag(id) {
   else tagFilter.value.splice(idx, 1)
 }
 
+function toggleInternalTag(id) {
+  const idx = internalTagFilter.value.indexOf(id)
+  if (idx === -1) internalTagFilter.value.push(id)
+  else internalTagFilter.value.splice(idx, 1)
+}
+
 const hasActiveFilters = computed(() =>
-  typeFilter.value.length > 0 || tagFilter.value.length > 0 || createdByFilter.value !== '' || dateFilter.value !== 'any'
+  typeFilter.value.length > 0 || tagFilter.value.length > 0 || internalTagFilter.value.length > 0 || createdByFilter.value !== '' || dateFilter.value !== 'any'
 )
 
 const activeFilterCount = computed(() => {
   let n = 0
   if (typeFilter.value.length) n++
   if (tagFilter.value.length) n++
+  if (internalTagFilter.value.length) n++
   if (createdByFilter.value) n++
   if (dateFilter.value !== 'any') n++
   return n
@@ -455,6 +511,7 @@ const activeFilterCount = computed(() => {
 function clearFilters() {
   typeFilter.value = []
   tagFilter.value = []
+  internalTagFilter.value = []
   createdByFilter.value = ''
   dateFilter.value = 'any'
 }
@@ -466,6 +523,9 @@ function applyFilters(rules) {
   }
   if (tagFilter.value.length) {
     result = result.filter(r => tagFilter.value.every(tid => (r.tags ?? []).includes(tid)))
+  }
+  if (internalTagFilter.value.length) {
+    result = result.filter(r => internalTagFilter.value.every(tid => (r.internalTags ?? []).includes(tid)))
   }
   if (createdByFilter.value) {
     result = result.filter(r => r.createdBy === createdByFilter.value)
@@ -514,7 +574,8 @@ const headers = computed(() => [
   ...(mobile.value ? [] : [
     { title: 'Type', key: 'type' },
     { title: 'Created by', key: 'createdBy' },
-    { title: 'Tags', key: 'tags', sortable: false },
+    { title: 'Action Labels', key: 'tags', sortable: false },
+    { title: 'Internal Tags', key: 'internalTags', sortable: false },
     { title: 'Starts', key: 'startDate' },
     { title: 'Ends', key: 'endDate' },
   ]),
@@ -538,7 +599,7 @@ function fetchData() {
 
 watch(search, onSearch)
 onMounted(async () => {
-  await Promise.all([store.fetchAll(), sgStore.fetchAll(), tagsStore.fetchAll()])
+  await Promise.all([store.fetchAll(), sgStore.fetchAll(), tagsStore.fetchAll(), internalTagsStore.fetchAll()])
 })
 
 async function openDelete(item) {
@@ -556,6 +617,12 @@ async function pauseRule(id) {
 }
 async function resumeRule(id) {
   await store.updateStatus(id, 'active')
+}
+async function activateRule(id) {
+  const item = store.items.find(i => i.id === id)
+  const today = new Date().toISOString().split('T')[0]
+  const status = item?.startDate && item.startDate > today ? 'scheduled' : 'active'
+  await store.updateStatus(id, status)
 }
 async function duplicateRule(id) {
   await store.duplicate(id)
@@ -598,3 +665,99 @@ async function openBulkDelete() {
   bulkSnack.value = true
 }
 </script>
+
+<style scoped>
+.title-row {
+  gap: 12px;
+}
+
+.bulk-csv-wrapper {
+  position: relative;
+  padding-top: 10px;
+}
+
+.bulk-csv-badge {
+  position: absolute;
+  top: 0;
+  left: 12px;
+  z-index: 1;
+  pointer-events: none;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+}
+
+.bulk-csv-box {
+  border: 1.5px dashed rgba(245, 158, 11, 0.55);
+  border-radius: 8px;
+  padding: 10px 14px;
+  background: rgba(245, 158, 11, 0.04);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.bulk-csv-icon {
+  opacity: 0.75;
+}
+
+.bulk-csv-labels {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  margin-right: 2px;
+}
+
+.bulk-csv-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: #78350f;
+  line-height: 1.3;
+  white-space: nowrap;
+}
+
+.bulk-csv-subtitle {
+  font-size: 10px;
+  color: #92400e;
+  opacity: 0.7;
+  line-height: 1.3;
+  white-space: nowrap;
+}
+
+.bulk-csv-divider {
+  height: 28px;
+  opacity: 0.25;
+}
+
+.filter-divider {
+  align-self: stretch;
+  opacity: 0.3;
+}
+
+.search-input {
+  max-width: 480px;
+}
+
+.filter-select {
+  flex-shrink: 0;
+}
+
+.filter-select--md {
+  max-width: 200px;
+  min-width: 140px;
+}
+
+.filter-select--sm {
+  max-width: 160px;
+  min-width: 130px;
+}
+
+.filter-select--date {
+  max-width: 175px;
+  min-width: 145px;
+}
+
+.bulk-toolbar {
+  background-color: #f0fdf4;
+  border-color: #86efac;
+}
+</style>

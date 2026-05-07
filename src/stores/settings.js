@@ -20,12 +20,13 @@ export const useSettingsStore = defineStore('settings', () => {
   const giftOosMulti = ref(saved.giftOosMulti ?? 'remove')
   const prioritizationMode = ref(saved.prioritizationMode ?? 'manual')
   const excludedCategories = ref(saved.excludedCategories ?? [])
+  const excludedBrands = ref(saved.excludedBrands ?? [])
   const excludedSkus = ref(saved.excludedSkus ?? [])
-  const excludedProductTypes = ref(saved.excludedProductTypes ?? [])
+  const excludedProductLines = ref(saved.excludedProductLines ?? [])
   const cartDiscountCalculation = ref(saved.cartDiscountCalculation ?? 'per_item')
 
   watch(
-    [multiBuyFreePrice, giftFreePrice, giftOosMulti, prioritizationMode, excludedCategories, excludedSkus, excludedProductTypes, cartDiscountCalculation],
+    [multiBuyFreePrice, giftFreePrice, giftOosMulti, prioritizationMode, excludedCategories, excludedBrands, excludedSkus, excludedProductLines, cartDiscountCalculation],
     () => {
       localStorage.setItem(STORAGE_KEY, JSON.stringify({
         multiBuyFreePrice: multiBuyFreePrice.value,
@@ -33,8 +34,9 @@ export const useSettingsStore = defineStore('settings', () => {
         giftOosMulti: giftOosMulti.value,
         prioritizationMode: prioritizationMode.value,
         excludedCategories: excludedCategories.value,
+        excludedBrands: excludedBrands.value,
         excludedSkus: excludedSkus.value,
-        excludedProductTypes: excludedProductTypes.value,
+        excludedProductLines: excludedProductLines.value,
         cartDiscountCalculation: cartDiscountCalculation.value,
       }))
     },
@@ -47,10 +49,11 @@ export const useSettingsStore = defineStore('settings', () => {
     if (values.giftOosMulti !== undefined) giftOosMulti.value = values.giftOosMulti
     if (values.prioritizationMode !== undefined) prioritizationMode.value = values.prioritizationMode
     if (values.excludedCategories !== undefined) excludedCategories.value = values.excludedCategories
+    if (values.excludedBrands !== undefined) excludedBrands.value = values.excludedBrands
     if (values.excludedSkus !== undefined) excludedSkus.value = values.excludedSkus
-    if (values.excludedProductTypes !== undefined) excludedProductTypes.value = values.excludedProductTypes
+    if (values.excludedProductLines !== undefined) excludedProductLines.value = values.excludedProductLines
     if (values.cartDiscountCalculation !== undefined) cartDiscountCalculation.value = values.cartDiscountCalculation
   }
 
-  return { multiBuyFreePrice, giftFreePrice, giftOosMulti, prioritizationMode, excludedCategories, excludedSkus, excludedProductTypes, cartDiscountCalculation, save }
+  return { multiBuyFreePrice, giftFreePrice, giftOosMulti, prioritizationMode, excludedCategories, excludedBrands, excludedSkus, excludedProductLines, cartDiscountCalculation, save }
 })

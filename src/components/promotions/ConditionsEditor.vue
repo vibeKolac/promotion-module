@@ -1,46 +1,40 @@
 <!-- src/components/promotions/ConditionsEditor.vue -->
 <template>
   <div>
-    <!-- Toolbar -->
-    <div class="d-flex align-center flex-wrap gap-2 mb-4">
-      <span class="text-body-1 font-weight-bold flex-grow-1">{{ title }}</span>
-      <v-btn prepend-icon="mdi-download-outline" variant="text" size="small" class="text-uppercase" @click="downloadConditionsTemplate()">
-        Template
-      </v-btn>
-      <v-btn prepend-icon="mdi-upload" variant="outlined" size="small" class="text-uppercase" @click="csvImportOpen = true">
+    <!-- Header -->
+    <div class="d-flex align-center mb-1">
+      <span class="text-body-1 font-weight-bold">{{ title }}</span>
+      <v-spacer />
+      <v-btn prepend-icon="mdi-upload" variant="text" size="small" @click="csvImportOpen = true">
         Import CSV
+        <v-chip size="x-small" color="warning" variant="tonal" label class="ml-2">Exploring</v-chip>
       </v-btn>
-      <v-btn v-if="showPreset" prepend-icon="mdi-filter-variant" variant="outlined" size="small" class="text-uppercase" @click="presetPickerOpen = true">
-        Use preset
-      </v-btn>
-      <v-btn prepend-icon="mdi-layers-plus" variant="outlined" size="small" class="text-uppercase" @click="openAddGroup">
-        Add group
-      </v-btn>
-      <v-btn prepend-icon="mdi-plus" variant="outlined" color="primary" size="small" class="text-uppercase" @click="openAdd">
-        Add condition
+      <v-btn v-if="showPreset" prepend-icon="mdi-filter-variant" variant="text" size="small" @click="presetPickerOpen = true">
+        Preset
+        <v-chip size="x-small" color="warning" variant="tonal" label class="ml-2">Exploring</v-chip>
       </v-btn>
     </div>
+    <div class="text-caption text-medium-emphasis mb-4">
+      Add conditions or groups. Click the chips between rows to switch between AND and OR.
+    </div>
 
-    <!-- Conditions list with AND / OR toggles -->
-    <div v-if="modelValue.length" class="conditions-list mb-2">
-      <div v-for="(cond, idx) in modelValue" :key="cond.id" class="condition-row">
-        <!-- Operator column -->
-        <div class="condition-op">
+    <!-- Conditions list -->
+    <div v-if="modelValue.length" class="mb-4">
+      <template v-for="(cond, idx) in modelValue" :key="cond.id">
+
+        <!-- AND / OR toggle between rows -->
+        <div v-if="idx > 0" class="d-flex justify-center my-3">
           <v-chip
-            v-if="idx > 0"
-            size="x-small"
-            :color="cond.logicalOp === 'OR' ? 'warning' : 'primary'"
-            variant="tonal"
-            label
-            style="cursor: pointer; min-width: 38px; justify-content: center; user-select: none; font-weight: 600"
-            title="Click to toggle AND / OR"
+            size="default"
+            variant="outlined"
+            class="logic-op-chip"
             @click="toggleOp(idx)"
           >
             {{ cond.logicalOp === 'OR' ? 'OR' : 'AND' }}
           </v-chip>
         </div>
 
-        <!-- Group or leaf -->
+        <!-- Group row (unchanged) -->
         <ConditionGroupRow
           v-if="cond.type === 'group'"
           :group="cond"
@@ -48,67 +42,307 @@
           @update:group="onGroupUpdate(idx, $event)"
           @remove="remove(idx)"
         />
-        <ConditionChip
-          v-else
-          :condition="cond"
-          :scope="scope"
-          @edit="openEdit(idx)"
-          @remove="remove(idx)"
-        />
-      </div>
+
+        <!-- Leaf condition: inline row -->
+        <div v-else>
+          <!-- Column labels -->
+          <div class="condition-cols mb-1">
+            <span class="text-caption text-medium-emphasis">Condition Type</span>
+            <span class="text-caption text-medium-emphasis">Operator</span>
+            <span class="text-caption text-medium-emphasis">Value</span>
+            <span />
+          </div>
+          <!-- Inputs -->
+          <div class="condition-cols">
+            <!-- Type -->
+            <v-autocomplete
+              :model-value="cond.field"
+              :items="typeSelectItems"
+              variant="outlined"
+              density="compact"
+              hide-details
+              placeholder="Select type"
+              auto-select-first
+              @update:model-value="onFieldChange(idx, $event)"
+            />
+            <!-- Operator -->
+            <v-select
+              :model-value="getUiOperator(cond)"
+              :items="getOperatorItems(cond)"
+              variant="outlined"
+              density="compact"
+              hide-details
+              :disabled="!cond.field"
+              @update:model-value="onOperatorChange(idx, $event)"
+            />
+            <!-- Value — quantifiable: number input -->
+            <v-text-field
+              v-if="isQuantifiable(cond)"
+              :model-value="cond.values?.[0] ?? ''"
+              variant="outlined"
+              density="compact"
+              hide-details
+              type="number"
+              placeholder="Enter value"
+              :suffix="getValueSuffix(cond)"
+              @update:model-value="onValueChange(idx, $event)"
+            />
+            <!-- Value — SKU: product autocomplete -->
+            <v-autocomplete
+              v-else-if="isSkuField(cond)"
+              :model-value="cond.values ?? []"
+              :items="drMaxProducts"
+              item-value="sku"
+              :item-title="p => p.name"
+              variant="outlined"
+              density="compact"
+              hide-details
+              placeholder="Search by name or SKU…"
+              clearable
+              multiple
+              :custom-filter="skuFilter"
+              @update:model-value="onValueChange(idx, $event)"
+            >
+              <template #item="{ item, props: itemProps }">
+                <v-list-item v-bind="itemProps" :title="undefined" :disabled="item.raw.stock === 0 || isSkuExcluded(item.raw.sku)">
+                  <template #prepend>
+                    <v-img :src="item.raw.image" width="32" height="32" cover class="rounded mr-2 flex-shrink-0 sku-thumb" />
+                  </template>
+                  <v-list-item-title class="text-body-2">{{ item.raw.name }}</v-list-item-title>
+                  <v-list-item-subtitle class="text-caption text-medium-emphasis">{{ item.raw.sku }}</v-list-item-subtitle>
+                  <template #append>
+                    <v-chip v-if="isSkuExcluded(item.raw.sku)" size="x-small" color="error" variant="tonal" label>Not allowed</v-chip>
+                    <v-chip v-else size="x-small" :color="item.raw.stock === 0 ? 'error' : 'success'" variant="tonal" label>
+                      {{ item.raw.stock === 0 ? 'Out of stock' : `${item.raw.stock} in stock` }}
+                    </v-chip>
+                  </template>
+                </v-list-item>
+              </template>
+              <template #selection="{ item }">
+                <v-chip size="small" label class="mr-1">{{ item.raw.sku }}</v-chip>
+              </template>
+            </v-autocomplete>
+            <!-- Value — list type: searchable autocomplete -->
+            <v-autocomplete
+              v-else-if="hasOptions(cond)"
+              :model-value="cond.values ?? []"
+              :items="getOptions(cond)"
+              variant="outlined"
+              density="compact"
+              hide-details
+              placeholder="Search or select…"
+              clearable
+              multiple
+              :disabled="!cond.field"
+              @update:model-value="onValueChange(idx, $event)"
+            >
+              <template #item="{ item, props: itemProps }">
+                <v-list-item v-bind="itemProps" :disabled="item.raw.disabled">
+                  <template v-if="item.raw.disabled" #append>
+                    <v-chip size="x-small" color="error" variant="tonal" label>Not allowed</v-chip>
+                  </template>
+                </v-list-item>
+              </template>
+            </v-autocomplete>
+            <!-- Value — free text -->
+            <v-text-field
+              v-else-if="cond.field && !isBoolean(cond)"
+              :model-value="cond.values?.[0] ?? ''"
+              variant="outlined"
+              density="compact"
+              hide-details
+              placeholder="Enter value"
+              @update:model-value="onValueChange(idx, $event)"
+            />
+            <!-- Value — boolean: handled by operator -->
+            <span v-else />
+            <!-- Delete -->
+            <v-btn
+              icon="mdi-delete-outline"
+              variant="text"
+              color="error"
+              size="default"
+              @click="remove(idx)"
+            />
+          </div>
+        </div>
+
+      </template>
     </div>
 
-    <v-alert v-else type="info" variant="tonal" density="compact" icon="mdi-information">
+    <!-- Empty state -->
+    <v-alert v-else color="grey" variant="tonal" density="compact" icon="mdi-information" class="mb-4">
       <slot name="empty">No conditions set.</slot>
     </v-alert>
 
-    <!-- Dialogs (owned here so both consumers get them for free) -->
-    <ConditionBuilderDialog
-      v-model="builderOpen"
-      :initial-condition="editingCondition"
-      :scope="scope"
-      @save="onBuilderSave"
-    />
+    <!-- Actions -->
+    <div class="condition-actions">
+      <v-btn prepend-icon="mdi-plus" variant="outlined" size="default" @click="addConditionInline">
+        Add condition
+      </v-btn>
+      <v-btn prepend-icon="mdi-table-plus" variant="outlined" size="default" @click="openAddGroup">
+        Add group
+      </v-btn>
+    </div>
 
-    <ConditionCsvImportDialog
-      v-model="csvImportOpen"
-      @import="onCsvImport"
-    />
-
-    <ConditionPresetPickerDialog
-      v-if="showPreset"
-      v-model="presetPickerOpen"
-      @apply="onPresetApply"
-    />
+    <!-- Dialogs -->
+    <ConditionCsvImportDialog v-model="csvImportOpen" @import="onCsvImport" />
+    <ConditionPresetPickerDialog v-if="showPreset" v-model="presetPickerOpen" @apply="onPresetApply" />
   </div>
 </template>
 
 <script setup>
 import { ref } from 'vue'
 import { v4 as uuid } from 'uuid'
-import ConditionChip from './ConditionChip.vue'
 import ConditionGroupRow from './ConditionGroupRow.vue'
-import ConditionBuilderDialog from './ConditionBuilderDialog.vue'
 import ConditionCsvImportDialog from './ConditionCsvImportDialog.vue'
 import ConditionPresetPickerDialog from './ConditionPresetPickerDialog.vue'
 import { downloadConditionsTemplate } from '../../utils/csvRuleImportExport'
+import { drMaxProducts } from '../../mock/seed.js'
+import { useSettingsStore } from '../../stores/settings'
 
+const settingsStore = useSettingsStore()
+
+// ── Type definitions (mirrored from ConditionBuilderDialog) ───────────────────
+const CONDITION_TYPES = [
+  { value: 'categories',      title: 'Categories',      supportsMode: true,  quantifiable: false },
+  { value: 'brands',          title: 'Brands',          supportsMode: true,  quantifiable: false },
+  { value: 'skus',            title: 'SKUs',            supportsMode: true,  quantifiable: false },
+  { value: 'product_lines',   title: 'Product lines',   supportsMode: true,  quantifiable: false },
+  { value: 'subtotal',        title: 'Subtotal',        supportsMode: false, quantifiable: true  },
+  { value: 'quantity',        title: 'Quantity',        supportsMode: false, quantifiable: true  },
+  { value: 'weight',          title: 'Weight',          supportsMode: false, quantifiable: true  },
+  { value: 'customer_group',  title: 'Customer group',  supportsMode: true,  quantifiable: false },
+  { value: 'coupon_code',     title: 'Coupon code',     supportsMode: false, quantifiable: false },
+  { value: 'exclude_on_sale', title: 'Exclude on sale', supportsMode: false, quantifiable: false, boolean: true },
+  { value: 'pim_status',      title: 'PIM status',      supportsMode: true,  quantifiable: false },
+  { value: 'attribute_set',   title: 'Attribute set',   supportsMode: true,  quantifiable: false },
+  { value: 'warehouse_type',  title: 'Warehouse type',  supportsMode: true,  quantifiable: false },
+  { value: 'seller',          title: 'Seller',          supportsMode: true,  quantifiable: false },
+]
+
+const TYPE_OPTIONS = {
+  categories: ['Vitamins & Supplements','OTC Medications','Dermocosmetology','Face Care','Body Care','Hair Care','Dental Care','Baby & Child Care','Diapers & Wipes','Medical Devices','Weight Loss & Diet','Sport & Fitness','Sexual Health & Contraception','Testing & Diagnostics','Eye Care','Foot Care','Sun Protection','Wound Care','Homeopathy & Herbs','For Seniors','Allergy & Immunity','Pain Relief','Cold & Flu','Digestive Health','Sleep & Relaxation'],
+  brands: ['Vichy','La Roche-Posay','Eucerin','Bioderma','Avène','Uriage','SVR','Ducray','Lierac','CeraVe','Nuxe','Caudalie','Mustela','Weleda','Nivea','Garnier',"L'Oréal Paris",'Neutrogena','Dove','Palmolive','Sensodyne','Elmex','Colgate','Parodontax','Nurofen','Panadol','Paralen','Ibalgin','Strepsils','Septolete','Imodium','Rennie','Espumisan','Centrum','Walmark','GS','Cemio','Jamieson','Pampers','Huggies','Chicco','Canpol','Omron','Microlife','Beurer','Head & Shoulders','Pantene','Syoss','Purity Vision','Aromatica','Alevia','Hofigal','Fares','Dacia Plant','Aboca','Apteo','Dr. Max'],
+  product_lines: ['Dr. Max Basic','Dr. Max Premium','Dr. Max Baby','Dr. Max Dermo','Dr. Max Vitamins','Dr. Max Ortho','Vichy Liftactiv','Vichy Mineral 89','La Roche-Posay Effaclar','La Roche-Posay Toleriane','Eucerin Hyaluron-Filler','Eucerin DermoPure','Bioderma Sensibio','Bioderma Sebium','Avène Tolerance','Nuxe Huile Prodigieuse'],
+  customer_group: ['Club Basic','Club Silver','Club Gold','Club Platinum','Healthcare Professional','Employee','Guest'],
+  pim_status: ['Active','Draft','Archived','Pending Approval','Blocked'],
+  attribute_set: ['OTC Medicine','Prescription Medicine','Cosmetics','Medical Device','Supplement','Baby Product','Food Supplement','Veterinary'],
+  warehouse_type: ['Central Warehouse','Pharmacy Dispatch','Dropship Supplier','Express Courier','Cold Chain'],
+  seller: ['Dr. Max CZ','Dr. Max SK','Dr. Max PL','Dr. Max RO','Dr. Max IT','Third-party Seller'],
+}
+
+// ── Props / emits ─────────────────────────────────────────────────────────────
 const props = defineProps({
   modelValue: { type: Array, default: () => [] },
-  scope: { type: String, default: 'cart' },
+  scope:      { type: String, default: 'cart' },
   showPreset: { type: Boolean, default: true },
-  title: { type: String, default: 'Conditions' },
+  title:      { type: String, default: 'Condition Builder' },
 })
 const emit = defineEmits(['update:modelValue'])
 
 // ── Dialog state ──────────────────────────────────────────────────────────────
-const builderOpen = ref(false)
 const csvImportOpen = ref(false)
 const presetPickerOpen = ref(false)
-const editingCondition = ref(null)
-const editingIdx = ref(null)
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
+// ── Type helpers ──────────────────────────────────────────────────────────────
+const CONDITION_GROUPS = [
+  { label: 'Threshold',         color: 'blue',   fields: ['subtotal','quantity','weight'] },
+  { label: 'Product & Catalog', color: 'green',  fields: ['categories','brands','skus','product_lines','exclude_on_sale'] },
+  { label: 'Customer',          color: 'orange', fields: ['customer_group','coupon_code'] },
+  { label: 'Advanced',          color: 'purple', fields: ['pim_status','attribute_set','warehouse_type','seller'] },
+]
+
+const typeSelectItems = CONDITION_GROUPS.flatMap(g => [
+  { type: 'subheader', title: g.label },
+  ...g.fields.map(f => {
+    const t = CONDITION_TYPES.find(ct => ct.value === f)
+    return { title: t.title, value: t.value }
+  }),
+])
+
+function getTypeDef(field) {
+  return CONDITION_TYPES.find(t => t.value === field)
+}
+
+function isQuantifiable(cond) {
+  return !!getTypeDef(cond.field)?.quantifiable
+}
+
+function isBoolean(cond) {
+  return !!getTypeDef(cond.field)?.boolean
+}
+
+function isSkuField(cond) {
+  return cond.field === 'skus'
+}
+
+function getValueSuffix(cond) {
+  if (cond.field === 'weight') return 'g'
+  return undefined
+}
+
+function hasOptions(cond) {
+  return !!(cond.field && TYPE_OPTIONS[cond.field])
+}
+
+function skuFilter(value, query, item) {
+  const q = query.toLowerCase()
+  return item.raw.name.toLowerCase().includes(q) || item.raw.sku.includes(q)
+}
+
+function getExcludedForField(field) {
+  if (field === 'categories') return settingsStore.excludedCategories
+  if (field === 'brands') return settingsStore.excludedBrands
+  if (field === 'product_lines') return settingsStore.excludedProductLines
+  return []
+}
+
+function getOptions(cond) {
+  const excluded = getExcludedForField(cond.field)
+  return (TYPE_OPTIONS[cond.field] ?? []).map(v => ({
+    title: v,
+    value: v,
+    disabled: excluded.includes(v),
+  }))
+}
+
+function isSkuExcluded(sku) {
+  return settingsStore.excludedSkus.includes(sku)
+}
+
+function getUiOperator(cond) {
+  const typeDef = cond.field ? getTypeDef(cond.field) : null
+  if (!typeDef) return null
+  if (typeDef.boolean) return cond.values?.[0] === 'true' ? 'is_true' : 'is_false'
+  if (typeDef.quantifiable) return cond.operator ?? '>='
+  return cond.mode === 'exclude' ? 'is_not' : 'is'
+}
+
+function getOperatorItems(cond) {
+  const typeDef = cond.field ? getTypeDef(cond.field) : null
+  if (!typeDef) return []
+  if (typeDef.boolean) return [
+    { title: 'is true',  value: 'is_true'  },
+    { title: 'is false', value: 'is_false' },
+  ]
+  if (typeDef.quantifiable) return [
+    { title: 'at least', value: '>=' },
+    { title: 'above',    value: '>'  },
+    { title: 'at most',  value: '<=' },
+    { title: 'below',    value: '<'  },
+  ]
+  return [
+    { title: 'include', value: 'is'     },
+    { title: 'exclude', value: 'is_not' },
+  ]
+}
+
+// ── Emit helper ───────────────────────────────────────────────────────────────
+function emit_(conditions) {
+  emit('update:modelValue', conditions)
+}
+
 function withDefaultOp(conditions, isFirst) {
   return conditions.map((c, i) => ({
     ...c,
@@ -117,26 +351,42 @@ function withDefaultOp(conditions, isFirst) {
   }))
 }
 
-function emit_(conditions) {
-  emit('update:modelValue', conditions)
-}
-
-// ── Actions ───────────────────────────────────────────────────────────────────
-function openAdd() {
-  editingCondition.value = null
-  editingIdx.value = null
-  builderOpen.value = true
+// ── Add / remove ──────────────────────────────────────────────────────────────
+function addConditionInline() {
+  const isFirst = props.modelValue.length === 0
+  emit_([...props.modelValue, {
+    id: uuid(),
+    field: null,
+    mode: 'include',
+    values: [],
+    operator: undefined,
+    logicalOp: isFirst ? undefined : 'AND',
+  }])
 }
 
 function openAddGroup() {
   const isFirst = props.modelValue.length === 0
-  const newGroup = {
+  emit_([...props.modelValue, {
     id: uuid(),
     type: 'group',
     conditions: [],
     logicalOp: isFirst ? undefined : 'AND',
+  }])
+}
+
+function remove(idx) {
+  const next = [...props.modelValue]
+  next.splice(idx, 1)
+  if (idx === 0 && next.length > 0) {
+    next[0] = { ...next[0], logicalOp: undefined }
   }
-  emit_([...props.modelValue, newGroup])
+  emit_(next)
+}
+
+function toggleOp(idx) {
+  emit_(props.modelValue.map((c, i) =>
+    i === idx ? { ...c, logicalOp: c.logicalOp === 'OR' ? 'AND' : 'OR' } : c
+  ))
 }
 
 function onGroupUpdate(idx, updatedGroup) {
@@ -145,41 +395,43 @@ function onGroupUpdate(idx, updatedGroup) {
   emit_(next)
 }
 
-function openEdit(idx) {
-  editingCondition.value = { ...props.modelValue[idx] }
-  editingIdx.value = idx
-  builderOpen.value = true
-}
-
-function remove(idx) {
+// ── Inline field updates ──────────────────────────────────────────────────────
+function onFieldChange(idx, newField) {
+  const typeDef = getTypeDef(newField)
   const next = [...props.modelValue]
-  next.splice(idx, 1)
-  // If we removed the old first item, the new first item loses its logicalOp
-  if (idx === 0 && next.length > 0) {
-    next[0] = { ...next[0], logicalOp: undefined }
+  next[idx] = {
+    ...next[idx],
+    field: newField,
+    mode: 'include',
+    values: [],
+    operator: typeDef?.quantifiable ? '>=' : undefined,
   }
   emit_(next)
 }
 
-function toggleOp(idx) {
-  const next = props.modelValue.map((c, i) =>
-    i === idx ? { ...c, logicalOp: c.logicalOp === 'OR' ? 'AND' : 'OR' } : c
-  )
+function onOperatorChange(idx, uiOp) {
+  const next = [...props.modelValue]
+  const cond = { ...next[idx] }
+  if (uiOp === 'is')       { cond.mode = 'include'; delete cond.operator }
+  else if (uiOp === 'is_not')  { cond.mode = 'exclude'; delete cond.operator }
+  else if (uiOp === 'is_true')  { cond.values = ['true'] }
+  else if (uiOp === 'is_false') { cond.values = ['false'] }
+  else { cond.operator = uiOp }
+  next[idx] = cond
   emit_(next)
 }
 
-function onBuilderSave(conditions) {
-  const isFirst = props.modelValue.length === 0
-  if (editingIdx.value !== null) {
-    const next = [...props.modelValue]
-    next[editingIdx.value] = { ...conditions[0], logicalOp: next[editingIdx.value].logicalOp }
-    emit_(next)
+function onValueChange(idx, val) {
+  const next = [...props.modelValue]
+  if (Array.isArray(val)) {
+    next[idx] = { ...next[idx], values: val }
   } else {
-    const stamped = withDefaultOp(conditions, isFirst)
-    emit_([...props.modelValue, ...stamped])
+    next[idx] = { ...next[idx], values: val !== null && val !== undefined && val !== '' ? [String(val)] : [] }
   }
+  emit_(next)
 }
 
+// ── CSV / preset ──────────────────────────────────────────────────────────────
 function onCsvImport(conditions) {
   const isFirst = props.modelValue.length === 0
   const stamped = withDefaultOp(conditions.map(c => ({ ...c, id: uuid() })), isFirst)
@@ -198,21 +450,21 @@ function onPresetApply({ conditions, mode }) {
 </script>
 
 <style scoped>
-.conditions-list {
+.condition-actions {
   display: flex;
-  flex-direction: column;
-  gap: 6px;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 20px;
 }
-.condition-row {
-  display: flex;
-  align-items: flex-start;
-  padding-top: 2px;
+
+.condition-cols {
+  display: grid;
+  grid-template-columns: minmax(130px, 1.2fr) minmax(100px, 0.8fr) minmax(160px, 2fr) 36px;
   gap: 8px;
+  align-items: center;
 }
-.condition-op {
-  width: 44px;
-  flex-shrink: 0;
-  display: flex;
-  justify-content: flex-end;
+
+.sku-thumb {
+  border: 1px solid rgba(0, 0, 0, 0.08);
 }
 </style>

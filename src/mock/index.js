@@ -6,7 +6,7 @@
 import MockAdapter from 'axios-mock-adapter'
 import axios from 'axios'
 import { v4 as uuid } from 'uuid'
-import { promotions as seedPromotions, stackingGroups as seedGroups, templates as seedTemplates, tags as seedTags, promotionOrders as seedOrders } from './seed.js'
+import { promotions as seedPromotions, stackingGroups as seedGroups, templates as seedTemplates, tags as seedTags, internalTags as seedInternalTags, promotionOrders as seedOrders } from './seed.js'
 
 // Mutable in-memory copies — survive the session, reset on hard reload
 const db = {
@@ -14,6 +14,7 @@ const db = {
   stackingGroups: structuredClone(seedGroups),
   templates: structuredClone(seedTemplates),
   tags: structuredClone(seedTags),
+  internalTags: structuredClone(seedInternalTags),
   promotionOrders: structuredClone(seedOrders),
 }
 
@@ -148,6 +149,32 @@ export function installMock() {
     db.tags = db.tags.filter(t => t.id !== id)
     // Remove tag from all promotions
     db.promotions.forEach(p => { p.tags = (p.tags ?? []).filter(t => t !== id) })
+    return [204]
+  })
+
+  // ── Internal Tags ───────────────────────────────────────────────────────────
+
+  mock.onGet('/api/internal-tags').reply(() => [200, db.internalTags])
+
+  mock.onPost('/api/internal-tags').reply(config => {
+    const body = JSON.parse(config.data)
+    const item = { id: uuid(), ...body }
+    db.internalTags.push(item)
+    return [201, item]
+  })
+
+  mock.onPut(/\/api\/internal-tags\/(.+)/).reply(config => {
+    const id = config.url.split('/').pop()
+    const idx = db.internalTags.findIndex(t => t.id === id)
+    if (idx === -1) return [404, { error: 'Not found' }]
+    db.internalTags[idx] = { ...db.internalTags[idx], ...JSON.parse(config.data) }
+    return [200, db.internalTags[idx]]
+  })
+
+  mock.onDelete(/\/api\/internal-tags\/(.+)/).reply(config => {
+    const id = config.url.split('/').pop()
+    db.internalTags = db.internalTags.filter(t => t.id !== id)
+    db.promotions.forEach(p => { p.internalTags = (p.internalTags ?? []).filter(t => t !== id) })
     return [204]
   })
 

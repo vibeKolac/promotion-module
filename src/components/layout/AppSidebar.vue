@@ -14,9 +14,9 @@
         Promotions
       </v-list-subheader>
 
-      <template v-for="item in navItems" :key="item.to ?? item.title">
+      <template v-for="item in coreNavItems" :key="item.to ?? item.title">
         <v-list-item
-          v-if="!item.autoDisabled && !item.exploring"
+          v-if="!item.autoDisabled"
           :to="item.to"
           :prepend-icon="item.icon"
           :title="item.title"
@@ -25,7 +25,7 @@
           @click="mobile && $emit('update:modelValue', false)"
         />
         <v-list-item
-          v-else-if="item.autoDisabled"
+          v-else
           :prepend-icon="item.icon"
           :title="item.title"
           rounded="sm"
@@ -35,20 +35,23 @@
             <v-chip size="x-small" color="default" variant="tonal" label>Auto</v-chip>
           </template>
         </v-list-item>
-        <v-list-item
-          v-else-if="item.exploring"
-          :to="item.to"
-          :prepend-icon="item.icon"
-          :title="item.title"
-          rounded="sm"
-          active-color="primary"
-          @click="mobile && $emit('update:modelValue', false)"
-        >
-          <template #append>
-            <v-chip size="x-small" color="warning" variant="tonal" label>Exploring</v-chip>
-          </template>
-        </v-list-item>
       </template>
+
+      <v-divider class="my-2" />
+      <v-list-subheader class="text-uppercase text-caption font-weight-bold text-warning">
+        Exploring
+      </v-list-subheader>
+
+      <v-list-item
+        v-for="item in exploringNavItems"
+        :key="item.to"
+        :to="item.to"
+        :prepend-icon="item.icon"
+        :title="item.title"
+        rounded="sm"
+        active-color="primary"
+        @click="mobile && $emit('update:modelValue', false)"
+      />
 
       <v-divider class="my-2" />
       <v-list-subheader class="text-uppercase text-caption font-weight-bold">
@@ -80,17 +83,19 @@ defineEmits(['update:modelValue'])
 const { mobile } = useDisplay()
 const settings = useSettingsStore()
 
-const navItems = computed(() => [
+const coreNavItems = computed(() => [
   { to: '/promotions', icon: 'mdi-tag-multiple', title: 'Promotion Rules' },
-  { to: '/promotions/reporting', icon: 'mdi-chart-bar', title: 'Reporting' },
   { to: '/stacking-groups', icon: 'mdi-layers', title: 'Priority & grouping', autoDisabled: settings.prioritizationMode === 'automatic' },
   { to: '/templates-presets', icon: 'mdi-file-document-outline', title: 'Templates & Presets' },
-  { to: '/tags', icon: 'mdi-label-outline', title: 'Tags' },
-  { to: '/promotion-planner', icon: 'mdi-creation', title: 'Promotion Planner', exploring: true },
-  { to: '/free-shipping', icon: 'mdi-truck-fast-outline', title: 'Free Shipping', exploring: true },
-  { to: '/bundles', icon: 'mdi-package-variant-closed', title: 'Bundles', exploring: true },
-  { to: '/coupons', icon: 'mdi-ticket-percent-outline', title: 'Coupons', exploring: true },
 ])
+
+const exploringNavItems = [
+  { to: '/promotions/reporting', icon: 'mdi-chart-bar', title: 'Reporting' },
+  { to: '/free-shipping', icon: 'mdi-truck-fast-outline', title: 'Free Shipping' },
+  { to: '/bundles', icon: 'mdi-package-variant-closed', title: 'Bundles' },
+  { to: '/coupons', icon: 'mdi-ticket-percent-outline', title: 'Coupons' },
+  { to: '/promotion-planner', icon: 'mdi-creation', title: 'Promotion Planner' },
+]
 
 const settingsItems = [
   { to: '/settings/general', icon: 'mdi-cog-outline', title: 'General' },

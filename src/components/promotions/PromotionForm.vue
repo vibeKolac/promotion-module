@@ -1,32 +1,37 @@
 <!-- src/components/promotions/PromotionForm.vue -->
 <template>
-  <v-container fluid class="pa-3 pa-sm-6">
+  <v-container fluid class="pa-4 pa-sm-8 form-container">
     <!-- Breadcrumb -->
     <v-breadcrumbs :items="breadcrumbs" density="compact" class="pa-0 mb-2" />
 
     <!-- Title + actions -->
-    <div class="d-flex align-center flex-wrap mb-5 gap-3">
+    <div ref="titleActionsRef" class="d-flex align-center flex-wrap mb-6 gap-3">
       <h1 class="text-h5 font-weight-bold">
         {{ isTemplateEdit ? 'Edit template' : (isEdit ? 'Edit promotion rule' : 'New promotion rule') }}
       </h1>
       <v-spacer />
-      <v-btn variant="outlined" :to="isTemplateEdit ? '/templates' : '/promotions'" class="text-uppercase">Discard</v-btn>
+      <v-btn variant="outlined" class="text-uppercase" @click="openDiscardDialog">Discard</v-btn>
       <template v-if="isTemplateEdit">
-        <v-btn color="primary" class="text-uppercase ml-4" size="small" :loading="saving" @click="save">Save template</v-btn>
+        <v-btn color="primary" class="text-uppercase ml-4" size="small" :loading="saving" @click="openSaveConfirm('template')">Save template</v-btn>
       </template>
       <template v-else>
-      <v-btn-group color="primary" divided size="small" class="ml-4">
-        <v-btn class="text-uppercase" :loading="saving" data-testid="save-btn" @click="save">Save rule</v-btn>
-        <v-menu location="bottom end">
-          <template #activator="{ props: menuProps }">
-            <v-btn v-bind="menuProps" icon="mdi-chevron-down" :loading="saving" />
-          </template>
-          <v-list density="compact" min-width="220">
-            <v-list-item prepend-icon="mdi-content-save-outline" title="Save rule" @click="save" />
-            <v-list-item prepend-icon="mdi-file-document-plus-outline" title="Save and create template" @click="openSaveAsTemplate" />
-          </v-list>
-        </v-menu>
-      </v-btn-group>
+        <v-btn-group color="primary" divided size="small" class="ml-4">
+          <v-btn class="text-uppercase" :loading="saving" data-testid="save-btn" @click="openSaveConfirm('draft')">Save as draft</v-btn>
+          <v-menu location="bottom end">
+            <template #activator="{ props: menuProps }">
+              <v-btn v-bind="menuProps" icon="mdi-chevron-down" :loading="saving" />
+            </template>
+            <v-list density="compact" min-width="220">
+              <v-list-item
+                :prepend-icon="isFutureDate(draft.startDate) ? 'mdi-calendar-clock' : 'mdi-lightning-bolt-outline'"
+                :title="dynamicActivateLabel"
+                :disabled="!draft.startDate"
+                @click="openSaveConfirm('activate')"
+              />
+              <v-list-item prepend-icon="mdi-file-document-plus-outline" title="Save and create template" @click="openSaveConfirm('template_from_rule')" />
+            </v-list>
+          </v-menu>
+        </v-btn-group>
       </template>
     </div>
 
@@ -38,10 +43,29 @@
       <SelectInput v-model="tplCategory" :data="templateCategoryItems" label="Category" />
     </v-card>
 
-    <!-- Two-column grid -->
-    <v-row class="mb-4">
-      <!-- Left: Basic info -->
-      <v-col cols="12" md="7">
+    <v-row justify="center" class="mb-4">
+      <v-col cols="12" md="8">
+        <v-alert
+          v-if="!stickyBarVisible && ruleDescriptionSegments"
+          border="start"
+          color="grey"
+          variant="tonal"
+          density="compact"
+          icon="mdi-text-box-check-outline"
+          class="text-caption mb-6"
+        >
+          <template v-for="(seg, i) in ruleDescriptionSegments" :key="i">
+            <span v-if="seg.type === 'text'">{{ seg.text }}</span>
+            <v-chip
+              v-else
+              size="x-small"
+              variant="tonal"
+              color="primary"
+              class="mx-1 overflow-chip"
+              @click="openOverflow(seg)"
+            >or {{ seg.count }} more</v-chip>
+          </template>
+        </v-alert>
         <v-card border elevation="0" class="pa-5">
           <div class="text-body-1 font-weight-bold mb-4">Basic information</div>
 
@@ -51,6 +75,49 @@
             :error-messages="validationErrors.name ? [validationErrors.name] : []"
             class="mb-3"
           />
+
+          <v-textarea
+            v-model="draft.description"
+            label="Internal Description"
+            variant="outlined"
+            density="compact"
+            rows="2"
+            auto-grow
+            hint="What the promotion does (for internal use only)"
+            persistent-hint
+            class="mb-3"
+          />
+
+          <v-autocomplete
+            :model-value="draft.internalTags"
+            :items="internalTagsStore.items"
+            :loading="internalTagsStore.loading || creatingInternalTag"
+            item-title="name"
+            item-value="id"
+            multiple
+            chips
+            closable-chips
+            chip-color="success"
+            variant="outlined"
+            density="compact"
+            label="Internal tags"
+            placeholder="Select or create tags…"
+            hide-details
+            no-data-text="Type a name to create a new tag"
+            v-model:search="newInternalTagName"
+            class="mb-3"
+            @update:model-value="draft.internalTags = $event"
+          >
+            <template #prepend-item>
+              <v-list-item
+                v-if="newInternalTagName.trim() && !internalTagExists"
+                prepend-icon="mdi-plus-circle-outline"
+                :title="`Create '${newInternalTagName.trim()}'`"
+                color="primary"
+                @click="createInternalTag"
+              />
+            </template>
+          </v-autocomplete>
 
           <v-row dense>
             <v-col cols="6">
@@ -62,6 +129,7 @@
                 prepend-inner-icon="mdi-calendar"
                 prepend-icon=""
                 clearable
+                :min="todayIso"
                 @update:model-value="draft.startDate = toIsoDate($event)"
               />
             </v-col>
@@ -74,6 +142,7 @@
                 prepend-inner-icon="mdi-calendar"
                 prepend-icon=""
                 clearable
+                :min="todayIso"
                 @update:model-value="draft.endDate = toIsoDate($event)"
               />
             </v-col>
@@ -83,12 +152,16 @@
           <div class="mt-3">
             <v-checkbox
               v-model="draft.pauseScheduled"
-              label="Schedule rule pausing"
               density="compact"
               hide-details
               color="warning"
               class="mb-1"
-            />
+            >
+              <template #label>
+                <span class="mr-2">Schedule rule pausing</span>
+                <v-chip size="x-small" color="warning" variant="tonal" label>Exploring</v-chip>
+              </template>
+            </v-checkbox>
             <template v-if="draft.pauseScheduled">
               <v-alert
                 v-if="pauseAdjustWarning"
@@ -142,23 +215,20 @@
           <!-- Channels -->
           <div class="mt-4">
             <div class="text-caption font-weight-bold text-medium-emphasis mb-2">SALES CHANNELS</div>
-            <v-btn-toggle
-              :model-value="draft.channels"
-              multiple
+            <v-checkbox
+              v-for="ch in channelOptions"
+              :key="ch.value"
+              :model-value="draft.channels.includes(ch.value)"
+              :label="ch.title"
+              :prepend-icon="ch.icon"
               density="compact"
-              variant="outlined"
+              hide-details
               color="primary"
               class="mb-1"
-              @update:model-value="draft.channels = $event"
-            >
-              <v-btn
-                v-for="ch in channelOptions"
-                :key="ch.value"
-                :value="ch.value"
-                size="small"
-                :prepend-icon="ch.icon"
-              >{{ ch.title }}</v-btn>
-            </v-btn-toggle>
+              @update:model-value="val => draft.channels = val
+                ? [...draft.channels, ch.value]
+                : draft.channels.filter(c => c !== ch.value)"
+            />
             <div v-if="!draft.channels.length" class="text-caption text-error mt-1">
               At least one channel must be selected.
             </div>
@@ -174,38 +244,23 @@
             </v-col>
           </v-row>
 
-          <!-- Rule scope -->
+        </v-card>
+
+        <!-- Discount configuration (orange) -->
+        <v-card v-if="draft.type === 'discount'" border elevation="0" class="pa-6 mt-6">
+          <div class="d-flex align-center mb-3">
+            <v-icon color="orange-darken-2" size="18" class="mr-2">mdi-tag-outline</v-icon>
+            <span class="text-body-1 font-weight-bold text-orange-darken-2">Discount Configuration</span>
+          </div>
           <div class="mb-4">
             <div class="text-caption font-weight-bold text-medium-emphasis mb-2">RULE SCOPE</div>
-            <v-btn-toggle
-              v-model="draft.scope"
-              mandatory
-              density="compact"
-              variant="outlined"
-              color="primary"
-              class="mb-1"
-              :disabled="draft.type === 'multi_buy'"
-            >
+            <v-btn-toggle v-model="draft.scope" mandatory density="compact" variant="outlined" color="primary" class="mb-1">
               <v-btn value="cart" size="small" prepend-icon="mdi-cart-outline">Cart</v-btn>
               <v-btn value="item" size="small" prepend-icon="mdi-package-variant">Item</v-btn>
             </v-btn-toggle>
             <div class="text-caption text-medium-emphasis mt-1">
-              <template v-if="draft.scope === 'cart'">
-                Discount and conditions apply to the whole cart.
-              </template>
-              <template v-else>
-                Discount and conditions apply per item / line.
-              </template>
+              {{ draft.scope === 'cart' ? 'Discount and conditions apply to the whole cart.' : 'Discount and conditions apply per item / line.' }}
             </div>
-          </div>
-
-        </v-card>
-
-        <!-- Discount configuration (orange) -->
-        <v-card v-if="draft.type === 'discount'" border elevation="0" class="pa-5 mt-4">
-          <div class="d-flex align-center mb-3">
-            <v-icon color="orange-darken-2" size="18" class="mr-2">mdi-tag-outline</v-icon>
-            <span class="text-body-1 font-weight-bold text-orange-darken-2">Discount Configuration</span>
           </div>
           <v-row dense>
             <v-col cols="8">
@@ -219,13 +274,28 @@
               <SelectInput v-model="draft.amountType" :data="amountTypeItems" label="Amount type" />
             </v-col>
           </v-row>
+          <LiveDescriptionAlert
+            v-if="draft.value"
+            :text="`${draft.amountType === 'PERCENT' ? draft.value + '%' : '€' + draft.value} off ${draft.scope === 'cart' ? 'the cart total' : 'each qualifying item'}.`"
+            class="mt-3"
+          />
         </v-card>
 
         <!-- Step Discount configuration (green) -->
-        <v-card v-if="draft.type === 'step_discount'" border elevation="0" class="pa-5 mt-4">
+        <v-card v-if="draft.type === 'step_discount'" border elevation="0" class="pa-6 mt-6">
           <div class="d-flex align-center mb-4">
             <v-icon color="green-darken-2" size="18" class="mr-2">mdi-stairs</v-icon>
             <span class="text-body-1 font-weight-bold text-green-darken-2">Step Discount Configuration</span>
+          </div>
+          <div class="mb-4">
+            <div class="text-caption font-weight-bold text-medium-emphasis mb-2">RULE SCOPE</div>
+            <v-btn-toggle v-model="draft.scope" mandatory density="compact" variant="outlined" color="primary" class="mb-1">
+              <v-btn value="cart" size="small" prepend-icon="mdi-cart-outline">Cart</v-btn>
+              <v-btn value="item" size="small" prepend-icon="mdi-package-variant">Item</v-btn>
+            </v-btn-toggle>
+            <div class="text-caption text-medium-emphasis mt-1">
+              {{ draft.scope === 'cart' ? 'Discount and conditions apply to the whole cart.' : 'Discount and conditions apply per item / line.' }}
+            </div>
           </div>
 
           <v-row dense class="mb-3">
@@ -248,7 +318,7 @@
             </v-col>
           </v-row>
 
-          <v-row dense class="mb-3">
+          <v-row v-if="!draft.steps.length" dense class="mb-3">
             <v-col cols="6">
               <NumberInput
                 v-model="draft.value"
@@ -278,20 +348,15 @@
             :max-steps="draft.stepMaxSteps || null"
           />
 
-          <v-alert
+          <LiveDescriptionAlert
             v-if="stepDescription"
-            color="green-lighten-4"
-            variant="flat"
-            density="compact"
-            icon="mdi-information-outline"
-            class="mt-4 text-caption"
-          >
-            {{ stepDescription }}
-          </v-alert>
+            :text="stepDescription"
+            class="mt-4"
+          />
         </v-card>
 
         <!-- Multi-buy configuration (blue) -->
-        <v-card v-if="draft.type === 'multi_buy'" border elevation="0" class="pa-5 mt-4">
+        <v-card v-if="draft.type === 'multi_buy'" border elevation="0" class="pa-6 mt-6">
           <div class="d-flex align-center mb-3">
             <v-icon color="blue-darken-2" size="18" class="mr-2">mdi-cart-plus</v-icon>
             <span class="text-body-1 font-weight-bold text-blue-darken-2">Multi-buy Configuration</span>
@@ -306,43 +371,60 @@
           </v-row>
           <v-row dense class="mb-3">
             <v-col cols="6">
-              <SelectInput
+              <v-select
                 v-model="draft.multiSelectionMode"
-                :data="[{ value: 'CHEAPEST', title: 'Cheapest items free' }, { value: 'MOST_EXPENSIVE', title: 'Most expensive items free' }]"
+                :items="[{ value: 'CHEAPEST', title: 'Cheapest items free' }, { value: 'MOST_EXPENSIVE', title: 'Most expensive items free' }]"
+                item-value="value"
+                item-title="title"
                 label="Free item selection"
-              />
+                variant="outlined"
+                density="compact"
+              >
+                <template #item="{ item, props: itemProps }">
+                  <v-list-item v-bind="itemProps" :title="undefined">
+                    <template #title>
+                      <span>{{ item.raw.title }}</span>
+                      <v-chip v-if="item.raw.value === 'MOST_EXPENSIVE'" size="x-small" color="warning" variant="tonal" label class="ml-2">Exploring</v-chip>
+                    </template>
+                  </v-list-item>
+                </template>
+              </v-select>
             </v-col>
             <v-col cols="6">
               <NumberInput v-model.number="draft.multiMaxSteps" label="Max steps" help-text="0 = unlimited" />
             </v-col>
           </v-row>
-          <v-alert
-            v-if="draft.multiBuyQty && draft.multiFreeQty"
-            color="blue-lighten-4"
-            variant="flat"
-            density="compact"
-            icon="mdi-information-outline"
-            class="mt-2 text-caption"
-          >
-            Buy {{ draft.multiBuyQty }}, get {{ draft.multiFreeQty }} free
-            ({{ draft.multiSelectionMode === 'CHEAPEST' ? 'cheapest' : 'most expensive' }}).
-            Repeats up to {{ draft.multiMaxSteps || '∞' }} time(s).
-          </v-alert>
+          <LiveDescriptionAlert
+            v-if="multiBuyDescription"
+            :text="multiBuyDescription"
+            class="mt-2"
+          />
           <div class="d-flex align-center gap-2 mt-3">
             <v-icon size="16" color="medium-emphasis">mdi-calculator</v-icon>
             <span class="text-caption text-medium-emphasis">Free item accounting price</span>
             <v-chip size="small" color="primary" variant="tonal">€{{ settingsStore.multiBuyFreePrice }}</v-chip>
-            <v-btn variant="text" size="x-small" color="primary" to="/settings/accounting" class="ml-1">
-              Configure
-            </v-btn>
+            <a class="text-caption text-primary ml-1 text-decoration-none d-inline-flex align-center clickable-link" @click="openLeaveDialog('/settings/accounting')">
+              Configure in General Section
+              <v-icon size="14" class="ml-1">mdi-open-in-new</v-icon>
+            </a>
           </div>
         </v-card>
 
         <!-- Gift trigger configuration (purple) -->
-        <v-card v-if="draft.type === 'gift'" border elevation="0" class="pa-5 mt-4">
+        <v-card v-if="draft.type === 'gift'" border elevation="0" class="pa-6 mt-6">
           <div class="d-flex align-center mb-3">
             <v-icon color="purple-darken-2" size="18" class="mr-2">mdi-gift</v-icon>
-            <span class="text-body-1 font-weight-bold text-purple-darken-2">Gift Trigger</span>
+            <span class="text-body-1 font-weight-bold text-purple-darken-2">Gift Configuration</span>
+          </div>
+          <div class="mb-4">
+            <div class="text-caption font-weight-bold text-medium-emphasis mb-2">RULE SCOPE</div>
+            <v-btn-toggle v-model="draft.scope" mandatory density="compact" variant="outlined" color="primary" class="mb-1">
+              <v-btn value="cart" size="small" prepend-icon="mdi-cart-outline">Cart</v-btn>
+              <v-btn value="item" size="small" prepend-icon="mdi-package-variant">Item</v-btn>
+            </v-btn-toggle>
+            <div class="text-caption text-medium-emphasis mt-1">
+              {{ draft.scope === 'cart' ? 'Discount and conditions apply to the whole cart.' : 'Discount and conditions apply per item / line.' }}
+            </div>
           </div>
           <v-row dense>
             <v-col cols="5">
@@ -356,71 +438,30 @@
               <NumberInput v-model="draft.giftStepValue" label="Threshold" />
             </v-col>
             <v-col cols="3">
-              <NumberInput v-model="draft.giftMaxSteps" label="Max gifts" />
+              <NumberInput v-model="draft.giftMaxSteps" label="Repeat limit" />
             </v-col>
           </v-row>
+          <LiveDescriptionAlert
+            v-if="draft.giftStepValue"
+            :text="`When ${draft.giftStepType === 'SPENT' ? '€' + draft.giftStepValue + ' spent' : draft.giftStepValue + ' items purchased'}, ${draft.gifts?.filter(g => g.sku).length || 0} gift item(s) will be given ${draft.giftMaxSteps ? '— repeats up to ' + draft.giftMaxSteps + ' time(s)' : '— no repeat limit set'}.`"
+            class="mt-3"
+          />
           <div class="d-flex align-center gap-2 mt-3">
             <v-icon size="16" color="medium-emphasis">mdi-calculator</v-icon>
             <span class="text-caption text-medium-emphasis">Gift item accounting price</span>
             <v-chip size="small" color="purple" variant="tonal">€{{ settingsStore.giftFreePrice }}</v-chip>
-            <v-btn variant="text" size="x-small" color="primary" to="/settings/accounting" class="ml-1">
-              Configure
-            </v-btn>
+            <a class="text-caption text-primary ml-1 text-decoration-none d-inline-flex align-center clickable-link" @click="openLeaveDialog('/settings/accounting')">
+              Configure in General Section
+              <v-icon size="14" class="ml-1">mdi-open-in-new</v-icon>
+            </a>
           </div>
-        </v-card>
-
-        <!-- Gift items (below gift trigger card) -->
-        <div v-if="draft.type === 'gift'" class="mt-4">
+          <v-divider class="my-4" />
           <GiftItemsSection v-model="draft.gifts" />
           <ConflictWarningBanner :conflicts="giftConflicts" />
-        </div>
-
-        <!-- Descriptions & Legal texts -->
-        <v-card border elevation="0" class="pa-5 mt-4">
-          <div class="text-body-1 font-weight-bold mb-4">Descriptions & Legal</div>
-          <v-textarea
-            v-model="draft.description"
-            label="Internal Description"
-            variant="outlined"
-            density="compact"
-            rows="2"
-            auto-grow
-            hint="What the promotion does (for internal use only)"
-            persistent-hint
-            class="mb-3"
-          />
-          <div class="text-caption font-weight-bold text-medium-emphasis mb-3">CUSTOMER-FACING DESCRIPTION</div>
-          <TextInput
-            v-model="draft.promotionTitle"
-            label="Promotion title"
-            help-text="Short headline shown to customers (e.g. '20% off Vichy')"
-            class="mb-3"
-          />
-          <v-textarea
-            v-model="draft.promotionText"
-            label="Promotion text"
-            variant="outlined"
-            density="compact"
-            rows="2"
-            auto-grow
-            hint="Main description displayed on the storefront"
-            persistent-hint
-            class="mb-3"
-          />
-          <v-textarea
-            v-model="draft.promotionLegal"
-            label="Promotion legal"
-            variant="outlined"
-            density="compact"
-            rows="2"
-            auto-grow
-            hint="Terms and conditions, fine print"
-            persistent-hint
-          />
         </v-card>
 
         <!-- Conditions -->
-        <v-card border elevation="0" class="pa-5 mt-4">
+        <v-card border elevation="0" class="pa-6 mt-6">
           <ConditionsEditor
             v-model="draft.conditions"
             :scope="draft.scope"
@@ -433,15 +474,41 @@
           <ReachEstimateBar :conditions="draft.conditions" :scope="draft.scope" class="mt-3" />
 
           <v-alert
-            v-if="conditionsDescription"
-            color="blue-grey"
+            v-if="conditionsDescriptionSegments"
+            border="start"
+            color="grey"
             variant="tonal"
             density="compact"
             icon="mdi-text-box-check-outline"
-            class="mt-3 text-caption"
+            class="text-caption mt-3"
           >
-            {{ conditionsDescription }}
+            <template v-for="(seg, i) in conditionsDescriptionSegments" :key="i">
+              <span v-if="seg.type === 'text'">{{ seg.text }}</span>
+              <v-chip
+                v-else
+                size="x-small"
+                variant="tonal"
+                color="primary"
+                class="mx-1 overflow-chip"
+                @click="openOverflow(seg)"
+              >or {{ seg.count }} more</v-chip>
+            </template>
           </v-alert>
+
+          <v-dialog v-model="overflowDialog" max-width="420">
+            <v-card>
+              <v-card-title class="text-body-1 font-weight-bold pa-5 pb-3">{{ overflowInfo.label }}</v-card-title>
+              <v-card-text class="pa-5 pt-0">
+                <div class="d-flex flex-wrap gap-2">
+                  <v-chip v-for="val in overflowInfo.values" :key="val" size="small" variant="tonal">{{ val }}</v-chip>
+                </div>
+              </v-card-text>
+              <v-card-actions class="pa-4 pt-0">
+                <v-spacer />
+                <v-btn variant="text" @click="overflowDialog = false">Close</v-btn>
+              </v-card-actions>
+            </v-card>
+          </v-dialog>
 
           <!-- Validation feedback -->
           <template v-if="conditionValidation.warnings.length || conditionValidation.suggestions.length">
@@ -470,28 +537,43 @@
             </v-alert>
           </template>
         </v-card>
-      </v-col>
 
-      <!-- Right: Status + Stacking -->
-      <v-col cols="12" md="5">
-        <v-card border elevation="0" class="pa-5 mb-4">
-          <div class="text-body-1 font-weight-bold mb-4">Status</div>
-          <SelectInput
-            v-model="draft.status"
-            :data="statusItems"
-            label=""
-            :disabled="draft.status === 'scheduled' || draft.status === 'ended'"
-            hide-details
+        <!-- Descriptions & Legal texts -->
+        <v-card border elevation="0" class="pa-6 mt-6">
+          <div class="text-body-1 font-weight-bold mb-4">Descriptions & Legal</div>
+          <div class="text-caption font-weight-bold text-medium-emphasis mb-3">CUSTOMER-FACING DESCRIPTION</div>
+          <TextInput
+            v-model="draft.promotionTitle"
+            label="Promotion title"
+            help-text="Short headline shown to customers (e.g. '20% off Vichy')"
+            class="mb-3"
           />
-          <div v-if="draft.status === 'scheduled'" class="text-caption text-medium-emphasis mt-2">
-            Status is controlled by start date.
-          </div>
-          <div v-if="draft.status === 'ended'" class="text-caption text-medium-emphasis mt-2">
-            Rule has ended. Clear the end date to reactivate.
-          </div>
+          <v-textarea
+            v-model="draft.promotionText"
+            label="Promotion text"
+            variant="outlined"
+            density="compact"
+            rows="2"
+            auto-grow
+            hint="Main description displayed on the storefront"
+            persistent-hint
+            class="mb-3"
+          />
+          <v-textarea
+            v-model="draft.promotionLegal"
+            label="Promotion legal description"
+            variant="outlined"
+            density="compact"
+            rows="2"
+            auto-grow
+            hint="Terms and conditions, fine print"
+            persistent-hint
+          />
         </v-card>
 
-        <v-card border elevation="0" class="pa-5 mb-4">
+        <TagsSection v-model="draft.tags" />
+
+        <v-card border elevation="0" class="pa-5 mb-4 mt-6">
           <div class="d-flex align-center mb-1">
             <div class="text-body-1 font-weight-bold">Usage limits</div>
             <v-spacer />
@@ -572,7 +654,7 @@
               <div class="text-body-1 font-weight-bold">Prioritization &amp; combinability</div>
               <v-chip size="x-small" color="default" variant="tonal" label>Auto</v-chip>
             </div>
-            <v-alert type="info" variant="tonal" density="compact">
+            <v-alert color="grey" variant="tonal" density="compact">
               User gets the best sales rule based on cart items to always get the best value. All rules are non-combinable.
             </v-alert>
           </v-card>
@@ -602,7 +684,6 @@
           </v-card>
         </template>
 
-        <TagsSection v-model="draft.tags" />
       </v-col>
     </v-row>
 
@@ -612,7 +693,7 @@
     <!-- Save as template dialog -->
     <DialogCard v-model="templateDialogOpen" max-width="480">
       <template #title>Create template from rule</template>
-      <v-alert type="info" variant="tonal" density="compact" class="mb-4" icon="mdi-information-outline">
+      <v-alert color="grey" variant="tonal" density="compact" class="mb-4" icon="mdi-information-outline">
         The rule has been saved. Fill in the template details below.
       </v-alert>
       <TextInput v-model="templateLabel" label="Template name *" class="mb-3" />
@@ -639,11 +720,103 @@
     <v-snackbar v-model="templateCreatedSnack" color="success" timeout="3000">
       Template "{{ templateLabel }}" created successfully.
     </v-snackbar>
+
+    <!-- Leave section dialog -->
+    <DialogCard v-model="leaveDialogOpen" max-width="440">
+      <template #title>Leave this section?</template>
+      <p class="text-body-2 text-medium-emphasis mb-2">
+        You are about to navigate to a different section. Any unsaved changes will be lost.
+      </p>
+      <p class="text-body-2 text-medium-emphasis">
+        If you save before leaving, the rule will appear in search results once all required fields are filled in.
+      </p>
+      <template #actions>
+        <v-btn variant="text" @click="leaveDialogOpen = false">Stay</v-btn>
+        <v-btn variant="text" @click="leaveWithoutSaving">Leave without saving</v-btn>
+        <v-btn color="primary" :loading="saving" @click="saveAndLeave">Save and leave</v-btn>
+      </template>
+    </DialogCard>
+
+    <!-- Discard confirm dialog -->
+    <DialogCard v-model="discardDialogOpen" max-width="400">
+      <template #title>Discard changes?</template>
+      <p class="text-body-2 text-medium-emphasis">
+        All unsaved changes will be lost. This cannot be undone.
+      </p>
+      <template #actions>
+        <v-btn variant="text" @click="discardDialogOpen = false">Cancel</v-btn>
+        <v-btn color="error" @click="doDiscard">Discard</v-btn>
+      </template>
+    </DialogCard>
+
+    <!-- Save confirm dialog -->
+    <DialogCard v-model="saveConfirmOpen" max-width="400">
+      <template #title>{{ saveConfirmTitle }}</template>
+      <p class="text-body-2 text-medium-emphasis">{{ saveConfirmBody }}</p>
+      <template #actions>
+        <v-btn variant="text" @click="saveConfirmOpen = false">Cancel</v-btn>
+        <v-btn color="primary" :loading="saving" @click="doConfirmedSave">Confirm</v-btn>
+      </template>
+    </DialogCard>
+
+    <!-- Sticky bottom bar — visible once title buttons scroll out of view -->
+    <Transition name="slide-up">
+      <div v-if="stickyBarVisible" class="sticky-save-bar">
+      <div class="sticky-save-bar__inner">
+        <v-alert
+          border="start"
+          color="grey"
+          variant="tonal"
+          density="compact"
+          icon="mdi-text-box-check-outline"
+          class="text-caption sticky-save-bar__description"
+        >
+          <template v-if="ruleDescriptionSegments">
+            <template v-for="(seg, i) in ruleDescriptionSegments" :key="i">
+              <span v-if="seg.type === 'text'">{{ seg.text }}</span>
+              <v-chip
+                v-else
+                size="x-small"
+                variant="tonal"
+                color="primary"
+                class="mx-1 overflow-chip"
+                @click="openOverflow(seg)"
+              >or {{ seg.count }} more</v-chip>
+            </template>
+          </template>
+          <span v-else class="text-medium-emphasis">Start filling in the rule — a plain-language description will appear here as you configure it.</span>
+        </v-alert>
+        <v-btn variant="outlined" class="text-uppercase flex-shrink-0" size="small" @click="openDiscardDialog">Discard</v-btn>
+        <template v-if="isTemplateEdit">
+          <v-btn color="primary" class="text-uppercase flex-shrink-0" size="small" :loading="saving" @click="openSaveConfirm('template')">Save template</v-btn>
+        </template>
+        <template v-else>
+          <v-btn-group color="primary" divided size="small" class="flex-shrink-0">
+            <v-btn class="text-uppercase" :loading="saving" @click="openSaveConfirm('draft')">Save as draft</v-btn>
+            <v-menu location="top end">
+              <template #activator="{ props: menuProps }">
+                <v-btn v-bind="menuProps" icon="mdi-chevron-down" :loading="saving" />
+              </template>
+              <v-list density="compact" min-width="220">
+                <v-list-item
+                  :prepend-icon="isFutureDate(draft.startDate) ? 'mdi-calendar-clock' : 'mdi-lightning-bolt-outline'"
+                  :title="dynamicActivateLabel"
+                  :disabled="!draft.startDate"
+                  @click="openSaveConfirm('activate')"
+                />
+                <v-list-item prepend-icon="mdi-file-document-plus-outline" title="Save and create template" @click="openSaveConfirm('template_from_rule')" />
+              </v-list>
+            </v-menu>
+          </v-btn-group>
+        </template>
+      </div>
+    </div>
+    </Transition>
   </v-container>
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted, toRaw } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted, toRaw } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { usePromotionsStore } from '../../stores/promotions'
 import { useStackingGroupsStore } from '../../stores/stackingGroups'
@@ -664,8 +837,10 @@ import TextInput from '../_common/TextInput.vue'
 import NumberInput from '../_common/NumberInput.vue'
 import SelectInput from '../_common/SelectInput.vue'
 import DialogCard from '../_common/DialogCard.vue'
+import LiveDescriptionAlert from './LiveDescriptionAlert.vue'
 import { useTemplatesStore } from '../../stores/templates'
 import { useErpEntriesStore } from '../../stores/erpEntries'
+import { useInternalTagsStore } from '../../stores/internalTags'
 
 const route = useRoute()
 const router = useRouter()
@@ -674,11 +849,43 @@ const sgStore = useStackingGroupsStore()
 const settingsStore = useSettingsStore()
 const templatesStore = useTemplatesStore()
 const erpEntriesStore = useErpEntriesStore()
+const internalTagsStore = useInternalTagsStore()
+
+const newInternalTagName = ref('')
+const creatingInternalTag = ref(false)
+const internalTagExists = computed(() =>
+  internalTagsStore.items.some(t => t.name.toLowerCase() === newInternalTagName.value.trim().toLowerCase())
+)
+async function createInternalTag() {
+  const name = newInternalTagName.value.trim()
+  if (!name || internalTagExists.value) return
+  creatingInternalTag.value = true
+  try {
+    const tag = await internalTagsStore.create({ name })
+    draft.internalTags = [...(draft.internalTags ?? []), tag.id]
+    newInternalTagName.value = ''
+  } finally {
+    creatingInternalTag.value = false
+  }
+}
 
 const isTemplateEdit = computed(() => route.path.startsWith('/templates/'))
 const isEdit = computed(() => !!route.params.id && !isTemplateEdit.value)
 
 const saving = ref(false)
+
+// ── Conditions overflow dialog ────────────────────────────────────────────────
+const overflowDialog = ref(false)
+const overflowInfo = ref({ label: '', values: [] })
+function openOverflow(seg) {
+  overflowInfo.value = { label: seg.label, values: seg.allValues }
+  overflowDialog.value = true
+}
+
+// ── Sticky bar visibility ─────────────────────────────────────────────────────
+const titleActionsRef = ref(null)
+const stickyBarVisible = ref(false)
+let titleObserver = null
 const saveError = ref(null)
 
 // Template edit metadata
@@ -755,14 +962,14 @@ const pauseErrors = ref({})
 
 const draft = store.formDraft
 
-const today = new Date(new Date().toDateString())
+const todayIso = new Date().toISOString().split('T')[0]
 
 function isFutureDate(dateStr) {
-  return !!dateStr && new Date(dateStr) > today
+  return !!dateStr && dateStr > todayIso
 }
 
 function isPastDate(dateStr) {
-  return !!dateStr && new Date(dateStr) < today
+  return !!dateStr && dateStr < todayIso
 }
 
 function resolveStatus(currentStatus, startDate, endDate, pauseScheduled, pauseStart, pauseEnd) {
@@ -853,11 +1060,6 @@ function pauseEndAllowedDates(d) {
   return true
 }
 
-const statusItems = [
-  { value: 'active', title: 'Active' },
-  { value: 'draft',  title: 'Draft' },
-  { value: 'paused', title: 'Paused' },
-]
 
 const ruleTypeItems = [
   { value: 'discount', title: 'Discount' },
@@ -866,11 +1068,38 @@ const ruleTypeItems = [
   { value: 'gift', title: 'Gift' },
 ]
 
+// ── Multi-buy ─────────────────────────────────────────────────────────────────
+
+const multiBuyDescription = computed(() => {
+  if (draft.type !== 'multi_buy') return ''
+  const hasBuy = !!draft.multiBuyQty
+  const hasFree = !!draft.multiFreeQty
+  if (!hasBuy && !hasFree) return ''
+
+  const missing = []
+  if (!hasBuy) missing.push('buy quantity')
+  if (!hasFree) missing.push('free quantity')
+
+  const freeMode = draft.multiSelectionMode === 'CHEAPEST' ? 'cheapest' : 'most expensive'
+  const repeats = draft.multiMaxSteps ? `up to ${draft.multiMaxSteps} time(s)` : 'unlimited times'
+
+  let sentence
+  if (hasBuy && hasFree) {
+    sentence = `Buy ${draft.multiBuyQty}, get ${draft.multiFreeQty} ${freeMode} item(s) free — repeats ${repeats}.`
+  } else if (hasBuy) {
+    sentence = `Buy ${draft.multiBuyQty} item(s) — repeats ${repeats}.`
+  } else {
+    sentence = `Get ${draft.multiFreeQty} ${freeMode} item(s) free — repeats ${repeats}.`
+  }
+
+  if (missing.length) sentence += ` Not yet set: ${missing.join(', ')}.`
+  return sentence
+})
+
 // ── Step discount ─────────────────────────────────────────────────────────────
 
 const stepDescription = computed(() => {
   if (draft.type !== 'step_discount') return ''
-  if (!draft.stepValue || !draft.value) return ''
   const isQty = draft.stepType === 'QTY'
   const isPercent = draft.amountType === 'PERCENT'
   const fmt = v => isPercent ? `${v}%` : `€${v}`
@@ -880,18 +1109,38 @@ const stepDescription = computed(() => {
   const maxLabel = unlimited ? 'indefinitely' : `up to ${draft.stepMaxSteps} time(s)`
 
   const validTiers = draft.steps.filter(s => s.threshold !== '' && s.value !== '')
+  const hasDiscount = !!draft.value || validTiers.length > 0
+  const hasStep = !!draft.stepValue
+
+  if (!hasDiscount && !hasStep) return ''
+
+  const missing = []
+  if (!hasStep) missing.push('step threshold (Every X)')
+  if (!hasDiscount) missing.push('discount amount or tiers')
+
   let discPart
   if (validTiers.length) {
     const tierList = validTiers.map((s, i) => {
-      const threshold = draft.stepValue ? thr((i + 1) * Number(draft.stepValue)) : thr(s.threshold)
+      const threshold = hasStep ? thr((i + 1) * Number(draft.stepValue)) : thr(s.threshold)
       return `${threshold} → ${fmt(s.value)} off`
     }).join(', ')
     discPart = `tiers: ${tierList}`
-  } else {
+  } else if (draft.value) {
     discPart = `get ${fmt(draft.value)} off ${applyLabel}`
   }
 
-  return `Every ${thr(draft.stepValue)} purchased: ${discPart}. Repeats ${maxLabel}.`
+  let sentence
+  if (hasStep && discPart) {
+    sentence = `Every ${thr(draft.stepValue)} purchased: ${discPart}. Repeats ${maxLabel}.`
+  } else if (hasStep) {
+    sentence = `Every ${thr(draft.stepValue)} purchased. Repeats ${maxLabel}.`
+  } else {
+    sentence = `${discPart.charAt(0).toUpperCase() + discPart.slice(1)}. Repeats ${maxLabel}.`
+  }
+
+  if (missing.length) sentence += ` Not yet set: ${missing.join(', ')}.`
+
+  return sentence
 })
 
 const amountTypeItems = [
@@ -926,93 +1175,312 @@ function _fmtList(vals) {
   return `"${vals[0]}", "${vals[1]}" or ${vals.length - 2} more`
 }
 
-const conditionsDescription = computed(() => {
-  const conds = (draft.conditions ?? []).filter(c => {
-    if (!c.values?.length) return false
-    if (c.values.length === 1 && c.values[0] === '') return false
-    return true
-  })
-  if (!conds.length) return null
+const MAX_SHOWN_VALUES = 2
 
-  const parts = []
+function _fmtListSegments(vals, overflowLabel) {
+  if (!vals?.length) return [{ type: 'text', text: '—' }]
+  const shown = vals.slice(0, MAX_SHOWN_VALUES)
+  const rest = vals.slice(MAX_SHOWN_VALUES)
+  const shownText = shown.map(v => `"${v}"`).join(', ')
+  if (!rest.length) {
+    return [{ type: 'text', text: vals.length === 1 ? `"${vals[0]}"` : `${shown.map(v => `"${v}"`).join(' or ')}` }]
+  }
+  return [
+    { type: 'text', text: `${shownText} ` },
+    { type: 'overflow', count: rest.length, allValues: vals, label: overflowLabel },
+  ]
+}
 
-  for (const c of conds) {
-    const vals = c.values ?? []
-    const inc = c.mode !== 'exclude'
+function _describeLeafSegments(c, scope) {
+  const vals = c.values ?? []
+  if (!vals.length || (vals.length === 1 && vals[0] === '')) return null
+  const inc = c.mode !== 'exclude'
 
-    switch (c.field) {
-      case 'categories':
-        parts.push(inc
-          ? `product is in categor${vals.length > 1 ? 'ies' : 'y'} ${_fmtList(vals)}`
-          : `product is NOT in categor${vals.length > 1 ? 'ies' : 'y'} ${_fmtList(vals)}`)
-        break
-      case 'brands':
-        parts.push(inc ? `brand is ${_fmtList(vals)}` : `brand is NOT ${_fmtList(vals)}`)
-        break
-      case 'skus':
-        if (vals.length <= 3)
-          parts.push(inc ? `SKU is ${_fmtList(vals)}` : `SKU is NOT ${_fmtList(vals)}`)
-        else
-          parts.push(inc ? `SKU is one of ${vals.length} specific products` : `${vals.length} specific SKUs are excluded`)
-        break
-      case 'product_lines':
-        parts.push(inc ? `product line is ${_fmtList(vals)}` : `product line is NOT ${_fmtList(vals)}`)
-        break
-      case 'subtotal': {
-        if (!vals[0]) break
-        const label = draft.scope === 'cart' ? 'cart subtotal' : 'item price'
-        parts.push(`${label} is ${_opLabel(c.operator)} €${vals[0]}`)
-        break
+  function wrap(prefix, label) {
+    return [{ type: 'text', text: prefix }, ..._fmtListSegments(vals, label)]
+  }
+
+  switch (c.field) {
+    case 'categories':
+      return wrap(inc ? `product is in ${vals.length > 1 ? 'categories' : 'category'} ` : `product is NOT in ${vals.length > 1 ? 'categories' : 'category'} `, 'Categories')
+    case 'brands':
+      return wrap(inc ? 'brand is ' : 'brand is NOT ', 'Brands')
+    case 'skus':
+      return wrap(inc ? 'SKU is ' : 'SKU is NOT ', 'SKUs')
+    case 'product_lines':
+      return wrap(inc ? 'product line is ' : 'product line is NOT ', 'Product lines')
+    case 'subtotal': {
+      if (!vals[0]) return null
+      const label = scope === 'cart' ? 'cart subtotal' : 'item price'
+      return [{ type: 'text', text: `${label} is ${_opLabel(c.operator)} €${vals[0]}` }]
+    }
+    case 'quantity': {
+      if (!vals[0]) return null
+      const label = scope === 'cart' ? 'total cart quantity' : 'item line quantity'
+      return [{ type: 'text', text: `${label} is ${_opLabel(c.operator)} ${vals[0]}` }]
+    }
+    case 'weight': {
+      if (!vals[0]) return null
+      const label = scope === 'cart' ? 'total cart weight' : 'item weight'
+      return [{ type: 'text', text: `${label} is ${_opLabel(c.operator)} ${vals[0]} kg` }]
+    }
+    case 'customer_group':
+      return wrap(inc ? 'customer is in group ' : 'customer is NOT in group ', 'Customer groups')
+    case 'coupon_code':
+      return vals[0] ? wrap('coupon code is ', 'Coupon codes') : null
+    case 'exclude_on_sale':
+      return vals[0] === 'true' ? [{ type: 'text', text: 'on-sale products are excluded' }] : null
+    case 'pim_status':
+      return wrap(inc ? 'PIM status is ' : 'PIM status is NOT ', 'PIM statuses')
+    case 'attribute_set':
+      return wrap(inc ? 'attribute set is ' : 'attribute set is NOT ', 'Attribute sets')
+    case 'seller':
+      return wrap(inc ? 'seller is ' : 'seller is NOT ', 'Sellers')
+    case 'warehouse_type':
+      return wrap(inc ? 'warehouse type is ' : 'warehouse type is NOT ', 'Warehouse types')
+    default:
+      return null
+  }
+}
+
+const conditionsDescriptionSegments = computed(() => {
+  const allConds = draft.conditions ?? []
+  if (!allConds.length) return null
+
+  const segments = [{ type: 'text', text: `Applies to ${draft.scope === 'cart' ? 'the cart' : 'each qualifying item'} where ` }]
+  let hasContent = false
+
+  for (let i = 0; i < allConds.length; i++) {
+    const c = allConds[i]
+    const sep = i > 0 ? (c.logicalOp === 'OR' ? ' OR ' : ' AND ') : ''
+
+    if (c.type === 'group') {
+      const innerSegs = []
+      for (let j = 0; j < (c.conditions ?? []).length; j++) {
+        const inner = c.conditions[j]
+        const innerSep = j > 0 ? (inner.logicalOp === 'OR' ? ' OR ' : ' AND ') : ''
+        const segs = _describeLeafSegments(inner, draft.scope)
+        if (segs) {
+          if (innerSep) innerSegs.push({ type: 'text', text: innerSep })
+          innerSegs.push(...segs)
+        }
       }
-      case 'quantity': {
-        if (!vals[0]) break
-        const label = draft.scope === 'cart' ? 'total cart quantity' : 'item line quantity'
-        parts.push(`${label} is ${_opLabel(c.operator)} ${vals[0]}`)
-        break
+      if (innerSegs.length) {
+        if (sep) segments.push({ type: 'text', text: sep })
+        segments.push({ type: 'text', text: '(' }, ...innerSegs, { type: 'text', text: ')' })
+        hasContent = true
       }
-      case 'weight': {
-        if (!vals[0]) break
-        const label = draft.scope === 'cart' ? 'total cart weight' : 'item weight'
-        parts.push(`${label} is ${_opLabel(c.operator)} ${vals[0]} kg`)
-        break
+    } else {
+      const segs = _describeLeafSegments(c, draft.scope)
+      if (segs) {
+        if (sep) segments.push({ type: 'text', text: sep })
+        segments.push(...segs)
+        hasContent = true
       }
-      case 'customer_group':
-        parts.push(inc ? `customer is in group ${_fmtList(vals)}` : `customer is NOT in group ${_fmtList(vals)}`)
-        break
-      case 'coupon_code':
-        if (vals[0]) parts.push(`coupon code is ${_fmtList(vals)}`)
-        break
-      case 'exclude_on_sale':
-        if (vals[0] === 'true') parts.push('on-sale products are excluded')
-        break
-      case 'pim_status':
-        parts.push(inc ? `PIM status is ${_fmtList(vals)}` : `PIM status is NOT ${_fmtList(vals)}`)
-        break
-      case 'attribute_set':
-        parts.push(inc ? `attribute set is ${_fmtList(vals)}` : `attribute set is NOT ${_fmtList(vals)}`)
-        break
-      case 'source':
-        parts.push(inc ? `source is ${_fmtList(vals)}` : `source is NOT ${_fmtList(vals)}`)
-        break
-      case 'seller':
-        parts.push(inc ? `seller is ${_fmtList(vals)}` : `seller is NOT ${_fmtList(vals)}`)
-        break
-      case 'warehouse_type':
-        parts.push(inc ? `warehouse type is ${_fmtList(vals)}` : `warehouse type is NOT ${_fmtList(vals)}`)
-        break
     }
   }
 
-  if (!parts.length) return null
-
-  const joined = parts.length === 1
-    ? parts[0]
-    : parts.slice(0, -1).join(', ') + ', and ' + parts[parts.length - 1]
-
-  const scopePhrase = draft.scope === 'cart' ? 'the cart' : 'each qualifying item'
-  return `Applies to ${scopePhrase} where ${joined}.`
+  if (!hasContent) return null
+  segments.push({ type: 'text', text: '.' })
+  return segments
 })
 
+function _describeLeaf(c, scope) {
+  const vals = c.values ?? []
+  if (!vals.length || (vals.length === 1 && vals[0] === '')) return null
+  const inc = c.mode !== 'exclude'
+  switch (c.field) {
+    case 'categories':
+      return inc
+        ? `product is in categor${vals.length > 1 ? 'ies' : 'y'} ${_fmtList(vals)}`
+        : `product is NOT in categor${vals.length > 1 ? 'ies' : 'y'} ${_fmtList(vals)}`
+    case 'brands':
+      return inc ? `brand is ${_fmtList(vals)}` : `brand is NOT ${_fmtList(vals)}`
+    case 'skus':
+      return vals.length <= 3
+        ? (inc ? `SKU is ${_fmtList(vals)}` : `SKU is NOT ${_fmtList(vals)}`)
+        : (inc ? `SKU is one of ${vals.length} specific products` : `${vals.length} specific SKUs are excluded`)
+    case 'product_lines':
+      return inc ? `product line is ${_fmtList(vals)}` : `product line is NOT ${_fmtList(vals)}`
+    case 'subtotal': {
+      if (!vals[0]) return null
+      const label = scope === 'cart' ? 'cart subtotal' : 'item price'
+      return `${label} is ${_opLabel(c.operator)} €${vals[0]}`
+    }
+    case 'quantity': {
+      if (!vals[0]) return null
+      const label = scope === 'cart' ? 'total cart quantity' : 'item line quantity'
+      return `${label} is ${_opLabel(c.operator)} ${vals[0]}`
+    }
+    case 'weight': {
+      if (!vals[0]) return null
+      const label = scope === 'cart' ? 'total cart weight' : 'item weight'
+      return `${label} is ${_opLabel(c.operator)} ${vals[0]} g`
+    }
+    case 'customer_group':
+      return inc ? `customer is in group ${_fmtList(vals)}` : `customer is NOT in group ${_fmtList(vals)}`
+    case 'coupon_code':
+      return vals[0] ? `coupon code is ${_fmtList(vals)}` : null
+    case 'exclude_on_sale':
+      return vals[0] === 'true' ? 'on-sale products are excluded' : null
+    case 'pim_status':
+      return inc ? `PIM status is ${_fmtList(vals)}` : `PIM status is NOT ${_fmtList(vals)}`
+    case 'attribute_set':
+      return inc ? `attribute set is ${_fmtList(vals)}` : `attribute set is NOT ${_fmtList(vals)}`
+    case 'seller':
+      return inc ? `seller is ${_fmtList(vals)}` : `seller is NOT ${_fmtList(vals)}`
+    case 'warehouse_type':
+      return inc ? `warehouse type is ${_fmtList(vals)}` : `warehouse type is NOT ${_fmtList(vals)}`
+    default:
+      return null
+  }
+}
+
+const conditionsDescription = computed(() => {
+  const allConds = draft.conditions ?? []
+  if (!allConds.length) return null
+
+  const topParts = []
+
+  for (let i = 0; i < allConds.length; i++) {
+    const c = allConds[i]
+    const sep = i > 0 ? (c.logicalOp === 'OR' ? ' OR ' : ' AND ') : ''
+
+    if (c.type === 'group') {
+      const innerParts = []
+      for (let j = 0; j < (c.conditions ?? []).length; j++) {
+        const inner = c.conditions[j]
+        const innerSep = j > 0 ? (inner.logicalOp === 'OR' ? ' OR ' : ' AND ') : ''
+        const desc = _describeLeaf(inner, draft.scope)
+        if (desc) innerParts.push(innerSep + desc)
+      }
+      if (innerParts.length) topParts.push(sep + `(${innerParts.join('')})`)
+    } else {
+      const desc = _describeLeaf(c, draft.scope)
+      if (desc) topParts.push(sep + desc)
+    }
+  }
+
+  if (!topParts.length) return null
+
+  const scopePhrase = draft.scope === 'cart' ? 'the cart' : 'each qualifying item'
+  return `Applies to ${scopePhrase} where ${topParts.join('')}.`
+})
+
+const ruleDescription = computed(() => {
+  const sentences = []
+
+  // Action
+  if (draft.type === 'discount') {
+    if (draft.value) {
+      const disc = draft.amountType === 'PERCENT' ? `${draft.value}% off` : `€${draft.value} off`
+      const target = draft.scope === 'cart' ? 'the cart total' : 'each qualifying item'
+      sentences.push(`Apply ${disc} to ${target}.`)
+    }
+  } else if (draft.type === 'step_discount') {
+    if (stepDescription.value) sentences.push(stepDescription.value)
+  } else if (draft.type === 'multi_buy') {
+    if (draft.multiBuyQty && draft.multiFreeQty) {
+      const freeMode = draft.multiSelectionMode === 'CHEAPEST' ? 'cheapest' : 'most expensive'
+      const repeats = draft.multiMaxSteps ? `up to ${draft.multiMaxSteps} time(s)` : 'unlimited times'
+      sentences.push(`Buy ${draft.multiBuyQty}, get ${draft.multiFreeQty} ${freeMode} item(s) free — repeats ${repeats}.`)
+    }
+  } else if (draft.type === 'gift') {
+    if (draft.giftStepValue) {
+      const trigger = draft.giftStepType === 'SPENT' ? `€${draft.giftStepValue} spent` : `${draft.giftStepValue} items purchased`
+      const giftCount = draft.gifts?.filter(g => g.sku)?.length ?? 0
+      const giftStr = giftCount ? `${giftCount} gift item${giftCount !== 1 ? 's' : ''} will be given` : 'gift items configured separately'
+      const limit = draft.giftMaxSteps ? `, repeats up to ${draft.giftMaxSteps} time(s)` : ''
+      sentences.push(`When ${trigger} is reached, ${giftStr}${limit}.`)
+    }
+  }
+
+  if (conditionsDescription.value) {
+    sentences.push(conditionsDescription.value)
+  } else if (sentences.length) {
+    sentences.push('No conditions set — applies to all products.')
+  }
+
+  if (draft.channels?.length) {
+    const channelMap = { web: 'Web', mobile_app: 'Mobile App' }
+    const chs = draft.channels.map(c => channelMap[c] || c)
+    const chStr = chs.length === 1 ? chs[0] : chs.slice(0, -1).join(', ') + ' and ' + chs[chs.length - 1]
+    sentences.push(`Available on ${chStr}.`)
+  }
+
+  if (draft.startDate || draft.endDate) {
+    if (draft.startDate && draft.endDate) sentences.push(`Active from ${draft.startDate} to ${draft.endDate}.`)
+    else if (draft.startDate) sentences.push(`Starts on ${draft.startDate}, no end date set.`)
+    else sentences.push(`Active until ${draft.endDate}.`)
+  }
+
+  if (draft.usageLimitsEnabled) {
+    const lp = []
+    if (draft.maxUsagePerCustomer) lp.push(`${draft.maxUsagePerCustomer}× per customer`)
+    if (draft.maxUsagePerRule) lp.push(`${draft.maxUsagePerRule}× total`)
+    if (lp.length) sentences.push(`Limited to ${lp.join(', ')}.`)
+  }
+
+  return sentences.length ? sentences.join(' ') : null
+})
+
+const ruleDescriptionSegments = computed(() => {
+  const segs = []
+
+  if (draft.type === 'discount') {
+    if (draft.value) {
+      const disc = draft.amountType === 'PERCENT' ? `${draft.value}% off` : `€${draft.value} off`
+      const target = draft.scope === 'cart' ? 'the cart total' : 'each qualifying item'
+      segs.push({ type: 'text', text: `Apply ${disc} to ${target}. ` })
+    }
+  } else if (draft.type === 'step_discount') {
+    if (stepDescription.value) segs.push({ type: 'text', text: stepDescription.value + ' ' })
+  } else if (draft.type === 'multi_buy') {
+    if (draft.multiBuyQty && draft.multiFreeQty) {
+      const freeMode = draft.multiSelectionMode === 'CHEAPEST' ? 'cheapest' : 'most expensive'
+      const repeats = draft.multiMaxSteps ? `up to ${draft.multiMaxSteps} time(s)` : 'unlimited times'
+      segs.push({ type: 'text', text: `Buy ${draft.multiBuyQty}, get ${draft.multiFreeQty} ${freeMode} item(s) free — repeats ${repeats}. ` })
+    }
+  } else if (draft.type === 'gift') {
+    if (draft.giftStepValue) {
+      const trigger = draft.giftStepType === 'SPENT' ? `€${draft.giftStepValue} spent` : `${draft.giftStepValue} items purchased`
+      const giftCount = draft.gifts?.filter(g => g.sku)?.length ?? 0
+      const giftStr = giftCount ? `${giftCount} gift item${giftCount !== 1 ? 's' : ''} will be given` : 'gift items configured separately'
+      const limit = draft.giftMaxSteps ? `, repeats up to ${draft.giftMaxSteps} time(s)` : ''
+      segs.push({ type: 'text', text: `When ${trigger} is reached, ${giftStr}${limit}. ` })
+    }
+  }
+
+  const condSegs = conditionsDescriptionSegments.value
+  if (condSegs) {
+    segs.push(...condSegs)
+    segs.push({ type: 'text', text: ' ' })
+  } else if (segs.length) {
+    segs.push({ type: 'text', text: 'No conditions set — applies to all products. ' })
+  }
+
+  if (draft.channels?.length) {
+    const channelMap = { web: 'Web', mobile_app: 'Mobile App' }
+    const chs = draft.channels.map(c => channelMap[c] || c)
+    const chStr = chs.length === 1 ? chs[0] : chs.slice(0, -1).join(', ') + ' and ' + chs[chs.length - 1]
+    segs.push({ type: 'text', text: `Available on ${chStr}. ` })
+  }
+
+  if (draft.startDate || draft.endDate) {
+    if (draft.startDate && draft.endDate) segs.push({ type: 'text', text: `Active from ${draft.startDate} to ${draft.endDate}. ` })
+    else if (draft.startDate) segs.push({ type: 'text', text: `Starts on ${draft.startDate}, no end date set. ` })
+    else segs.push({ type: 'text', text: `Active until ${draft.endDate}. ` })
+  }
+
+  if (draft.usageLimitsEnabled) {
+    const lp = []
+    if (draft.maxUsagePerCustomer) lp.push(`${draft.maxUsagePerCustomer}× per customer`)
+    if (draft.maxUsagePerRule) lp.push(`${draft.maxUsagePerRule}× total`)
+    if (lp.length) segs.push({ type: 'text', text: `Limited to ${lp.join(', ')}. ` })
+  }
+
+  return segs.length ? segs : null
+})
 
 function validate() {
   const errors = {}
@@ -1024,7 +1492,11 @@ function validate() {
   return Object.keys(errors).length === 0 && Object.keys(pErrors).length === 0
 }
 
-async function save() {
+const dynamicActivateLabel = computed(() =>
+  isFutureDate(draft.startDate) ? 'Save and schedule' : 'Save and activate'
+)
+
+async function _persistRule(statusOverride) {
   if (!validate()) return
   saving.value = true
   saveError.value = null
@@ -1043,7 +1515,7 @@ async function save() {
       router.push('/templates')
     } else {
       const payload = JSON.parse(JSON.stringify(toRaw(draft)))
-      payload.status = resolveStatus(payload.status, payload.startDate, payload.endDate, payload.pauseScheduled, payload.pauseStart, payload.pauseEnd)
+      payload.status = statusOverride ?? resolveStatus(payload.status, payload.startDate, payload.endDate, payload.pauseScheduled, payload.pauseStart, payload.pauseEnd)
       if (isEdit.value) {
         await store.update(route.params.id, payload)
       } else {
@@ -1058,8 +1530,85 @@ async function save() {
   }
 }
 
+async function save() { await _persistRule() }
+async function saveAsDraft() { await _persistRule('draft') }
+async function saveAndActivate() { await _persistRule() }
+
+const leaveDialogOpen = ref(false)
+const pendingNavTarget = ref(null)
+
+function openLeaveDialog(target) {
+  pendingNavTarget.value = target
+  leaveDialogOpen.value = true
+}
+
+function leaveWithoutSaving() {
+  leaveDialogOpen.value = false
+  router.push(pendingNavTarget.value)
+}
+
+async function saveAndLeave() {
+  await _persistRule('draft')
+  if (!saveError.value) {
+    leaveDialogOpen.value = false
+    router.push(pendingNavTarget.value)
+  }
+}
+
+// ── Discard confirm ───────────────────────────────────────────────────────────
+const discardDialogOpen = ref(false)
+
+function openDiscardDialog() {
+  discardDialogOpen.value = true
+}
+
+function doDiscard() {
+  discardDialogOpen.value = false
+  router.push(isTemplateEdit.value ? '/templates' : '/promotions')
+}
+
+// ── Save confirm ──────────────────────────────────────────────────────────────
+const saveConfirmOpen = ref(false)
+const pendingSaveAction = ref(null)
+
+const saveConfirmTitle = computed(() => {
+  if (pendingSaveAction.value === 'draft') return 'Save as draft?'
+  if (pendingSaveAction.value === 'activate') return `${dynamicActivateLabel.value}?`
+  if (pendingSaveAction.value === 'template') return 'Save template?'
+  if (pendingSaveAction.value === 'template_from_rule') return 'Save and create template?'
+  return 'Save changes?'
+})
+
+const saveConfirmBody = computed(() => {
+  if (pendingSaveAction.value === 'draft') return 'The rule will be saved as a draft and will not be applied at checkout.'
+  if (pendingSaveAction.value === 'activate') return isFutureDate(draft.startDate)
+    ? 'The rule will be saved and scheduled to activate on the configured start date.'
+    : 'The rule will be saved and immediately activated at checkout.'
+  if (pendingSaveAction.value === 'template') return 'The template changes will be saved.'
+  if (pendingSaveAction.value === 'template_from_rule') return 'The rule will be saved and a reusable template will be created from it.'
+  return 'Are you sure you want to save?'
+})
+
+function openSaveConfirm(action) {
+  pendingSaveAction.value = action
+  saveConfirmOpen.value = true
+}
+
+async function doConfirmedSave() {
+  saveConfirmOpen.value = false
+  if (pendingSaveAction.value === 'draft') await saveAsDraft()
+  else if (pendingSaveAction.value === 'activate') await saveAndActivate()
+  else if (pendingSaveAction.value === 'template') await save()
+  else if (pendingSaveAction.value === 'template_from_rule') await openSaveAsTemplate()
+}
+
 onMounted(async () => {
-  await Promise.all([sgStore.fetchAll(), store.fetchAll(), erpEntriesStore.fetchAll()])
+  titleObserver = new IntersectionObserver(
+    ([entry]) => { stickyBarVisible.value = !entry.isIntersecting },
+    { threshold: 0 }
+  )
+  if (titleActionsRef.value) titleObserver.observe(titleActionsRef.value)
+  await Promise.all([sgStore.fetchAll(), store.fetchAll(), erpEntriesStore.fetchAll(), internalTagsStore.fetchAll()])
   if (isTemplateEdit.value) {
     if (!templatesStore.items.length) await templatesStore.fetchAll()
     const tpl = templatesStore.items.find(t => t.id === route.params.id)
@@ -1086,5 +1635,28 @@ onMounted(async () => {
   }
 })
 
+onUnmounted(() => {
+  if (titleObserver) titleObserver.disconnect()
+})
+
 defineExpose({ store })
 </script>
+
+<style scoped>
+.form-container {
+  padding-bottom: 120px !important;
+}
+
+.overflow-chip {
+  cursor: pointer;
+}
+
+.slide-up-enter-active,
+.slide-up-leave-active {
+  transition: transform 0.2s ease;
+}
+.slide-up-enter-from,
+.slide-up-leave-to {
+  transform: translateY(100%);
+}
+</style>

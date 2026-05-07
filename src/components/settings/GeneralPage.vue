@@ -20,7 +20,7 @@
             Controls what happens to a gift rule when one of its gift SKUs goes out of stock.
           </p>
 
-          <v-alert type="info" variant="tonal" density="compact" class="mb-5">
+          <v-alert color="grey" variant="tonal" density="compact" class="mb-5">
             Rules with a single gift SKU are always paused when that SKU goes out of stock.
           </v-alert>
 
@@ -48,14 +48,17 @@
         <!-- Ineligible products -->
         <v-card border elevation="0" class="pa-5 mb-6">
           <div class="text-body-1 font-weight-bold mb-1">Products not eligible for promotions</div>
-          <p class="text-caption text-medium-emphasis mb-5">
-            Items matching any of these values are excluded from all promotion rules globally.
+          <p class="text-caption text-medium-emphasis mb-4">
+            Items matching any of these values are globally excluded. They will appear with a
+            <v-chip size="x-small" color="error" variant="tonal" label class="mx-1">Not allowed</v-chip>
+            badge when selecting conditions or gift products in a rule.
           </p>
 
-          <v-combobox
+          <v-autocomplete
             v-model="form.excludedCategories"
-            label="Product categories"
-            placeholder="Type and press Enter to add…"
+            :items="CATEGORY_OPTIONS"
+            label="Categories"
+            placeholder="Select categories…"
             variant="outlined"
             density="compact"
             multiple
@@ -65,10 +68,27 @@
             class="mb-4"
           />
 
-          <v-combobox
+          <v-autocomplete
+            v-model="form.excludedBrands"
+            :items="BRAND_OPTIONS"
+            label="Brands"
+            placeholder="Select brands…"
+            variant="outlined"
+            density="compact"
+            multiple
+            chips
+            closable-chips
+            hide-details
+            class="mb-4"
+          />
+
+          <v-autocomplete
             v-model="form.excludedSkus"
+            :items="drMaxProducts"
+            item-value="sku"
+            :item-title="p => `${p.name} (${p.sku})`"
             label="Product SKUs"
-            placeholder="Type and press Enter to add…"
+            placeholder="Search by name or SKU…"
             variant="outlined"
             density="compact"
             multiple
@@ -76,12 +96,17 @@
             closable-chips
             hide-details
             class="mb-4"
-          />
+          >
+            <template #chip="{ item, props: chipProps }">
+              <v-chip v-bind="chipProps" size="small" label>{{ item.raw.sku }}</v-chip>
+            </template>
+          </v-autocomplete>
 
-          <v-combobox
-            v-model="form.excludedProductTypes"
-            label="Product types"
-            placeholder="Type and press Enter to add…"
+          <v-autocomplete
+            v-model="form.excludedProductLines"
+            :items="PRODUCT_LINE_OPTIONS"
+            label="Product lines"
+            placeholder="Select product lines…"
             variant="outlined"
             density="compact"
             multiple
@@ -118,7 +143,7 @@
             </v-radio>
           </v-radio-group>
 
-          <v-alert v-if="form.prioritizationMode === 'automatic'" type="info" variant="tonal" density="compact" class="mt-4">
+          <v-alert v-if="form.prioritizationMode === 'automatic'" color="grey" variant="tonal" density="compact" class="mt-4">
             User gets the best sales rule based on cart items to always get the best value. All rules are non-combinable.
           </v-alert>
         </v-card>
@@ -183,8 +208,7 @@
             density="compact"
             hint="Applied to free items in multi-buy rules"
             persistent-hint
-            class="mb-4"
-            style="max-width: 260px"
+            class="mb-4 input-narrow"
           />
 
           <v-text-field
@@ -196,7 +220,7 @@
             density="compact"
             hint="Applied to free items in gift rules"
             persistent-hint
-            style="max-width: 260px"
+            class="input-narrow"
           />
         </v-card>
 
@@ -212,14 +236,20 @@
 <script setup>
 import { ref, reactive } from 'vue'
 import { useSettingsStore } from '../../stores/settings'
+import { drMaxProducts } from '../../mock/seed.js'
+
+const CATEGORY_OPTIONS = ['Vitamins & Supplements','OTC Medications','Dermocosmetology','Face Care','Body Care','Hair Care','Dental Care','Baby & Child Care','Diapers & Wipes','Medical Devices','Weight Loss & Diet','Sport & Fitness','Sexual Health & Contraception','Testing & Diagnostics','Eye Care','Foot Care','Sun Protection','Wound Care','Homeopathy & Herbs','For Seniors','Allergy & Immunity','Pain Relief','Cold & Flu','Digestive Health','Sleep & Relaxation']
+const BRAND_OPTIONS = ['Vichy','La Roche-Posay','Eucerin','Bioderma','Avène','Uriage','SVR','Ducray','Lierac','CeraVe','Nuxe','Caudalie','Mustela','Weleda','Nivea','Garnier',"L'Oréal Paris",'Neutrogena','Dove','Palmolive','Sensodyne','Elmex','Colgate','Parodontax','Nurofen','Panadol','Paralen','Ibalgin','Strepsils','Septolete','Imodium','Rennie','Espumisan','Centrum','Walmark','GS','Cemio','Jamieson','Pampers','Huggies','Chicco','Canpol','Omron','Microlife','Beurer','Head & Shoulders','Pantene','Syoss','Purity Vision','Aromatica','Alevia','Hofigal','Fares','Dacia Plant','Aboca','Apteo','Dr. Max']
+const PRODUCT_LINE_OPTIONS = ['Dr. Max Basic','Dr. Max Premium','Dr. Max Baby','Dr. Max Dermo','Dr. Max Vitamins','Dr. Max Ortho','Vichy Liftactiv','Vichy Mineral 89','La Roche-Posay Effaclar','La Roche-Posay Toleriane','Eucerin Hyaluron-Filler','Eucerin DermoPure','Bioderma Sensibio','Bioderma Sebium','Avène Tolerance','Nuxe Huile Prodigieuse']
 
 const store = useSettingsStore()
 
 const form = reactive({
   giftOosMulti: store.giftOosMulti,
   excludedCategories: [...store.excludedCategories],
+  excludedBrands: [...store.excludedBrands],
   excludedSkus: [...store.excludedSkus],
-  excludedProductTypes: [...store.excludedProductTypes],
+  excludedProductLines: [...store.excludedProductLines],
   prioritizationMode: store.prioritizationMode,
   multiBuyFreePrice: store.multiBuyFreePrice,
   giftFreePrice: store.giftFreePrice,
@@ -240,8 +270,9 @@ async function save() {
   store.save({
     giftOosMulti: form.giftOosMulti,
     excludedCategories: form.excludedCategories,
+    excludedBrands: form.excludedBrands,
     excludedSkus: form.excludedSkus,
-    excludedProductTypes: form.excludedProductTypes,
+    excludedProductLines: form.excludedProductLines,
     prioritizationMode: form.prioritizationMode,
     multiBuyFreePrice: form.multiBuyFreePrice,
     giftFreePrice: form.giftFreePrice,
