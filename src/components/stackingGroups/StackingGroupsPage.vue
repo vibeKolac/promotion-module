@@ -174,12 +174,17 @@
             </template>
 
             <template #item.actions="{ item }">
-              <v-btn
-                icon="mdi-open-in-new"
-                variant="text"
-                size="small"
-                :to="`/promotions/${item.id}/edit`"
-              />
+              <v-tooltip text="Go to rule detail" location="left">
+                <template #activator="{ props }">
+                  <v-btn
+                    v-bind="props"
+                    icon="mdi-open-in-new"
+                    variant="text"
+                    size="small"
+                    :to="`/promotions/${item.id}/edit`"
+                  />
+                </template>
+              </v-tooltip>
             </template>
           </v-data-table>
         </v-card>
@@ -200,6 +205,13 @@
     </ConfirmModal>
 
     <v-snackbar v-model="errorSnack" color="error" timeout="4000">{{ sgStore.error }}</v-snackbar>
+
+    <LeaveDialog
+      v-model="leaveDialogOpen"
+      :show-save="false"
+      @cancel="cancelLeave"
+      @leave="leaveWithoutSaving"
+    />
   </v-container>
 </template>
 
@@ -208,6 +220,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useStackingGroupsStore } from '../../stores/stackingGroups'
 import { usePromotionsStore } from '../../stores/promotions'
+import { useNavigationGuard } from '../../composables/useNavigationGuard'
 import StackingGroupDialog from './StackingGroupDialog.vue'
 import StatusBadge from '../shared/StatusBadge.vue'
 import PageActionBtn from '../_common/PageActionBtn.vue'
@@ -215,6 +228,7 @@ import ContentHeader from '../_common/ContentHeader.vue'
 import Breadcrumbs from '../_common/Breadcrumbs.vue'
 import Loader from '../_common/Loader.vue'
 import ConfirmModal from '../_common/ConfirmModal.vue'
+import LeaveDialog from '../_common/LeaveDialog.vue'
 
 const router = useRouter()
 const sgStore = useStackingGroupsStore()
@@ -336,6 +350,11 @@ async function openDelete(group) {
 }
 
 function onSaved() {}
+
+// ── Navigation guard (intercept nav while create/edit dialog is open) ─────────
+const { leaveDialogOpen, cancelLeave, leaveWithoutSaving } = useNavigationGuard({
+  dirty: dialogOpen,
+})
 </script>
 
 <style scoped>

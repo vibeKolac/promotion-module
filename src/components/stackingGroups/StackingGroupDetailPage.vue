@@ -95,13 +95,18 @@
               <span class="text-caption text-medium-emphasis priority-label">
                 priority {{ rule.priority }}
               </span>
-              <v-btn
-                icon="mdi-open-in-new"
-                variant="text"
-                size="small"
-                :to="`/promotions/${rule.id}/edit`"
-                class="ml-1"
-              />
+              <v-tooltip text="Go to rule detail" location="left">
+                <template #activator="{ props }">
+                  <v-btn
+                    v-bind="props"
+                    icon="mdi-open-in-new"
+                    variant="text"
+                    size="small"
+                    :to="`/promotions/${rule.id}/edit`"
+                    class="ml-1"
+                  />
+                </template>
+              </v-tooltip>
             </div>
           </template>
 
