@@ -58,7 +58,7 @@
 
           <template #item.rules="{ item }">
             <div class="d-flex align-center gap-2">
-              <v-chip size="x-small" :color="item.color ?? 'default'" variant="tonal">
+              <v-chip size="x-small" color="grey" variant="tonal">
                 {{ ruleCounts[item.id]?.active ?? 0 }} active
               </v-chip>
               <span class="text-caption text-medium-emphasis">
