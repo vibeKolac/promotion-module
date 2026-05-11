@@ -163,7 +163,7 @@
             <template #item._group="{ item }">
               <div class="d-flex align-center gap-2">
                 <span
-                  class="color-dot"
+                  class="color-dot mr-3"
                   :style="`background: ${item._group?.color ?? '#94a3b8'}`"
                 />
                 <span class="text-body-2">{{ item._group?.name ?? 'Unassigned' }}</span>
