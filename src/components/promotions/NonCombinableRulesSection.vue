@@ -49,22 +49,20 @@
       No restrictions — this rule can combine with any other rule.
     </v-alert>
 
-    <div class="d-flex align-center gap-2">
+    <div class="d-flex align-center restriction-actions">
       <v-btn
         prepend-icon="mdi-plus"
         variant="outlined"
-        size="small"
-        class="text-uppercase"
+        size="default"
         @click="openDialog"
       >
         Add restriction
       </v-btn>
       <v-btn
         prepend-icon="mdi-cancel"
-        variant="tonal"
-        size="small"
+        variant="outlined"
+        size="default"
         color="error"
-        class="text-uppercase"
         :disabled="allNonCombinable"
         @click="makeAllNonCombinable"
       >
@@ -152,7 +150,7 @@
           </v-autocomplete>
       <template #actions>
         <v-btn variant="text" @click="dialogCard.close()">Cancel</v-btn>
-        <v-btn color="primary" :disabled="!selectedIds.length" @click="add">
+        <v-btn color="success" :disabled="!selectedIds.length" @click="add">
           Add{{ selectedIds.length > 1 ? ` (${selectedIds.length})` : '' }}
         </v-btn>
       </template>
@@ -277,5 +275,8 @@ function add() {
 <style scoped>
 .rule-entry {
   background: rgba(0, 0, 0, 0.04);
+}
+.restriction-actions {
+  gap: 20px;
 }
 </style>

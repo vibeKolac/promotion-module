@@ -1,13 +1,14 @@
 <!-- src/components/settings/AccountingPage.vue -->
 <template>
   <v-container fluid class="pa-3 pa-sm-6">
-    <v-breadcrumbs :items="breadcrumbs" density="compact" class="pa-0 mb-2" />
+    <Breadcrumbs />
 
-    <div class="d-flex align-center flex-wrap mb-5 gap-3">
+    <ContentHeader>
       <h1 class="text-h5 font-weight-bold">Accounting</h1>
-      <v-spacer />
-      <v-btn color="primary" class="text-uppercase" :loading="saving" @click="save">Save</v-btn>
-    </div>
+      <template #right>
+        <v-btn color="success" :loading="saving" @click="save">Save</v-btn>
+      </template>
+    </ContentHeader>
 
     <v-row>
       <v-col cols="12" md="6">
@@ -96,6 +97,8 @@
 <script setup>
 import { ref, reactive } from 'vue'
 import { useSettingsStore } from '../../stores/settings'
+import ContentHeader from '../_common/ContentHeader.vue'
+import Breadcrumbs from '../_common/Breadcrumbs.vue'
 
 const store = useSettingsStore()
 

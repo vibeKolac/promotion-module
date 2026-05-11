@@ -1,12 +1,12 @@
 <!-- src/components/promotions/PromotionPlannerPage.vue -->
 <template>
   <v-container fluid class="pa-3 pa-sm-6">
-    <v-breadcrumbs :items="breadcrumbs" density="compact" class="pa-0 mb-2" />
+    <Breadcrumbs />
 
-    <div class="d-flex align-center mb-6 py-2">
+    <ContentHeader>
       <h1 class="text-h5 font-weight-bold">Promotion Planner</h1>
-      <v-chip size="small" color="warning" variant="tonal" label class="ml-3">Exploring</v-chip>
-    </div>
+      <v-chip size="small" color="warning" variant="tonal" label>Exploring</v-chip>
+    </ContentHeader>
 
     <v-row>
       <v-col cols="12" md="6">
@@ -56,8 +56,6 @@
 </template>
 
 <script setup>
-const breadcrumbs = [
-  { title: 'Promotions', to: '/promotions' },
-  { title: 'Promotion Planner' },
-]
+import ContentHeader from '../_common/ContentHeader.vue'
+import Breadcrumbs from '../_common/Breadcrumbs.vue'
 </script>

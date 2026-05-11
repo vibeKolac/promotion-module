@@ -4,6 +4,7 @@
     <!-- Header -->
     <div class="d-flex align-center mb-1">
       <span class="text-body-1 font-weight-bold">{{ title }}</span>
+      <HelpTooltip v-if="helpText" :text="helpText" class="ml-1" />
       <v-spacer />
       <v-btn prepend-icon="mdi-upload" variant="text" size="small" @click="csvImportOpen = true">
         Import CSV
@@ -194,6 +195,7 @@
 <script setup>
 import { ref } from 'vue'
 import { v4 as uuid } from 'uuid'
+import HelpTooltip from '../_common/HelpTooltip.vue'
 import ConditionGroupRow from './ConditionGroupRow.vue'
 import ConditionCsvImportDialog from './ConditionCsvImportDialog.vue'
 import ConditionPresetPickerDialog from './ConditionPresetPickerDialog.vue'
@@ -238,6 +240,7 @@ const props = defineProps({
   scope:      { type: String, default: 'cart' },
   showPreset: { type: Boolean, default: true },
   title:      { type: String, default: 'Condition Builder' },
+  helpText:   { type: String, default: null },
 })
 const emit = defineEmits(['update:modelValue'])
 

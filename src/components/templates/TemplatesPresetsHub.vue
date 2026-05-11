@@ -1,12 +1,15 @@
 <!-- src/components/templates/TemplatesPresetsHub.vue -->
 <template>
   <v-container fluid class="pa-3 pa-sm-6">
-    <v-breadcrumbs :items="[{ title: 'Templates & Presets', disabled: true }]" density="compact" class="pa-0 mb-2" />
+    <Breadcrumbs />
 
-    <div class="d-flex align-center gap-2 mb-4">
+    <ContentHeader>
       <h1 class="text-h5 font-weight-bold">Templates &amp; Presets</h1>
       <v-chip size="x-small" color="warning" variant="tonal" label>Exploring</v-chip>
-    </div>
+      <template #right>
+        <PageActionBtn v-if="activeTab === 'condition-presets'" @click="openCreatePreset">New preset</PageActionBtn>
+      </template>
+    </ContentHeader>
 
     <v-tabs :model-value="activeTab" color="primary" class="mb-5 border-b" @update:model-value="navigate">
       <v-tab value="templates" prepend-icon="mdi-file-document-outline">Templates</v-tab>
@@ -20,8 +23,11 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, provide, ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import PageActionBtn from '../_common/PageActionBtn.vue'
+import ContentHeader from '../_common/ContentHeader.vue'
+import Breadcrumbs from '../_common/Breadcrumbs.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -33,5 +39,12 @@ const activeTab = computed(() => {
 
 function navigate(tab) {
   router.push(`/templates-presets/${tab}`)
+}
+
+const triggerCreatePreset = ref(0)
+provide('triggerCreatePreset', triggerCreatePreset)
+
+function openCreatePreset() {
+  triggerCreatePreset.value++
 }
 </script>

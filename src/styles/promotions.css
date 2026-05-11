@@ -24,8 +24,18 @@
 .sticky-save-bar__inner {
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: 12px;
   width: 100%;
+}
+
+@media (max-width: 600px) {
+  .sticky-save-bar {
+    padding: 10px 16px;
+  }
+  .sticky-save-bar__inner {
+    gap: 8px;
+    justify-content: flex-end;
+  }
 }
 
 .sticky-save-bar__description {
@@ -36,6 +46,38 @@
 /* Inline clickable anchor that looks like a link but is a plain <a> */
 .clickable-link {
   cursor: pointer;
+}
+
+/* Standard gap between action buttons in a row (title bar, sticky bar, toolbars) */
+.action-btn-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* ERP entry ID label chip */
+.erp-chip {
+  background-color: rgb(var(--v-theme-success), 0.15) !important;
+  color: rgb(var(--v-theme-success)) !important;
+}
+
+/* Icon used in card section headers (ERP, Coupon, etc.) */
+.card-section-icon {
+  color: rgb(var(--v-theme-primary)) !important;
+}
+
+/* Inline navigation link used inside form cards */
+.section-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.75rem;
+  color: rgb(var(--v-theme-primary));
+  text-decoration: none;
+  cursor: pointer;
+}
+.section-link:hover {
+  text-decoration: underline;
 }
 
 /* Drag handle icon */

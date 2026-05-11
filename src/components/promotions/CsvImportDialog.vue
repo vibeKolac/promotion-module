@@ -33,7 +33,7 @@
       <v-card-actions class="pa-5 pt-0">
         <v-spacer />
         <v-btn variant="outlined" @click="$emit('update:modelValue', false)">Cancel</v-btn>
-        <v-btn color="primary" variant="flat" :disabled="!preview.length" @click="doImport">
+        <v-btn color="success" :disabled="!preview.length" @click="doImport">
           Import {{ preview.length }} rules
         </v-btn>
       </v-card-actions>

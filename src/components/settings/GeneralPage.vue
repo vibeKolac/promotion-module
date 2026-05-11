@@ -1,13 +1,14 @@
 <!-- src/components/settings/GeneralPage.vue -->
 <template>
   <v-container fluid class="pa-3 pa-sm-6">
-    <v-breadcrumbs :items="breadcrumbs" density="compact" class="pa-0 mb-2" />
+    <Breadcrumbs />
 
-    <div class="d-flex align-center flex-wrap mb-5 gap-3">
+    <ContentHeader>
       <h1 class="text-h5 font-weight-bold">General</h1>
-      <v-spacer />
-      <v-btn color="primary" class="text-uppercase" :loading="saving" @click="save">Save</v-btn>
-    </div>
+      <template #right>
+        <v-btn color="success" :loading="saving" @click="save">Save</v-btn>
+      </template>
+    </ContentHeader>
 
     <v-row>
       <v-col cols="12" md="6">
@@ -237,6 +238,8 @@
 import { ref, reactive } from 'vue'
 import { useSettingsStore } from '../../stores/settings'
 import { drMaxProducts } from '../../mock/seed.js'
+import ContentHeader from '../_common/ContentHeader.vue'
+import Breadcrumbs from '../_common/Breadcrumbs.vue'
 
 const CATEGORY_OPTIONS = ['Vitamins & Supplements','OTC Medications','Dermocosmetology','Face Care','Body Care','Hair Care','Dental Care','Baby & Child Care','Diapers & Wipes','Medical Devices','Weight Loss & Diet','Sport & Fitness','Sexual Health & Contraception','Testing & Diagnostics','Eye Care','Foot Care','Sun Protection','Wound Care','Homeopathy & Herbs','For Seniors','Allergy & Immunity','Pain Relief','Cold & Flu','Digestive Health','Sleep & Relaxation']
 const BRAND_OPTIONS = ['Vichy','La Roche-Posay','Eucerin','Bioderma','Avène','Uriage','SVR','Ducray','Lierac','CeraVe','Nuxe','Caudalie','Mustela','Weleda','Nivea','Garnier',"L'Oréal Paris",'Neutrogena','Dove','Palmolive','Sensodyne','Elmex','Colgate','Parodontax','Nurofen','Panadol','Paralen','Ibalgin','Strepsils','Septolete','Imodium','Rennie','Espumisan','Centrum','Walmark','GS','Cemio','Jamieson','Pampers','Huggies','Chicco','Canpol','Omron','Microlife','Beurer','Head & Shoulders','Pantene','Syoss','Purity Vision','Aromatica','Alevia','Hofigal','Fares','Dacia Plant','Aboca','Apteo','Dr. Max']

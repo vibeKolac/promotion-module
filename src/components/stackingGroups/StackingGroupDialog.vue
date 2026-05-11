@@ -3,6 +3,7 @@
   <DialogCard :model-value="modelValue" max-width="460" @update:model-value="$emit('update:modelValue', $event)">
     <template #title>{{ isEditMode ? 'Edit group' : 'New group' }}</template>
 
+    <ApiErrorAlert :error="saveError" class="mb-3" @dismiss="saveError = null" />
     <TextInput v-model="form.name" label="Name" :error-messages="nameError" class="mb-3" />
     <NumberInput v-model.number="form.priority" label="Priority" class="mb-3" />
 
@@ -21,7 +22,7 @@
 
     <template #actions>
       <v-btn variant="text" @click="$emit('update:modelValue', false)">Cancel</v-btn>
-      <v-btn color="primary" variant="flat" :loading="saving" @click="handleSave">
+      <v-btn color="success" :loading="saving" @click="handleSave">
         {{ isEditMode ? 'Update' : 'Create' }}
       </v-btn>
     </template>
@@ -35,6 +36,7 @@ import ColorPicker from '../shared/ColorPicker.vue'
 import DialogCard from '../_common/DialogCard.vue'
 import TextInput from '../_common/TextInput.vue'
 import NumberInput from '../_common/NumberInput.vue'
+import ApiErrorAlert from '../_common/ApiErrorAlert.vue'
 
 const props = defineProps({
   modelValue: Boolean,
@@ -57,6 +59,7 @@ const emptyForm = () => ({
 const form = ref(emptyForm())
 const saving = ref(false)
 const nameError = ref('')
+const saveError = ref(null)
 
 function seedForm(val) {
   if (val) {
@@ -65,6 +68,7 @@ function seedForm(val) {
     form.value = emptyForm()
   }
   nameError.value = ''
+  saveError.value = null
 }
 
 watch(() => props.group, (val) => seedForm(val), { immediate: true })
@@ -88,8 +92,8 @@ async function handleSave() {
     }
     emit('saved')
     emit('update:modelValue', false)
-  } catch {
-    // store already set error.value; dialog stays open
+  } catch (e) {
+    saveError.value = e
   } finally {
     saving.value = false
   }

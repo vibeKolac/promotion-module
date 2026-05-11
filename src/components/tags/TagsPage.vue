@@ -1,19 +1,16 @@
 <!-- src/components/tags/TagsPage.vue -->
 <template>
   <v-container fluid class="pa-3 pa-sm-6">
-    <v-breadcrumbs :items="[{ title: 'Action Labels', disabled: true }]" density="compact" class="pa-0 mb-2" />
+    <Breadcrumbs />
 
-    <div class="d-flex align-center mb-5">
+    <ContentHeader>
       <h1 class="text-h5 font-weight-bold">Action Labels</h1>
-      <v-spacer />
-      <v-btn variant="outlined" prepend-icon="mdi-plus" class="text-uppercase" @click="openCreate">
-        New label
-      </v-btn>
-    </div>
+      <template #right>
+        <PageActionBtn @click="openCreate">New label</PageActionBtn>
+      </template>
+    </ContentHeader>
 
-    <div v-if="tagsStore.loading" class="d-flex justify-center pa-8">
-      <v-progress-circular indeterminate />
-    </div>
+    <Loader v-if="tagsStore.loading" />
 
     <template v-else>
       <v-card v-if="tagsStore.items.length" border elevation="0">
@@ -82,7 +79,7 @@
 
       <template #actions>
         <v-btn variant="text" @click="closeForm">Cancel</v-btn>
-        <v-btn color="primary" variant="flat" :loading="saving" @click="submitForm">
+        <v-btn color="success" :loading="saving" @click="submitForm">
           {{ editingTag ? 'Save' : 'Create' }}
         </v-btn>
       </template>
@@ -108,6 +105,10 @@ import { usePromotionsStore } from '../../stores/promotions'
 import DialogCard from '../_common/DialogCard.vue'
 import ConfirmModal from '../_common/ConfirmModal.vue'
 import TextInput from '../_common/TextInput.vue'
+import PageActionBtn from '../_common/PageActionBtn.vue'
+import ContentHeader from '../_common/ContentHeader.vue'
+import Breadcrumbs from '../_common/Breadcrumbs.vue'
+import Loader from '../_common/Loader.vue'
 
 const tagsStore = useTagsStore()
 const promoStore = usePromotionsStore()

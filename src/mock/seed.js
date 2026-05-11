@@ -22,10 +22,10 @@ export const tags = [
 ]
 
 export const internalTags = [
-  { id: 'itag-1', name: 'flash-sale' },
+  { id: 'itag-1', name: 'internal' },
   { id: 'itag-2', name: 'Q2-2026' },
-  { id: 'itag-3', name: 'loyalty' },
-  { id: 'itag-4', name: 'marketing' },
+  { id: 'itag-3', name: 'analyse' },
+  { id: 'itag-4', name: 'external' },
 ]
 
 export const erpEntries = [
@@ -49,7 +49,7 @@ export const erpEntries = [
 export const promotions = [
   {
     id: 'promo-1', name: '20% off Vichy over €50', type: 'discount',
-    value: '20', valueUnit: '%', amountType: 'PERCENT', steps: [], priority: 10, status: 'active',
+    value: '20', valueUnit: '%', amountType: 'PERCENT', steps: [], priority: 4, status: 'active',
     scope: 'cart',
     startDate: '2026-04-01', endDate: '2026-06-30', stackingGroupId: 'sg-default',
     conditions: [
@@ -63,7 +63,7 @@ export const promotions = [
   },
   {
     id: 'promo-2', name: 'Flash Sale — Skincare', type: 'discount',
-    value: '30', valueUnit: '%', amountType: 'PERCENT', steps: [], priority: 5, status: 'active',
+    value: '30', valueUnit: '%', amountType: 'PERCENT', steps: [], priority: 1, status: 'active',
     scope: 'item',
     startDate: '2026-04-20', endDate: '2026-05-20', stackingGroupId: 'sg-1',
     conditions: [{ id: 'c3', field: 'categories', mode: 'include', values: ['Dermocosmetology'] }],
@@ -74,7 +74,7 @@ export const promotions = [
   },
   {
     id: 'promo-3', name: 'Buy 3 Get 1 Free — Bebelo', type: 'multi_buy',
-    value: '25', valueUnit: '%', amountType: 'PERCENT', steps: [], priority: 8, status: 'draft',
+    value: '25', valueUnit: '%', amountType: 'PERCENT', steps: [], priority: 2, status: 'draft',
     scope: 'item',
     startDate: '2026-05-15', endDate: '2026-07-31', stackingGroupId: 'sg-default',
     conditions: [
@@ -85,7 +85,7 @@ export const promotions = [
   },
   {
     id: 'promo-4', name: 'Free DrMax travel kit over €150', type: 'gift',
-    value: '0', valueUnit: '%', amountType: 'PERCENT', steps: [], priority: 3, status: 'active',
+    value: '0', valueUnit: '%', amountType: 'PERCENT', steps: [], priority: 1, status: 'active',
     scope: 'cart',
     startDate: '2026-03-01', endDate: '2026-07-31', stackingGroupId: 'sg-default',
     conditions: [{ id: 'c5', field: 'subtotal', mode: 'include', values: ['150'], operator: '>=' }],
@@ -97,7 +97,7 @@ export const promotions = [
   },
   {
     id: 'promo-5', name: 'Summer Sun Protection Campaign', type: 'discount',
-    value: '25', valueUnit: '%', amountType: 'PERCENT', steps: [], priority: 5, status: 'scheduled',
+    value: '25', valueUnit: '%', amountType: 'PERCENT', steps: [], priority: 3, status: 'scheduled',
     scope: 'cart',
     startDate: '2026-06-01', endDate: '2026-08-31', stackingGroupId: 'sg-1',
     conditions: [{ id: 'c6', field: 'categories', mode: 'include', values: ['Sun Protection'] }],
@@ -106,7 +106,7 @@ export const promotions = [
   },
   {
     id: 'promo-6', name: 'DrMax Loyalty Club — 10% off', type: 'discount',
-    value: '10', valueUnit: '%', amountType: 'PERCENT', steps: [], priority: 8, status: 'paused',
+    value: '10', valueUnit: '%', amountType: 'PERCENT', steps: [], priority: 2, status: 'paused',
     scope: 'cart',
     startDate: '2026-04-01', endDate: '2026-07-31', stackingGroupId: 'sg-2',
     conditions: [{ id: 'c8', field: 'customer_group', mode: 'include', values: ['Club Silver'] }],
@@ -116,7 +116,7 @@ export const promotions = [
   },
   {
     id: 'promo-7', name: 'Valentine\'s Day — La Roche-Posay', type: 'discount',
-    value: '15', valueUnit: '%', amountType: 'PERCENT', steps: [], priority: 6, status: 'ended',
+    value: '15', valueUnit: '%', amountType: 'PERCENT', steps: [], priority: 4, status: 'ended',
     scope: 'item',
     startDate: '2026-02-10', endDate: '2026-02-16', stackingGroupId: 'sg-1',
     conditions: [{ id: 'c7', field: 'brands', mode: 'include', values: ['La Roche-Posay'] }],
@@ -126,7 +126,7 @@ export const promotions = [
   },
   {
     id: 'promo-8', name: 'Easter Wellness Deals', type: 'step_discount',
-    value: '5', valueUnit: '%', amountType: 'PERCENT', steps: [], priority: 7, status: 'ended',
+    value: '5', valueUnit: '%', amountType: 'PERCENT', steps: [], priority: 3, status: 'ended',
     scope: 'cart',
     startDate: '2026-04-01', endDate: '2026-04-21', stackingGroupId: 'sg-default',
     conditions: [{ id: 'c9', field: 'categories', mode: 'include', values: ['Vitamins & Supplements'] }],
@@ -136,7 +136,7 @@ export const promotions = [
   },
   {
     id: 'promo-9', name: 'New Customer Welcome — 15% off', type: 'discount',
-    value: '15', valueUnit: '%', amountType: 'PERCENT', steps: [], priority: 4, status: 'draft',
+    value: '15', valueUnit: '%', amountType: 'PERCENT', steps: [], priority: 1, status: 'draft',
     scope: 'cart',
     startDate: null, endDate: null, stackingGroupId: 'sg-2',
     conditions: [{ id: 'c10', field: 'customer_group', mode: 'include', values: ['Guest'] }],
@@ -146,7 +146,7 @@ export const promotions = [
   },
   {
     id: 'promo-10', name: 'Eucerin Brand Week', type: 'discount',
-    value: '20', valueUnit: '%', amountType: 'PERCENT', steps: [], priority: 5, status: 'scheduled',
+    value: '20', valueUnit: '%', amountType: 'PERCENT', steps: [], priority: 2, status: 'scheduled',
     scope: 'item',
     startDate: '2026-05-19', endDate: '2026-05-25', stackingGroupId: 'sg-1',
     conditions: [{ id: 'c11', field: 'brands', mode: 'include', values: ['Eucerin'] }],

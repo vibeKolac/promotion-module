@@ -25,11 +25,12 @@ export default createVuetify({
     themes: {
       light: {
         colors: {
-          primary: '#558b2f',
-          'primary-darken-1': '#33691e',
-          success: '#4caf50',
-          error: '#e53935',
-          warning: '#f57f17',
+          primary: '#49a927',
+          secondary: '#455a64',
+          success: '#49a927',
+          error: '#ff5252',
+          info: '#2196f3',
+          warning: '#fb8c00',
           'on-primary': '#ffffff',
         },
       },
@@ -37,8 +38,22 @@ export default createVuetify({
   },
   defaults: {
     VBtn: {
-      style: 'letter-spacing: 0.05em',
+      class: 'text-uppercase',
     },
+    VCardActions: {
+      VBtn: {
+        variant: 'elevated',
+      },
+    },
+    VAutocomplete: { color: 'primary' },
+    VSelect: { color: 'primary' },
+    VSwitch: { color: 'primary' },
+    VTextField: { color: 'primary' },
+    VTabs: { color: 'primary' },
+    VRadioGroup: { color: 'primary' },
+    VTextarea: { color: 'primary' },
+    VCheckbox: { color: 'primary' },
+    VFileInput: { color: 'primary' },
     VDateInput: {
       placeholder: 'dd/mm/yyyy',
       displayFormat: (date) => {

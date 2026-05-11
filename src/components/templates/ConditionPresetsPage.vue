@@ -15,9 +15,6 @@
         class="input-search"
         clearable
       />
-      <v-btn color="primary" prepend-icon="mdi-plus" variant="flat" size="small" class="text-uppercase" @click="openCreate">
-        New preset
-      </v-btn>
     </div>
 
     <div v-if="filtered.length" class="d-flex flex-wrap gap-4">
@@ -96,7 +93,7 @@
         <v-card-actions class="pa-5 pt-0">
           <v-spacer />
           <v-btn variant="text" @click="formDialogOpen = false">Cancel</v-btn>
-          <v-btn color="primary" variant="flat" @click="savePreset">{{ editing ? 'Save' : 'Create' }}</v-btn>
+          <v-btn color="success" @click="savePreset">{{ editing ? 'Save' : 'Create' }}</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -120,13 +117,18 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, inject, watch } from 'vue'
 import { useDisplay } from 'vuetify'
 import { useConditionPresetsStore } from '../../stores/conditionPresets'
 import ConditionsEditor from '../promotions/ConditionsEditor.vue'
 
 const store = useConditionPresetsStore()
 const { mobile } = useDisplay()
+
+const triggerCreatePreset = inject('triggerCreatePreset', null)
+if (triggerCreatePreset) {
+  watch(triggerCreatePreset, () => openCreate())
+}
 const search = ref('')
 
 const filtered = computed(() =>

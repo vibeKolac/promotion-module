@@ -27,7 +27,7 @@
           <v-btn
             color="primary"
             block
-            class="mt-2 text-uppercase"
+            class="mt-2"
             :loading="checking"
             @click="submit"
           >

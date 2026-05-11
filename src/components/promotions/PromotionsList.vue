@@ -1,43 +1,34 @@
 <!-- src/components/promotions/PromotionsList.vue -->
 <template>
   <v-container fluid class="pa-3 pa-sm-6">
-    <!-- Breadcrumb -->
-    <v-breadcrumbs :items="breadcrumbs" density="compact" class="pa-0 mb-2" />
+    <Breadcrumbs />
 
-    <!-- Title row -->
-    <div class="d-flex align-center flex-wrap mb-6 py-2 title-row">
+    <ContentHeader>
       <h1 class="text-h5 font-weight-bold">Promotion rules management</h1>
-      <v-spacer />
-      <!-- Bulk CSV section -->
-      <div v-if="!mobile" class="bulk-csv-wrapper">
-        <v-chip
-          size="x-small"
-          color="warning"
-          variant="tonal"
-          label
-          prepend-icon="mdi-flask-outline"
-          class="bulk-csv-badge"
-        >Exploring</v-chip>
-        <div class="bulk-csv-box">
-          <v-icon color="warning" size="18" class="bulk-csv-icon">mdi-table-arrow-right</v-icon>
-          <div class="bulk-csv-labels">
-            <span class="bulk-csv-title">Bulk Data</span>
-            <span class="bulk-csv-subtitle">CSV import / export</span>
+      <template #right>
+        <div v-if="!mobile" class="bulk-csv-wrapper">
+          <v-chip
+            size="x-small"
+            color="warning"
+            variant="tonal"
+            label
+            prepend-icon="mdi-flask-outline"
+            class="bulk-csv-badge"
+          >Exploring</v-chip>
+          <div class="bulk-csv-box">
+            <v-icon color="warning" size="18" class="bulk-csv-icon">mdi-table-arrow-right</v-icon>
+            <div class="bulk-csv-labels">
+              <span class="bulk-csv-title">Bulk Data</span>
+              <span class="bulk-csv-subtitle">CSV import / export</span>
+            </div>
+            <v-divider vertical class="bulk-csv-divider" />
+            <v-btn variant="outlined" size="small" class="px-3" prepend-icon="mdi-download" @click="exportCSV">Export</v-btn>
+            <v-btn variant="outlined" size="small" class="px-3" prepend-icon="mdi-upload" @click="csvImportOpen = true">Import</v-btn>
           </div>
-          <v-divider vertical class="bulk-csv-divider" />
-          <v-btn variant="outlined" size="small" class="px-3" prepend-icon="mdi-download" @click="exportCSV">Export</v-btn>
-          <v-btn variant="outlined" size="small" class="px-3" prepend-icon="mdi-upload" @click="csvImportOpen = true">Import</v-btn>
         </div>
-      </div>
-      <v-btn
-        color="primary"
-        prepend-icon="mdi-plus"
-        class="text-uppercase px-5"
-        to="/promotions/new"
-      >
-        New Rule
-      </v-btn>
-    </div>
+        <PageActionBtn to="/promotions/new">New Rule</PageActionBtn>
+      </template>
+    </ContentHeader>
 
     <!-- Search -->
     <TextInput
@@ -373,7 +364,10 @@ import { useStackingGroupsStore } from '../../stores/stackingGroups'
 import { useTagsStore } from '../../stores/tags'
 import { useInternalTagsStore } from '../../stores/internalTags'
 import StatusBadge from '../shared/StatusBadge.vue'
+import PageActionBtn from '../_common/PageActionBtn.vue'
 import ConfirmModal from '../_common/ConfirmModal.vue'
+import ContentHeader from '../_common/ContentHeader.vue'
+import Breadcrumbs from '../_common/Breadcrumbs.vue'
 import TextInput from '../_common/TextInput.vue'
 import SelectInput from '../_common/SelectInput.vue'
 import { useDebounceFn } from '@vueuse/core'
@@ -563,11 +557,6 @@ async function onCSVImport(rules) {
 }
 
 const errorSnack = computed({ get: () => !!store.error, set: () => {} })
-
-const breadcrumbs = [
-  { title: 'Promotions', disabled: true },
-  { title: 'Promotion rules management', disabled: true },
-]
 
 const headers = computed(() => [
   { title: 'Name', key: 'name', sortable: true },

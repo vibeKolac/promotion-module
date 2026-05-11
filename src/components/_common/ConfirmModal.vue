@@ -1,17 +1,17 @@
 <template>
   <v-dialog v-model="isOpen" max-width="400">
-    <v-card>
+    <v-card v-if="isOpen">
       <v-card-title class="pa-5 pb-2 text-h6">
-        <slot name="header">Confirm</slot>
+        <slot name="header" :item="item">Confirm</slot>
       </v-card-title>
       <v-card-text class="pa-5 pt-2">
-        <slot name="body" />
+        <slot name="body" :item="item" />
       </v-card-text>
       <v-card-actions class="pa-5 pt-0">
         <v-spacer />
-        <slot name="actions">
-          <v-btn variant="text" @click="resolve(false)">Cancel</v-btn>
-          <v-btn :color="confirmColor" variant="flat" :loading="loading" @click="resolve(true)">
+        <slot name="actions" :item="item" :cancel="cancel" :confirm="confirm">
+          <v-btn variant="text" color="info" @click="cancel">Cancel</v-btn>
+          <v-btn :color="confirmColor" :loading="loading" @click="confirm">
             {{ confirmText }}
           </v-btn>
         </slot>
@@ -21,27 +21,44 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 
 const props = defineProps({
   confirmText: { type: String, default: 'Confirm' },
-  confirmColor: { type: String, default: 'primary' },
+  confirmColor: { type: String, default: 'error' },
   loading: { type: Boolean, default: false },
 })
 
+const emit = defineEmits(['cancel', 'confirm'])
+
 const isOpen = ref(false)
+const item = ref(null)
 let _resolve = null
 
-function open() {
+watch(isOpen, (val) => { if (!val) cancel() })
+
+function open(payload = true) {
+  item.value = payload
   isOpen.value = true
   return new Promise((res) => { _resolve = res })
 }
 
-function resolve(value) {
+function cancel() {
+  if (!_resolve) return
   isOpen.value = false
-  _resolve?.(value)
+  _resolve(false)
   _resolve = null
+  item.value = null
+  emit('cancel')
 }
 
-defineExpose({ open })
+function confirm() {
+  isOpen.value = false
+  _resolve?.(true)
+  _resolve = null
+  item.value = null
+  emit('confirm')
+}
+
+defineExpose({ open, close: cancel })
 </script>

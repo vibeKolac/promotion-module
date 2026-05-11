@@ -24,7 +24,7 @@ const emptyDraft = () => ({
   stepMaxSteps: '',
   stepApplyTo: 'cheapest',
   giftStepType: 'SPENT', giftStepValue: '', giftMaxSteps: '',
-  channels: ['web', 'mobile_app'],
+  channels: [],
   multiBuyQty: '', multiFreeQty: '',
   multiSelectionMode: 'CHEAPEST', multiMaxSteps: '',
   nonCombinableRules: [],
@@ -32,6 +32,7 @@ const emptyDraft = () => ({
   maxUsagePerCustomer: null,
   maxUsagePerRule: null,
   erpId: null,
+  couponId: null,
 })
 
 export const usePromotionsStore = defineStore('promotions', () => {

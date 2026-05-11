@@ -85,7 +85,7 @@
       <v-card-actions class="pa-5 pt-0">
         <v-spacer />
         <v-btn variant="text" @click="$emit('update:modelValue', false)">Cancel</v-btn>
-        <v-btn color="primary" variant="flat" :disabled="!selected" @click="apply">Apply preset</v-btn>
+        <v-btn color="success" :disabled="!selected" @click="apply">Apply preset</v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>

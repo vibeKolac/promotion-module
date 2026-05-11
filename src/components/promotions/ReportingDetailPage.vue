@@ -1,15 +1,14 @@
 <!-- src/components/promotions/ReportingDetailPage.vue -->
 <template>
   <v-container fluid class="pa-3 pa-sm-6">
-    <v-breadcrumbs :items="breadcrumbs" density="compact" class="pa-0 mb-2" />
+    <Breadcrumbs :append-breadcrumbs="breadcrumbs" />
 
-    <div class="d-flex align-center flex-wrap mb-5 gap-3">
+    <ContentHeader>
       <h1 class="text-h5 font-weight-bold">{{ promotion?.name ?? 'Rule detail' }}</h1>
-      <v-spacer />
-      <v-btn variant="outlined" to="/promotions/reporting" class="text-uppercase">
-        Back to reporting
-      </v-btn>
-    </div>
+      <template #right>
+        <v-btn variant="outlined" to="/promotions/reporting">Back to reporting</v-btn>
+      </template>
+    </ContentHeader>
 
     <!-- Summary stats -->
     <v-row class="mb-4">
@@ -159,6 +158,8 @@ import axios from 'axios'
 import { usePromotionsStore } from '../../stores/promotions'
 import TextInput from '../_common/TextInput.vue'
 import SelectInput from '../_common/SelectInput.vue'
+import ContentHeader from '../_common/ContentHeader.vue'
+import Breadcrumbs from '../_common/Breadcrumbs.vue'
 
 const route = useRoute()
 const store = usePromotionsStore()
@@ -170,9 +171,7 @@ const loading = ref(false)
 const promotion = computed(() => store.items.find(p => p.id === route.params.id))
 
 const breadcrumbs = computed(() => [
-  { title: 'Promotions', disabled: true },
-  { title: 'Reporting', to: '/promotions/reporting' },
-  { title: promotion.value?.name ?? route.params.id, disabled: true },
+  { title: promotion.value?.name ?? String(route.params.id), disabled: true },
 ])
 
 // ── Filter state ──────────────────────────────────────────────────────────────

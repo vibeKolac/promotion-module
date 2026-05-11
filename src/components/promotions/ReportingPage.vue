@@ -1,11 +1,11 @@
 <!-- src/components/promotions/ReportingPage.vue -->
 <template>
   <v-container fluid class="pa-3 pa-sm-6">
-    <v-breadcrumbs :items="breadcrumbs" density="compact" class="pa-0 mb-2" />
+    <Breadcrumbs />
 
-    <div class="d-flex align-center mb-5">
+    <ContentHeader>
       <h1 class="text-h5 font-weight-bold">Reporting</h1>
-    </div>
+    </ContentHeader>
 
     <v-alert color="grey" variant="tonal" density="compact" class="mb-4" icon="mdi-chart-bar">
       Basic reporting is available here. For more detail, check the
@@ -195,6 +195,8 @@
 import { ref, computed, onMounted } from 'vue'
 import { useDisplay } from 'vuetify'
 import { useRouter } from 'vue-router'
+import ContentHeader from '../_common/ContentHeader.vue'
+import Breadcrumbs from '../_common/Breadcrumbs.vue'
 import { usePromotionsStore } from '../../stores/promotions'
 import { useTagsStore } from '../../stores/tags'
 import TextInput from '../_common/TextInput.vue'
@@ -373,11 +375,6 @@ const headers = computed(() => [
     { title: 'Action Labels', key: 'tags', sortable: false },
   ]),
 ])
-
-const breadcrumbs = [
-  { title: 'Promotions', disabled: true },
-  { title: 'Reporting', disabled: true },
-]
 
 onMounted(async () => {
   await Promise.all([store.fetchAll(), tagsStore.fetchAll()])

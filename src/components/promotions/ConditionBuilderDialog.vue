@@ -236,7 +236,7 @@
       >
         Next
       </v-btn>
-      <v-btn v-else color="primary" variant="flat" @click="handleSave">
+      <v-btn v-else color="success" @click="handleSave">
         {{ saveLabel }}
       </v-btn>
     </template>

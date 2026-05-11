@@ -1,38 +1,39 @@
 <!-- src/components/promotions/PromotionForm.vue -->
 <template>
   <v-container fluid class="pa-4 pa-sm-8 form-container">
-    <!-- Breadcrumb -->
-    <v-breadcrumbs :items="breadcrumbs" density="compact" class="pa-0 mb-2" />
+    <Breadcrumbs :append-breadcrumbs="breadcrumbs" />
 
     <!-- Title + actions -->
-    <div ref="titleActionsRef" class="d-flex align-center flex-wrap mb-6 gap-3">
+    <div ref="titleActionsRef" class="d-flex flex-column flex-sm-row align-start align-sm-center mb-6 gap-3">
       <h1 class="text-h5 font-weight-bold">
         {{ isTemplateEdit ? 'Edit template' : (isEdit ? 'Edit promotion rule' : 'New promotion rule') }}
       </h1>
-      <v-spacer />
-      <v-btn variant="outlined" class="text-uppercase" @click="openDiscardDialog">Discard</v-btn>
-      <template v-if="isTemplateEdit">
-        <v-btn color="primary" class="text-uppercase ml-4" size="small" :loading="saving" @click="openSaveConfirm('template')">Save template</v-btn>
-      </template>
-      <template v-else>
-        <v-btn-group color="primary" divided size="small" class="ml-4">
-          <v-btn class="text-uppercase" :loading="saving" data-testid="save-btn" @click="openSaveConfirm('draft')">Save as draft</v-btn>
-          <v-menu location="bottom end">
-            <template #activator="{ props: menuProps }">
-              <v-btn v-bind="menuProps" icon="mdi-chevron-down" :loading="saving" />
-            </template>
-            <v-list density="compact" min-width="220">
-              <v-list-item
-                :prepend-icon="isFutureDate(draft.startDate) ? 'mdi-calendar-clock' : 'mdi-lightning-bolt-outline'"
-                :title="dynamicActivateLabel"
-                :disabled="!draft.startDate"
-                @click="openSaveConfirm('activate')"
-              />
-              <v-list-item prepend-icon="mdi-file-document-plus-outline" title="Save and create template" @click="openSaveConfirm('template_from_rule')" />
-            </v-list>
-          </v-menu>
-        </v-btn-group>
-      </template>
+      <v-spacer class="d-none d-sm-flex" />
+      <div class="action-btn-row flex-shrink-0">
+        <v-btn variant="outlined" @click="openDiscardDialog">Discard</v-btn>
+        <template v-if="isTemplateEdit">
+          <v-btn color="success" size="small" :loading="saving" @click="openSaveConfirm('template')">Save template</v-btn>
+        </template>
+        <template v-else>
+          <v-btn-group color="success" divided size="small">
+            <v-btn :loading="saving" data-testid="save-btn" @click="openSaveConfirm('draft')">Save as draft</v-btn>
+            <v-menu location="bottom end">
+              <template #activator="{ props: menuProps }">
+                <v-btn v-bind="menuProps" icon="mdi-chevron-down" :loading="saving" />
+              </template>
+              <v-list density="compact" min-width="220">
+                <v-list-item
+                  :prepend-icon="isFutureDate(draft.startDate) ? 'mdi-calendar-clock' : 'mdi-lightning-bolt-outline'"
+                  :title="dynamicActivateLabel"
+                  :disabled="!draft.startDate"
+                  @click="openSaveConfirm('activate')"
+                />
+                <v-list-item prepend-icon="mdi-file-document-plus-outline" title="Save and create template" @click="openSaveConfirm('template_from_rule')" />
+              </v-list>
+            </v-menu>
+          </v-btn-group>
+        </template>
+      </div>
     </div>
 
     <!-- Template metadata (template edit mode only) -->
@@ -121,29 +122,17 @@
 
           <v-row dense>
             <v-col cols="6">
-              <v-date-input
-                :model-value="draft.startDate"
+              <DatePicker
+                v-model="draft.startDate"
                 label="Start date"
-                variant="outlined"
-                density="compact"
-                prepend-inner-icon="mdi-calendar"
-                prepend-icon=""
-                clearable
                 :min="todayIso"
-                @update:model-value="draft.startDate = toIsoDate($event)"
               />
             </v-col>
             <v-col cols="6">
-              <v-date-input
-                :model-value="draft.endDate"
+              <DatePicker
+                v-model="draft.endDate"
                 label="End date"
-                variant="outlined"
-                density="compact"
-                prepend-inner-icon="mdi-calendar"
-                prepend-icon=""
-                clearable
                 :min="todayIso"
-                @update:model-value="draft.endDate = toIsoDate($event)"
               />
             </v-col>
           </v-row>
@@ -177,31 +166,19 @@
               </v-alert>
               <v-row dense class="mt-2">
                 <v-col cols="6">
-                  <v-date-input
-                    :model-value="draft.pauseStart"
+                  <DatePicker
+                    v-model="draft.pauseStart"
                     label="Pause from *"
-                    variant="outlined"
-                    density="compact"
-                    prepend-inner-icon="mdi-calendar"
-                    prepend-icon=""
-                    clearable
                     :allowed-dates="pauseStartAllowedDates"
                     :error-messages="pauseErrors.pauseStart"
-                    @update:model-value="draft.pauseStart = toIsoDate($event)"
                   />
                 </v-col>
                 <v-col cols="6">
-                  <v-date-input
-                    :model-value="draft.pauseEnd"
+                  <DatePicker
+                    v-model="draft.pauseEnd"
                     label="Pause until *"
-                    variant="outlined"
-                    density="compact"
-                    prepend-inner-icon="mdi-calendar"
-                    prepend-icon=""
-                    clearable
                     :allowed-dates="pauseEndAllowedDates"
                     :error-messages="pauseErrors.pauseEnd"
-                    @update:model-value="draft.pauseEnd = toIsoDate($event)"
                   />
                 </v-col>
               </v-row>
@@ -214,7 +191,10 @@
 
           <!-- Channels -->
           <div class="mt-4">
-            <div class="text-caption font-weight-bold text-medium-emphasis mb-2">SALES CHANNELS</div>
+            <div class="d-flex align-center gap-1 mb-2">
+              <span class="text-caption font-weight-bold text-medium-emphasis">SALES CHANNELS</span>
+              <HelpTooltip text="Choose which sales channels this promotion applies to. At least one channel must be selected." />
+            </div>
             <v-checkbox
               v-for="ch in channelOptions"
               :key="ch.value"
@@ -225,17 +205,24 @@
               hide-details
               color="primary"
               class="mb-1"
-              @update:model-value="val => draft.channels = val
-                ? [...draft.channels, ch.value]
-                : draft.channels.filter(c => c !== ch.value)"
+              @update:model-value="val => {
+                draft.channels = val
+                  ? [...draft.channels, ch.value]
+                  : draft.channels.filter(c => c !== ch.value)
+                if (draft.channels.length) delete validationErrors.value.channels
+              }"
             />
-            <div v-if="!draft.channels.length" class="text-caption text-error mt-1">
-              At least one channel must be selected.
+            <div v-if="validationErrors.channels" class="text-caption text-error mt-1">
+              {{ validationErrors.channels }}
             </div>
           </div>
 
           <v-row dense class="mt-4 mb-3">
             <v-col cols="12">
+              <div class="d-flex align-center gap-1 mb-1">
+                <span class="text-caption font-weight-bold text-medium-emphasis">RULE TYPE</span>
+                <HelpTooltip text="Discount — fixed or % off cart/items. Step Discount — tiered discount that grows with spend. Multi-buy — buy X get Y free. Gift — give a free product when a threshold is met." />
+              </div>
               <SelectInput
                 v-model="draft.type"
                 :data="ruleTypeItems"
@@ -251,6 +238,7 @@
           <div class="d-flex align-center mb-3">
             <v-icon color="orange-darken-2" size="18" class="mr-2">mdi-tag-outline</v-icon>
             <span class="text-body-1 font-weight-bold text-orange-darken-2">Discount Configuration</span>
+            <HelpTooltip text="Applies a fixed amount or percentage discount to the cart total or to each qualifying item. Use cart scope for basket-wide promotions, item scope for per-product discounts." class="ml-1" />
           </div>
           <div class="mb-4">
             <div class="text-caption font-weight-bold text-medium-emphasis mb-2">RULE SCOPE</div>
@@ -286,6 +274,7 @@
           <div class="d-flex align-center mb-4">
             <v-icon color="green-darken-2" size="18" class="mr-2">mdi-stairs</v-icon>
             <span class="text-body-1 font-weight-bold text-green-darken-2">Step Discount Configuration</span>
+            <HelpTooltip text="Tiered discount that increases with spend or quantity. Define multiple steps — each step unlocks a bigger discount when the threshold is reached." class="ml-1" />
           </div>
           <div class="mb-4">
             <div class="text-caption font-weight-bold text-medium-emphasis mb-2">RULE SCOPE</div>
@@ -360,6 +349,7 @@
           <div class="d-flex align-center mb-3">
             <v-icon color="blue-darken-2" size="18" class="mr-2">mdi-cart-plus</v-icon>
             <span class="text-body-1 font-weight-bold text-blue-darken-2">Multi-buy Configuration</span>
+            <HelpTooltip text="Buy X get Y free — customer buys the specified quantity and receives a set number of items free. Conditions define which products qualify as the 'buy' items." class="ml-1" />
           </div>
           <v-row dense class="mb-3">
             <v-col cols="6">
@@ -403,7 +393,7 @@
             <v-icon size="16" color="medium-emphasis">mdi-calculator</v-icon>
             <span class="text-caption text-medium-emphasis">Free item accounting price</span>
             <v-chip size="small" color="primary" variant="tonal">€{{ settingsStore.multiBuyFreePrice }}</v-chip>
-            <a class="text-caption text-primary ml-1 text-decoration-none d-inline-flex align-center clickable-link" @click="openLeaveDialog('/settings/accounting')">
+            <a class="section-link ml-1" @click="openLeaveDialog('/settings/accounting')">
               Configure in General Section
               <v-icon size="14" class="ml-1">mdi-open-in-new</v-icon>
             </a>
@@ -415,6 +405,7 @@
           <div class="d-flex align-center mb-3">
             <v-icon color="purple-darken-2" size="18" class="mr-2">mdi-gift</v-icon>
             <span class="text-body-1 font-weight-bold text-purple-darken-2">Gift Configuration</span>
+            <HelpTooltip text="Automatically adds a free gift product to the cart when a spend or quantity threshold is reached. The gift item is priced at the configured accounting price for reporting." class="ml-1" />
           </div>
           <div class="mb-4">
             <div class="text-caption font-weight-bold text-medium-emphasis mb-2">RULE SCOPE</div>
@@ -450,7 +441,7 @@
             <v-icon size="16" color="medium-emphasis">mdi-calculator</v-icon>
             <span class="text-caption text-medium-emphasis">Gift item accounting price</span>
             <v-chip size="small" color="purple" variant="tonal">€{{ settingsStore.giftFreePrice }}</v-chip>
-            <a class="text-caption text-primary ml-1 text-decoration-none d-inline-flex align-center clickable-link" @click="openLeaveDialog('/settings/accounting')">
+            <a class="section-link ml-1" @click="openLeaveDialog('/settings/accounting')">
               Configure in General Section
               <v-icon size="14" class="ml-1">mdi-open-in-new</v-icon>
             </a>
@@ -466,6 +457,7 @@
             v-model="draft.conditions"
             :scope="draft.scope"
             title="Targeting conditions"
+            help-text="Filter which products, customers, or cart state this rule applies to. All conditions in a group must match (AND). Groups are evaluated with OR between them."
             show-preset
           >
             <template #empty>No conditions set — this rule applies to all products.</template>
@@ -610,8 +602,9 @@
         <!-- ERP Voucher ID -->
         <v-card border elevation="0" class="pa-5 mb-4">
           <div class="d-flex align-center mb-1">
-            <v-icon color="teal-darken-1" size="18" class="mr-2">mdi-link-variant</v-icon>
+            <v-icon size="18" class="mr-2 card-section-icon">mdi-link-variant</v-icon>
             <span class="text-body-1 font-weight-bold">ERP Link</span>
+            <HelpTooltip text="Link this rule to an ERP voucher entry for accounting reconciliation and reporting." class="ml-1" />
           </div>
           <p class="text-caption text-medium-emphasis mb-3">
             Connect this rule to an ERP voucher entry for accounting reconciliation.
@@ -634,7 +627,7 @@
             <template #item="{ item, props: itemProps }">
               <v-list-item v-bind="itemProps" :title="undefined">
                 <template #prepend>
-                  <v-chip size="x-small" color="teal" variant="tonal" label class="mr-2 font-weight-bold">
+                  <v-chip size="x-small" variant="flat" label class="mr-2 font-weight-bold erp-chip">
                     {{ item.raw.id }}
                   </v-chip>
                 </template>
@@ -642,10 +635,35 @@
               </v-list-item>
             </template>
             <template #selection="{ item }">
-              <v-chip size="small" color="teal" variant="tonal" label class="mr-1">{{ item.raw.id }}</v-chip>
+              <v-chip size="small" variant="flat" label class="mr-1 erp-chip">{{ item.raw.id }}</v-chip>
               <span class="text-body-2">{{ item.raw.name }}</span>
             </template>
           </v-autocomplete>
+        </v-card>
+
+        <!-- Coupon -->
+        <v-card border elevation="0" class="pa-5 mb-4">
+          <div class="d-flex align-center mb-1">
+            <v-icon size="18" class="mr-2 card-section-icon">mdi-ticket-percent-outline</v-icon>
+            <span class="text-body-1 font-weight-bold">Coupon</span>
+            <HelpTooltip text="Attach a coupon code so customers must enter it at checkout to activate this promotion." class="ml-1" />
+          </div>
+          <p class="text-caption text-medium-emphasis mb-3">
+            Require customers to enter a coupon code to unlock this promotion.
+          </p>
+
+          <div class="d-flex align-center gap-2 mb-2">
+            <v-icon size="16" color="medium-emphasis">mdi-information-outline</v-icon>
+            <span class="text-caption text-medium-emphasis">No coupon is linked to this promotion.</span>
+          </div>
+          <a
+            href="#"
+            class="section-link"
+            @click.prevent="openLeaveDialog('/coupons')"
+          >
+            Manage coupon codes
+            <v-icon size="14" class="ml-1">mdi-open-in-new</v-icon>
+          </a>
         </v-card>
 
         <template v-if="settingsStore.prioritizationMode === 'automatic'">
@@ -666,7 +684,10 @@
           </v-card>
 
           <v-card border elevation="0" class="pa-5 mb-4">
-            <div class="text-body-1 font-weight-bold mb-4">Processing order</div>
+            <div class="d-flex align-center mb-4">
+              <span class="text-body-1 font-weight-bold">Processing order</span>
+              <HelpTooltip text="Controls which rule fires first when multiple rules apply to the same cart. Lower priority number = fires first." class="ml-1" />
+            </div>
             <ProcessingOrderSelect
               :stacking-group-id="draft.stackingGroupId"
               :priority="draft.priority"
@@ -676,7 +697,10 @@
           </v-card>
 
           <v-card border elevation="0" class="pa-5 mb-4">
-            <div class="text-body-1 font-weight-bold mb-1">Non-combinable rules</div>
+            <div class="d-flex align-center mb-1">
+              <span class="text-body-1 font-weight-bold">Non-combinable rules</span>
+              <HelpTooltip text="Rules listed here cannot be applied together with this rule. If two matching rules conflict, only one will apply based on processing order." class="ml-1" />
+            </div>
             <p class="text-caption text-medium-emphasis mb-4">
               Rules and groups listed here cannot apply together with this rule in the same cart.
             </p>
@@ -706,8 +730,7 @@
       <template #actions>
         <v-btn variant="text" @click="templateDialogOpen = false">Skip</v-btn>
         <v-btn
-          color="primary"
-          class="text-uppercase"
+          color="success"
           :loading="creatingTemplate"
           :disabled="!templateLabel.trim()"
           @click="confirmCreateTemplate"
@@ -722,32 +745,13 @@
     </v-snackbar>
 
     <!-- Leave section dialog -->
-    <DialogCard v-model="leaveDialogOpen" max-width="440">
-      <template #title>Leave this section?</template>
-      <p class="text-body-2 text-medium-emphasis mb-2">
-        You are about to navigate to a different section. Any unsaved changes will be lost.
-      </p>
-      <p class="text-body-2 text-medium-emphasis">
-        If you save before leaving, the rule will appear in search results once all required fields are filled in.
-      </p>
-      <template #actions>
-        <v-btn variant="text" @click="leaveDialogOpen = false">Stay</v-btn>
-        <v-btn variant="text" @click="leaveWithoutSaving">Leave without saving</v-btn>
-        <v-btn color="primary" :loading="saving" @click="saveAndLeave">Save and leave</v-btn>
-      </template>
-    </DialogCard>
-
-    <!-- Discard confirm dialog -->
-    <DialogCard v-model="discardDialogOpen" max-width="400">
-      <template #title>Discard changes?</template>
-      <p class="text-body-2 text-medium-emphasis">
-        All unsaved changes will be lost. This cannot be undone.
-      </p>
-      <template #actions>
-        <v-btn variant="text" @click="discardDialogOpen = false">Cancel</v-btn>
-        <v-btn color="error" @click="doDiscard">Discard</v-btn>
-      </template>
-    </DialogCard>
+    <LeaveDialog
+      v-model="leaveDialogOpen"
+      :saving="saving"
+      @cancel="cancelLeave"
+      @leave="leaveWithoutSaving"
+      @save-and-leave="saveAndLeave"
+    />
 
     <!-- Save confirm dialog -->
     <DialogCard v-model="saveConfirmOpen" max-width="400">
@@ -755,7 +759,7 @@
       <p class="text-body-2 text-medium-emphasis">{{ saveConfirmBody }}</p>
       <template #actions>
         <v-btn variant="text" @click="saveConfirmOpen = false">Cancel</v-btn>
-        <v-btn color="primary" :loading="saving" @click="doConfirmedSave">Confirm</v-btn>
+        <v-btn color="success" :loading="saving" @click="doConfirmedSave">Confirm</v-btn>
       </template>
     </DialogCard>
 
@@ -764,6 +768,7 @@
       <div v-if="stickyBarVisible" class="sticky-save-bar">
       <div class="sticky-save-bar__inner">
         <v-alert
+          v-if="!mobile"
           border="start"
           color="grey"
           variant="tonal"
@@ -786,13 +791,13 @@
           </template>
           <span v-else class="text-medium-emphasis">Start filling in the rule — a plain-language description will appear here as you configure it.</span>
         </v-alert>
-        <v-btn variant="outlined" class="text-uppercase flex-shrink-0" size="small" @click="openDiscardDialog">Discard</v-btn>
+        <v-btn variant="outlined" class="flex-shrink-0" size="small" @click="openDiscardDialog">Discard</v-btn>
         <template v-if="isTemplateEdit">
-          <v-btn color="primary" class="text-uppercase flex-shrink-0" size="small" :loading="saving" @click="openSaveConfirm('template')">Save template</v-btn>
+          <v-btn color="success" class="flex-shrink-0" size="small" :loading="saving" @click="openSaveConfirm('template')">Save template</v-btn>
         </template>
         <template v-else>
-          <v-btn-group color="primary" divided size="small" class="flex-shrink-0">
-            <v-btn class="text-uppercase" :loading="saving" @click="openSaveConfirm('draft')">Save as draft</v-btn>
+          <v-btn-group color="success" divided size="small" class="flex-shrink-0">
+            <v-btn :loading="saving" @click="openSaveConfirm('draft')">Save as draft</v-btn>
             <v-menu location="top end">
               <template #activator="{ props: menuProps }">
                 <v-btn v-bind="menuProps" icon="mdi-chevron-down" :loading="saving" />
@@ -818,6 +823,9 @@
 <script setup>
 import { ref, computed, watch, onMounted, onUnmounted, toRaw } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useDisplay } from 'vuetify'
+import { useNavigationGuard } from '../../composables/useNavigationGuard'
+import LeaveDialog from '../_common/LeaveDialog.vue'
 import { usePromotionsStore } from '../../stores/promotions'
 import { useStackingGroupsStore } from '../../stores/stackingGroups'
 import { useSettingsStore } from '../../stores/settings'
@@ -838,10 +846,14 @@ import NumberInput from '../_common/NumberInput.vue'
 import SelectInput from '../_common/SelectInput.vue'
 import DialogCard from '../_common/DialogCard.vue'
 import LiveDescriptionAlert from './LiveDescriptionAlert.vue'
+import Breadcrumbs from '../_common/Breadcrumbs.vue'
+import HelpTooltip from '../_common/HelpTooltip.vue'
+import DatePicker from '../_common/DatePicker.vue'
 import { useTemplatesStore } from '../../stores/templates'
 import { useErpEntriesStore } from '../../stores/erpEntries'
 import { useInternalTagsStore } from '../../stores/internalTags'
 
+const { mobile } = useDisplay()
 const route = useRoute()
 const router = useRouter()
 const store = usePromotionsStore()
@@ -1154,10 +1166,10 @@ const channelOptions = [
 ]
 
 
-const breadcrumbs = computed(() => isTemplateEdit.value
-  ? [{ title: 'Templates', to: '/templates' }, { title: 'Edit template', disabled: true }]
-  : [{ title: 'Promotions', to: '/promotions' }, { title: isEdit.value ? 'Edit rule' : 'New promotion rule', disabled: true }]
-)
+const breadcrumbs = computed(() => [{
+  title: isTemplateEdit.value ? 'Edit template' : (isEdit.value ? 'Edit rule' : 'New promotion rule'),
+  disabled: true,
+}])
 
 const conditionValidation = computed(() => validateConditions(draft.conditions))
 const giftConflicts = computed(() => detectGiftConflicts(draft.gifts, draft.conditions))
@@ -1485,6 +1497,7 @@ const ruleDescriptionSegments = computed(() => {
 function validate() {
   const errors = {}
   if (!draft.name?.trim()) errors.name = 'Rule name is required'
+  if (!draft.channels?.length) errors.channels = 'At least one channel must be selected'
   if (draft.type === 'discount' && !draft.value) errors.value = 'Discount value is required'
   validationErrors.value = errors
   const pErrors = validatePause()
@@ -1534,37 +1547,16 @@ async function save() { await _persistRule() }
 async function saveAsDraft() { await _persistRule('draft') }
 async function saveAndActivate() { await _persistRule() }
 
-const leaveDialogOpen = ref(false)
-const pendingNavTarget = ref(null)
-
-function openLeaveDialog(target) {
-  pendingNavTarget.value = target
-  leaveDialogOpen.value = true
-}
-
-function leaveWithoutSaving() {
-  leaveDialogOpen.value = false
-  router.push(pendingNavTarget.value)
-}
-
-async function saveAndLeave() {
-  await _persistRule('draft')
-  if (!saveError.value) {
-    leaveDialogOpen.value = false
-    router.push(pendingNavTarget.value)
-  }
-}
-
-// ── Discard confirm ───────────────────────────────────────────────────────────
-const discardDialogOpen = ref(false)
+const { leaveDialogOpen, openLeaveDialog, cancelLeave, leaveWithoutSaving, saveAndLeave } =
+  useNavigationGuard({
+    onSaveAndLeave: async () => {
+      await _persistRule('draft')
+      return !saveError.value
+    },
+  })
 
 function openDiscardDialog() {
-  discardDialogOpen.value = true
-}
-
-function doDiscard() {
-  discardDialogOpen.value = false
-  router.push(isTemplateEdit.value ? '/templates' : '/promotions')
+  openLeaveDialog(isTemplateEdit.value ? '/templates' : '/promotions')
 }
 
 // ── Save confirm ──────────────────────────────────────────────────────────────

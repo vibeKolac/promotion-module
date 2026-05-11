@@ -1,12 +1,12 @@
 <!-- src/components/coupons/CouponsPage.vue -->
 <template>
   <v-container fluid class="pa-3 pa-sm-6">
-    <v-breadcrumbs :items="breadcrumbs" density="compact" class="pa-0 mb-2" />
+    <Breadcrumbs />
 
-    <div class="d-flex align-center mb-6 py-2">
+    <ContentHeader>
       <h1 class="text-h5 font-weight-bold">Coupons</h1>
-      <v-chip size="small" color="warning" variant="tonal" label class="ml-3">Exploring</v-chip>
-    </div>
+      <v-chip size="small" color="warning" variant="tonal" label>Exploring</v-chip>
+    </ContentHeader>
 
     <p class="text-body-2 text-medium-emphasis mb-6">
       Evaluating the COMS-based coupon solution alongside alternative approaches to identify the most efficient and scalable configuration model for coupon management across markets.
@@ -108,8 +108,6 @@
 </template>
 
 <script setup>
-const breadcrumbs = [
-  { title: 'Promotions', to: '/promotions' },
-  { title: 'Coupons' },
-]
+import ContentHeader from '../_common/ContentHeader.vue'
+import Breadcrumbs from '../_common/Breadcrumbs.vue'
 </script>
