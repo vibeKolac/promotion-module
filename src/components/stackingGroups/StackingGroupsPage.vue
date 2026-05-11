@@ -43,7 +43,7 @@
         >
           <template #item.name="{ item }">
             <div class="d-flex align-center gap-3 py-1">
-              <span class="color-dot" :style="`background: ${item.color ?? '#94a3b8'}`" />
+              <span class="color-dot mr-3" :style="`background: ${item.color ?? '#94a3b8'}`" />
               <span class="font-weight-medium">{{ item.name }}</span>
               <span v-if="item.isDefault" class="text-caption text-medium-emphasis ml-1">
                 — rules with no group assigned
