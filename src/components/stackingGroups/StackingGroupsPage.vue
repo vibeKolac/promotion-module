@@ -69,6 +69,12 @@
 
           <template #item.actions="{ item }">
             <div class="d-flex justify-end" @click.stop>
+              <v-btn
+                icon="mdi-eye"
+                variant="text"
+                size="small"
+                @click="router.push(`/stacking-groups/${item.id}`)"
+              />
               <v-btn icon="mdi-pencil" variant="text" size="small" @click="openEdit(item)" />
               <v-btn
                 icon="mdi-delete"
@@ -192,7 +198,7 @@ const groupHeaders = [
   { title: 'Group',    key: 'name',     sortable: false },
   { title: 'Priority', key: 'priority', width: '110px' },
   { title: 'Rules',    key: 'rules',    sortable: false, width: '190px' },
-  { title: '',         key: 'actions',  sortable: false, width: '96px', align: 'end' },
+  { title: '',         key: 'actions',  sortable: false, width: '132px', align: 'end' },
 ]
 
 const orderedGroups = computed(() =>
