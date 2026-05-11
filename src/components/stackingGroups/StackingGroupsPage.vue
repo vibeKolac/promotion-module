@@ -264,7 +264,6 @@ const orderStatusOptions = [
   { label: 'Scheduled', value: 'scheduled' },
   { label: 'Paused',    value: 'paused' },
   { label: 'Draft',     value: 'draft' },
-  { label: 'Ended',     value: 'ended' },
 ]
 
 const orderGroupOptions = computed(() =>
@@ -287,6 +286,7 @@ function getRuleGroup(rule) {
 
 const processingOrder = computed(() =>
   [...promoStore.items]
+    .filter(r => r.status !== 'ended')
     .sort((a, b) => {
       const ga = getRuleGroup(a)
       const gb = getRuleGroup(b)
