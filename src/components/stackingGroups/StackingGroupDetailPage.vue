@@ -24,32 +24,18 @@
     <template v-else-if="group">
       <!-- Filter bar -->
       <div class="d-flex flex-wrap align-center gap-3 mb-3">
-        <div class="d-flex align-center gap-1 flex-wrap">
-          <span class="text-caption text-medium-emphasis mr-1">Show:</span>
-          <v-chip
-            v-for="s in STATUS_OPTIONS"
-            :key="s.value"
-            :color="statusFilter.includes(s.value) ? s.color : undefined"
-            :variant="statusFilter.includes(s.value) ? 'flat' : 'outlined'"
-            size="small"
-            label
-            class="cursor-pointer"
-            @click="toggleStatus(s.value)"
-          >
-            <v-icon v-if="statusFilter.includes(s.value)" start size="12">mdi-check</v-icon>
-            {{ s.label }}
-          </v-chip>
-          <v-btn
-            v-if="statusFilter.length !== STATUS_OPTIONS.length"
-            variant="text"
-            size="x-small"
-            color="primary"
-            class="ml-1"
-            @click="statusFilter = STATUS_OPTIONS.map(s => s.value)"
-          >All</v-btn>
-        </div>
-
-        <v-spacer />
+        <v-select
+          v-model="statusFilter"
+          :items="STATUS_OPTIONS"
+          item-title="label"
+          item-value="value"
+          label="Status"
+          variant="outlined"
+          density="compact"
+          hide-details
+          multiple
+          style="max-width: 220px"
+        />
 
         <v-text-field
           v-model="search"
@@ -195,31 +181,22 @@ const breadcrumbs = computed(() => [
 
 // ── Status filter ─────────────────────────────────────────────────────────────
 const STATUS_OPTIONS = [
-  { value: 'active',    label: 'Active',    color: 'success' },
-  { value: 'scheduled', label: 'Scheduled', color: 'info' },
-  { value: 'paused',    label: 'Paused',    color: 'warning' },
-  { value: 'draft',     label: 'Draft',     color: 'grey' },
-  { value: 'ended',     label: 'Ended',     color: 'error' },
+  { value: 'active',    label: 'Active' },
+  { value: 'scheduled', label: 'Scheduled' },
+  { value: 'paused',    label: 'Paused' },
+  { value: 'draft',     label: 'Draft' },
+  { value: 'ended',     label: 'Ended' },
 ]
 
-const statusFilter = ref(STATUS_OPTIONS.map(s => s.value))
+const statusFilter = ref([])
 const search = ref('')
 
-function toggleStatus(value) {
-  const idx = statusFilter.value.indexOf(value)
-  if (idx === -1) statusFilter.value.push(value)
-  else if (statusFilter.value.length > 1) statusFilter.value.splice(idx, 1)
-}
-
-const isFiltered = computed(() =>
-  statusFilter.value.length !== STATUS_OPTIONS.length || !!search.value
-)
+const isFiltered = computed(() => statusFilter.value.length > 0 || !!search.value)
 
 function isVisible(rule) {
-  return (
-    statusFilter.value.includes(rule.status) &&
-    (!search.value || rule.name.toLowerCase().includes(search.value.toLowerCase()))
-  )
+  const statusMatch = !statusFilter.value.length || statusFilter.value.includes(rule.status)
+  const searchMatch = !search.value || rule.name.toLowerCase().includes(search.value.toLowerCase())
+  return statusMatch && searchMatch
 }
 
 const visibleCount = computed(() => localRules.value.filter(isVisible).length)
