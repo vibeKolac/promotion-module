@@ -112,7 +112,8 @@
             variant="outlined"
             density="compact"
             hide-details
-            style="max-width: 160px"
+            multiple
+            style="max-width: 220px"
           />
           <v-select
             v-model="orderGroupFilter"
@@ -123,7 +124,8 @@
             variant="outlined"
             density="compact"
             hide-details
-            style="max-width: 200px"
+            multiple
+            style="max-width: 240px"
           />
           <span class="text-caption text-medium-emphasis">
             {{ filteredProcessingOrder.length }} rules
@@ -254,22 +256,20 @@ const ruleCounts = computed(() => {
 })
 
 // ── Processing order filters ──────────────────────────────────────────────────
-const orderStatusFilter = ref('all')
-const orderGroupFilter = ref('all')
+const orderStatusFilter = ref([])
+const orderGroupFilter = ref([])
 
 const orderStatusOptions = [
-  { label: 'All statuses', value: 'all' },
-  { label: 'Active',       value: 'active' },
-  { label: 'Scheduled',    value: 'scheduled' },
-  { label: 'Paused',       value: 'paused' },
-  { label: 'Draft',        value: 'draft' },
-  { label: 'Ended',        value: 'ended' },
+  { label: 'Active',    value: 'active' },
+  { label: 'Scheduled', value: 'scheduled' },
+  { label: 'Paused',    value: 'paused' },
+  { label: 'Draft',     value: 'draft' },
+  { label: 'Ended',     value: 'ended' },
 ]
 
-const orderGroupOptions = computed(() => [
-  { label: 'All groups', value: 'all' },
-  ...orderedGroups.value.map(g => ({ label: g.name, value: g.id })),
-])
+const orderGroupOptions = computed(() =>
+  orderedGroups.value.map(g => ({ label: g.name, value: g.id }))
+)
 
 // ── Processing order table ────────────────────────────────────────────────────
 const orderHeaders = [
@@ -302,8 +302,8 @@ const processingOrder = computed(() =>
 
 const filteredProcessingOrder = computed(() =>
   processingOrder.value.filter(rule => {
-    if (orderStatusFilter.value !== 'all' && rule.status !== orderStatusFilter.value) return false
-    if (orderGroupFilter.value !== 'all' && rule._group?.id !== orderGroupFilter.value) return false
+    if (orderStatusFilter.value.length && !orderStatusFilter.value.includes(rule.status)) return false
+    if (orderGroupFilter.value.length && !orderGroupFilter.value.includes(rule._group?.id)) return false
     return true
   })
 )
