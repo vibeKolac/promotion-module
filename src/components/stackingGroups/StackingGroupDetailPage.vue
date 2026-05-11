@@ -73,18 +73,20 @@
           handle=".drag-handle"
           ghost-class="drag-ghost"
           :disabled="isFiltered"
+          filter=".rule-ended"
           @change="onChange"
         >
           <template #item="{ element: rule }">
             <div
               v-show="isVisible(rule)"
               class="rule-row d-flex align-center px-4 py-2"
+              :class="{ 'rule-ended': rule.status === 'ended' }"
             >
               <v-icon
                 class="drag-handle mr-3"
-                :class="isFiltered ? 'text-disabled' : 'cursor-grab'"
+                :class="isFiltered || rule.status === 'ended' ? 'text-disabled' : 'cursor-grab'"
                 size="18"
-                :color="isFiltered ? undefined : 'medium-emphasis'"
+                :color="isFiltered || rule.status === 'ended' ? undefined : 'medium-emphasis'"
               >
                 mdi-drag-vertical
               </v-icon>
