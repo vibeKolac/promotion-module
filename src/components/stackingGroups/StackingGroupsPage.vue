@@ -102,10 +102,38 @@
           rule priority determines the order within each block.
         </p>
 
+        <div class="d-flex align-center gap-3 mb-3">
+          <v-select
+            v-model="orderStatusFilter"
+            :items="orderStatusOptions"
+            item-title="label"
+            item-value="value"
+            label="Status"
+            variant="outlined"
+            density="compact"
+            hide-details
+            style="max-width: 160px"
+          />
+          <v-select
+            v-model="orderGroupFilter"
+            :items="orderGroupOptions"
+            item-title="label"
+            item-value="value"
+            label="Group"
+            variant="outlined"
+            density="compact"
+            hide-details
+            style="max-width: 200px"
+          />
+          <span class="text-caption text-medium-emphasis">
+            {{ filteredProcessingOrder.length }} rules
+          </span>
+        </div>
+
         <v-card border elevation="0">
           <v-data-table
             :headers="orderHeaders"
-            :items="processingOrder"
+            :items="filteredProcessingOrder"
             item-value="id"
             hide-default-footer
             :items-per-page="-1"
@@ -225,6 +253,24 @@ const ruleCounts = computed(() => {
   return map
 })
 
+// ── Processing order filters ──────────────────────────────────────────────────
+const orderStatusFilter = ref('all')
+const orderGroupFilter = ref('all')
+
+const orderStatusOptions = [
+  { label: 'All statuses', value: 'all' },
+  { label: 'Active',       value: 'active' },
+  { label: 'Scheduled',    value: 'scheduled' },
+  { label: 'Paused',       value: 'paused' },
+  { label: 'Draft',        value: 'draft' },
+  { label: 'Ended',        value: 'ended' },
+]
+
+const orderGroupOptions = computed(() => [
+  { label: 'All groups', value: 'all' },
+  ...orderedGroups.value.map(g => ({ label: g.name, value: g.id })),
+])
+
 // ── Processing order table ────────────────────────────────────────────────────
 const orderHeaders = [
   { title: '#',      key: '_seq',    sortable: false, width: '56px' },
@@ -252,6 +298,14 @@ const processingOrder = computed(() =>
       return (a.priority ?? 999) - (b.priority ?? 999)
     })
     .map((rule, i) => ({ ...rule, _seq: i + 1, _group: getRuleGroup(rule) }))
+)
+
+const filteredProcessingOrder = computed(() =>
+  processingOrder.value.filter(rule => {
+    if (orderStatusFilter.value !== 'all' && rule.status !== orderStatusFilter.value) return false
+    if (orderGroupFilter.value !== 'all' && rule._group?.id !== orderGroupFilter.value) return false
+    return true
+  })
 )
 
 onMounted(() => Promise.all([sgStore.fetchAll(), promoStore.fetchAll()]))
