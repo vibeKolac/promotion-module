@@ -49,7 +49,7 @@
         />
 
         <div class="text-caption text-medium-emphasis text-no-wrap">
-          {{ visibleCount }} / {{ localRules.length }} rules
+          {{ displayRules.length }} / {{ localRules.length }} rules
         </div>
       </div>
 
@@ -68,25 +68,20 @@
       <!-- Rules list -->
       <v-card border elevation="0">
         <draggable
-          :list="localRules"
+          :list="displayRules"
           item-key="id"
           handle=".drag-handle"
           ghost-class="drag-ghost"
           :disabled="isFiltered"
-          filter=".rule-ended"
           @change="onChange"
         >
           <template #item="{ element: rule }">
-            <div
-              v-show="isVisible(rule)"
-              class="rule-row d-flex align-center px-4 py-2"
-              :class="{ 'rule-ended': rule.status === 'ended' }"
-            >
+            <div class="rule-row d-flex align-center px-4 py-2">
               <v-icon
                 class="drag-handle mr-3"
-                :class="isFiltered || rule.status === 'ended' ? 'text-disabled' : 'cursor-grab'"
+                :class="isFiltered ? 'text-disabled' : 'cursor-grab'"
                 size="18"
-                :color="isFiltered || rule.status === 'ended' ? undefined : 'medium-emphasis'"
+                :color="isFiltered ? undefined : 'medium-emphasis'"
               >
                 mdi-drag-vertical
               </v-icon>
@@ -118,7 +113,7 @@
               No rules in this group. Assign this group in the rule editor.
             </div>
             <div
-              v-else-if="visibleCount === 0"
+              v-else-if="!displayRules.length"
               class="pa-6 text-center text-caption text-medium-emphasis"
             >
               No rules match the current filter.
@@ -132,7 +127,7 @@
       Group not found.
     </v-alert>
 
-    <!-- Sticky save bar — appears on any unsaved reorder -->
+    <!-- Sticky save bar -->
     <div v-if="isDirty" class="sticky-save-bar">
       <div class="sticky-save-bar__inner">
         <span class="text-body-2 text-medium-emphasis d-none d-sm-block">
@@ -158,7 +153,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, watch, watchEffect, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import draggable from 'vuedraggable'
 import { useStackingGroupsStore } from '../../stores/stackingGroups'
@@ -187,7 +182,6 @@ const STATUS_OPTIONS = [
   { value: 'scheduled', label: 'Scheduled' },
   { value: 'paused',    label: 'Paused' },
   { value: 'draft',     label: 'Draft' },
-  { value: 'ended',     label: 'Ended' },
 ]
 
 const statusFilter = ref([])
@@ -195,25 +189,18 @@ const search = ref('')
 
 const isFiltered = computed(() => statusFilter.value.length > 0 || !!search.value)
 
-function isVisible(rule) {
-  const statusMatch = !statusFilter.value.length || statusFilter.value.includes(rule.status)
-  const searchMatch = !search.value || rule.name.toLowerCase().includes(search.value.toLowerCase())
-  return statusMatch && searchMatch
-}
-
-const visibleCount = computed(() => localRules.value.filter(isVisible).length)
-
-// ── Local rules ───────────────────────────────────────────────────────────────
+// ── Local rules (excludes ended — they cannot be reordered) ───────────────────
 const localRules = ref([])
 
 function buildLocalRules() {
   if (!group.value) return []
   return promoStore.items
-    .filter(r =>
-      group.value.isDefault
+    .filter(r => {
+      const inGroup = group.value.isDefault
         ? r.stackingGroupId === group.value.id || r.stackingGroupId == null
         : r.stackingGroupId === group.value.id
-    )
+      return inGroup && r.status !== 'ended'
+    })
     .sort((a, b) => (a.priority ?? 999) - (b.priority ?? 999))
 }
 
@@ -224,6 +211,23 @@ watch([group, () => promoStore.items], () => {
 onMounted(async () => {
   await Promise.all([sgStore.fetchAll(), promoStore.fetchAll()])
   localRules.value = buildLocalRules()
+})
+
+// ── Display rules — what the draggable actually renders ───────────────────────
+// When no filter: same reference as localRules (so Sortable.js mutations flow through)
+// When filtered: a separate filtered array (drag disabled in that state)
+const displayRules = ref([])
+
+watchEffect(() => {
+  if (!isFiltered.value) {
+    displayRules.value = localRules.value
+    return
+  }
+  displayRules.value = localRules.value.filter(r => {
+    const statusMatch = !statusFilter.value.length || statusFilter.value.includes(r.status)
+    const searchMatch = !search.value || r.name.toLowerCase().includes(search.value.toLowerCase())
+    return statusMatch && searchMatch
+  })
 })
 
 // ── Drag & save ───────────────────────────────────────────────────────────────
@@ -297,7 +301,6 @@ const { leaveDialogOpen, cancelLeave, leaveWithoutSaving, saveAndLeave } = useNa
 .status-dot--paused    { background: #f59e0b; }
 .status-dot--draft     { background: #94a3b8; }
 .status-dot--scheduled { background: #3b82f6; }
-.status-dot--ended     { background: #ef4444; }
 
 .priority-label {
   min-width: 72px;
