@@ -1,14 +1,14 @@
 import { ref } from 'vue'
 import { onBeforeRouteLeave, useRouter } from 'vue-router'
 
-export function useNavigationGuard({ onSaveAndLeave } = {}) {
+export function useNavigationGuard({ onSaveAndLeave, dirty } = {}) {
   const router = useRouter()
   const leaveDialogOpen = ref(false)
   const pendingNavTarget = ref(null)
   const bypassGuard = ref(false)
 
   onBeforeRouteLeave((to, _from, next) => {
-    if (bypassGuard.value) {
+    if (bypassGuard.value || (dirty && !dirty.value)) {
       next()
       return
     }

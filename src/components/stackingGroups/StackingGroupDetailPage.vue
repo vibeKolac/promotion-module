@@ -1,6 +1,6 @@
 <!-- src/components/stackingGroups/StackingGroupDetailPage.vue -->
 <template>
-  <v-container fluid class="pa-3 pa-sm-6">
+  <v-container fluid class="pa-3 pa-sm-6 pb-16">
     <Breadcrumbs :append-breadcrumbs="breadcrumbs" />
 
     <ContentHeader>
@@ -144,6 +144,26 @@
       Group not found.
     </v-alert>
 
+    <!-- Sticky save bar — appears on any unsaved reorder -->
+    <div v-if="isDirty" class="sticky-save-bar">
+      <div class="sticky-save-bar__inner">
+        <span class="text-body-2 text-medium-emphasis d-none d-sm-block">
+          Rule order has been changed
+        </span>
+        <v-spacer />
+        <v-btn variant="outlined" @click="discard">Discard</v-btn>
+        <v-btn color="success" :loading="saving" @click="save">Save order</v-btn>
+      </div>
+    </div>
+
+    <LeaveDialog
+      v-model="leaveDialogOpen"
+      :saving="saving"
+      @cancel="cancelLeave"
+      @leave="leaveWithoutSaving"
+      @save-and-leave="saveAndLeave"
+    />
+
     <v-snackbar v-model="savedSnack" color="success" timeout="2000">Order saved</v-snackbar>
     <v-snackbar v-model="errorSnack" color="error" timeout="4000">Failed to save order</v-snackbar>
   </v-container>
@@ -155,10 +175,12 @@ import { useRoute } from 'vue-router'
 import draggable from 'vuedraggable'
 import { useStackingGroupsStore } from '../../stores/stackingGroups'
 import { usePromotionsStore } from '../../stores/promotions'
+import { useNavigationGuard } from '../../composables/useNavigationGuard'
 import StatusBadge from '../shared/StatusBadge.vue'
 import ContentHeader from '../_common/ContentHeader.vue'
 import Breadcrumbs from '../_common/Breadcrumbs.vue'
 import Loader from '../_common/Loader.vue'
+import LeaveDialog from '../_common/LeaveDialog.vue'
 
 const route = useRoute()
 const sgStore = useStackingGroupsStore()
@@ -217,7 +239,7 @@ function buildLocalRules() {
 }
 
 watch([group, () => promoStore.items], () => {
-  localRules.value = buildLocalRules()
+  if (!isDirty.value) localRules.value = buildLocalRules()
 }, { deep: true })
 
 onMounted(async () => {
@@ -225,20 +247,43 @@ onMounted(async () => {
   localRules.value = buildLocalRules()
 })
 
-// ── Drag ──────────────────────────────────────────────────────────────────────
+// ── Drag & save ───────────────────────────────────────────────────────────────
+const isDirty = ref(false)
+const saving = ref(false)
 const savedSnack = ref(false)
 const errorSnack = ref(false)
 
-async function onChange() {
+function onChange() {
+  isDirty.value = true
+}
+
+function discard() {
+  localRules.value = buildLocalRules()
+  isDirty.value = false
+}
+
+async function save() {
+  saving.value = true
   const updates = localRules.value.map((r, i) => ({ id: r.id, priority: i + 1 }))
   try {
     await promoStore.updateMany(updates)
     localRules.value = localRules.value.map((r, i) => ({ ...r, priority: i + 1 }))
+    isDirty.value = false
     savedSnack.value = true
+    return true
   } catch {
     errorSnack.value = true
+    return false
+  } finally {
+    saving.value = false
   }
 }
+
+// ── Navigation guard ──────────────────────────────────────────────────────────
+const { leaveDialogOpen, cancelLeave, leaveWithoutSaving, saveAndLeave } = useNavigationGuard({
+  dirty: isDirty,
+  onSaveAndLeave: save,
+})
 </script>
 
 <style scoped>
