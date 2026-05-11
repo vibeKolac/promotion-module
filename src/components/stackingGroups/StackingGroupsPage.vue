@@ -42,7 +42,7 @@
           @click:row="(_, { item }) => router.push(`/stacking-groups/${item.id}`)"
         >
           <template #item.name="{ item }">
-            <div class="d-flex align-center gap-2 py-1">
+            <div class="d-flex align-center gap-3 py-1">
               <span class="color-dot" :style="`background: ${item.color ?? '#94a3b8'}`" />
               <span class="font-weight-medium">{{ item.name }}</span>
               <span v-if="item.isDefault" class="text-caption text-medium-emphasis ml-1">
