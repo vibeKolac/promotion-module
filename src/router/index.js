@@ -39,6 +39,11 @@ const routes = [
     component: () => import('../components/stackingGroups/StackingGroupsPage.vue'),
   },
   {
+    path: '/stacking-groups/:id',
+    meta: { breadcrumbs: [promotionsDisabled, { title: 'Priority & grouping', to: '/stacking-groups' }] },
+    component: () => import('../components/stackingGroups/StackingGroupDetailPage.vue'),
+  },
+  {
     path: '/templates-presets',
     meta: { breadcrumbs: [promotionsDisabled, { title: 'Templates & Presets', disabled: true }] },
     component: () => import('../components/templates/TemplatesPresetsHub.vue'),
