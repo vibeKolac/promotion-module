@@ -29,7 +29,7 @@
       </v-btn-toggle>
     </div>
 
-    <p class="text-body-2 text-medium-emphasis mb-4">Drag a row to change its priority, then save.</p>
+    <p v-if="view === 'groups'" class="text-body-2 text-medium-emphasis mb-4">Drag a row to change its priority, then save.</p>
 
     <Loader v-if="sgStore.loading || promoStore.loading" />
 

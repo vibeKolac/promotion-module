@@ -5,8 +5,8 @@
 
     <ContentHeader>
       <h1 class="text-h5 font-weight-bold">Templates &amp; Presets</h1>
-      <v-chip size="x-small" color="warning" variant="tonal" label>Exploring</v-chip>
       <template #right>
+        <PageActionBtn v-if="activeTab === 'templates'" @click="openCreateTemplate">New template</PageActionBtn>
         <PageActionBtn v-if="activeTab === 'condition-presets'" @click="openCreatePreset">New preset</PageActionBtn>
       </template>
     </ContentHeader>
@@ -23,7 +23,7 @@
 </template>
 
 <script setup>
-import { computed, provide, ref } from 'vue'
+import { computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import PageActionBtn from '../_common/PageActionBtn.vue'
 import ContentHeader from '../_common/ContentHeader.vue'
@@ -41,10 +41,11 @@ function navigate(tab) {
   router.push(`/templates-presets/${tab}`)
 }
 
-const triggerCreatePreset = ref(0)
-provide('triggerCreatePreset', triggerCreatePreset)
-
 function openCreatePreset() {
-  triggerCreatePreset.value++
+  router.push('/condition-presets/new')
+}
+
+function openCreateTemplate() {
+  router.push('/templates/new')
 }
 </script>

@@ -1,23 +1,43 @@
 <!-- src/components/templates/ConditionPresetsPage.vue -->
 <template>
   <div>
-    <div class="d-flex flex-wrap align-center gap-2 mb-5">
-      <div class="text-body-1 text-medium-emphasis flex-grow-1">
-        Saved condition sets you can apply to any promotion rule with one click.
-      </div>
-      <v-text-field
-        v-model="search"
-        placeholder="Search presets…"
-        prepend-inner-icon="mdi-magnify"
+    <v-text-field
+      v-model="search"
+      placeholder="Search presets…"
+      prepend-inner-icon="mdi-magnify"
+      variant="outlined"
+      density="compact"
+      hide-details
+      class="mb-4 search-input"
+      clearable
+    />
+
+    <div class="d-flex align-center flex-wrap filter-row">
+      <v-select
+        v-model="conditionFilter"
+        :items="conditionFilterItems"
+        item-title="title"
+        item-value="value"
+        label="Condition"
         variant="outlined"
         density="compact"
         hide-details
-        class="input-search"
-        clearable
+        multiple
+        style="max-width: 240px"
       />
+      <v-btn
+        v-if="hasActiveFilters"
+        variant="text"
+        size="small"
+        color="primary"
+        @click="clearFilters"
+      >
+        <v-icon size="16" class="mr-1">mdi-close-circle</v-icon>
+        Clear filters
+      </v-btn>
     </div>
 
-    <div v-if="filtered.length" class="d-flex flex-wrap gap-4">
+    <div v-if="filtered.length" class="cards-grid">
       <v-card
         v-for="preset in filtered"
         :key="preset.id"
@@ -26,78 +46,15 @@
         class="pa-4 d-flex flex-column"
         :style="mobile ? 'width: 100%' : 'width: 300px'"
       >
-        <div class="d-flex align-start mb-2">
-          <v-avatar color="primary" variant="tonal" size="36">
-            <v-icon color="primary" size="20">mdi-filter-variant</v-icon>
-          </v-avatar>
-          <v-spacer />
-          <v-menu location="bottom end">
-            <template #activator="{ props: menuProps }">
-              <v-btn v-bind="menuProps" icon="mdi-dots-vertical" variant="text" size="small" density="comfortable" @click.stop />
-            </template>
-            <v-list density="compact" min-width="160">
-              <v-list-item prepend-icon="mdi-pencil-outline" title="Edit" @click="openEdit(preset)" />
-              <v-list-item prepend-icon="mdi-delete-outline" title="Delete" class="text-error" @click="openDelete(preset)" />
-            </v-list>
-          </v-menu>
+        <div class="d-flex align-center mb-2">
+          <span class="text-body-1 font-weight-bold flex-grow-1">{{ preset.name }}</span>
+          <v-btn icon="mdi-pencil-outline" variant="text" size="small" density="comfortable" @click.stop="openEdit(preset)" />
+          <v-btn icon="mdi-delete-outline" variant="text" size="small" density="comfortable" color="error" @click.stop="openDelete(preset)" />
         </div>
-
-        <div class="text-body-1 font-weight-bold mb-1">{{ preset.name }}</div>
-        <div class="text-body-2 text-medium-emphasis flex-grow-1 mb-3">{{ preset.description }}</div>
-
-        <div class="d-flex flex-wrap gap-1 mb-3">
-          <v-chip
-            v-for="cond in preset.conditions"
-            :key="cond.id"
-            size="x-small"
-            :color="cond.type === 'group' ? 'deep-purple' : 'primary'"
-            variant="tonal"
-            :prepend-icon="cond.type === 'group' ? 'mdi-layers-outline' : undefined"
-            label
-          >
-            {{ conditionLabel(cond) }}
-          </v-chip>
-          <span v-if="!preset.conditions.length" class="text-caption text-medium-emphasis">No conditions</span>
-        </div>
-
-        <div class="text-caption text-medium-emphasis">
-          {{ preset.conditions.length }} condition{{ preset.conditions.length !== 1 ? 's' : '' }}
-        </div>
+        <div class="text-body-2 text-medium-emphasis flex-grow-1">{{ preset.description }}</div>
       </v-card>
     </div>
     <v-alert v-else color="grey" variant="tonal" density="compact">No condition presets found.</v-alert>
-
-    <!-- Create / Edit dialog -->
-    <v-dialog v-model="formDialogOpen" max-width="560" scrollable>
-      <v-card>
-        <v-card-title class="text-h6 pa-5 pb-3">{{ editing ? 'Edit preset' : 'New condition preset' }}</v-card-title>
-        <v-card-text class="pa-5 pt-0">
-          <v-text-field
-            v-model="form.name"
-            label="Preset name *"
-            variant="outlined"
-            density="compact"
-            class="mb-3"
-            :error-messages="formErrors.name"
-          />
-          <v-text-field
-            v-model="form.description"
-            label="Description"
-            variant="outlined"
-            density="compact"
-            class="mb-4"
-          />
-
-          <ConditionsEditor v-model="form.conditions" :show-preset="false" title="Conditions" />
-        </v-card-text>
-        <v-card-actions class="pa-5 pt-0">
-          <v-spacer />
-          <v-btn variant="text" @click="formDialogOpen = false">Cancel</v-btn>
-          <v-btn color="success" @click="savePreset">{{ editing ? 'Save' : 'Create' }}</v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
-
 
     <!-- Delete confirm -->
     <v-dialog v-model="deleteDialogOpen" max-width="400">
@@ -117,26 +74,67 @@
 </template>
 
 <script setup>
-import { ref, computed, inject, watch } from 'vue'
+import { ref, computed } from 'vue'
 import { useDisplay } from 'vuetify'
+import { useRouter } from 'vue-router'
 import { useConditionPresetsStore } from '../../stores/conditionPresets'
-import ConditionsEditor from '../promotions/ConditionsEditor.vue'
 
 const store = useConditionPresetsStore()
 const { mobile } = useDisplay()
-
-const triggerCreatePreset = inject('triggerCreatePreset', null)
-if (triggerCreatePreset) {
-  watch(triggerCreatePreset, () => openCreate())
-}
+const router = useRouter()
 const search = ref('')
+const conditionFilter = ref([])
+
+const conditionFilterItems = [
+  { type: 'subheader', title: 'Threshold' },
+  { value: 'subtotal',        title: 'Subtotal' },
+  { value: 'quantity',        title: 'Quantity' },
+  { value: 'weight',          title: 'Weight' },
+  { type: 'subheader', title: 'Product & Catalog' },
+  { value: 'categories',      title: 'Categories' },
+  { value: 'brands',          title: 'Brands' },
+  { value: 'skus',            title: 'SKUs' },
+  { value: 'product_lines',   title: 'Product lines' },
+  { value: 'exclude_on_sale', title: 'Exclude on sale' },
+  { type: 'subheader', title: 'Customer' },
+  { value: 'customer_group',  title: 'Customer group' },
+  { value: 'coupon_code',     title: 'Coupon code' },
+  { type: 'subheader', title: 'Advanced' },
+  { value: 'pim_status',      title: 'PIM status' },
+  { value: 'attribute_set',   title: 'Attribute set' },
+  { value: 'warehouse_type',  title: 'Warehouse type' },
+  { value: 'seller',          title: 'Seller' },
+]
+
+const hasActiveFilters = computed(() =>
+  search.value.trim() !== '' || conditionFilter.value.length > 0
+)
+
+function clearFilters() {
+  search.value = ''
+  conditionFilter.value = []
+}
+
+function presetConditionFields(preset) {
+  const fields = new Set()
+  function collect(conditions) {
+    for (const c of conditions ?? []) {
+      if (c.type === 'group') collect(c.conditions)
+      else if (c.field) fields.add(c.field)
+    }
+  }
+  collect(preset.conditions)
+  return fields
+}
 
 const filtered = computed(() =>
-  store.items.filter(p =>
-    !search.value ||
-    p.name.toLowerCase().includes(search.value.toLowerCase()) ||
-    p.description?.toLowerCase().includes(search.value.toLowerCase())
-  )
+  store.items
+    .filter(p => !conditionFilter.value.length || conditionFilter.value.some(f => presetConditionFields(p).has(f)))
+    .filter(p =>
+      !search.value ||
+      p.name.toLowerCase().includes(search.value.toLowerCase()) ||
+      p.description?.toLowerCase().includes(search.value.toLowerCase())
+    )
 )
 
 // ── Labels ────────────────────────────────────────────────────────────────────
@@ -162,37 +160,8 @@ function conditionLabel(cond) {
   return fieldLabel
 }
 
-// ── Create / Edit ─────────────────────────────────────────────────────────────
-const formDialogOpen = ref(false)
-const editing = ref(null)
-const form = ref({ name: '', description: '', conditions: [] })
-const formErrors = ref({})
-function openCreate() {
-  editing.value = null
-  form.value = { name: '', description: '', conditions: [] }
-  formErrors.value = {}
-  formDialogOpen.value = true
-}
-
 function openEdit(preset) {
-  editing.value = preset
-  form.value = { name: preset.name, description: preset.description ?? '', conditions: preset.conditions.map(c => ({ ...c })) }
-  formErrors.value = {}
-  formDialogOpen.value = true
-}
-
-function savePreset() {
-  formErrors.value = {}
-  if (!form.value.name.trim()) {
-    formErrors.value.name = 'Name is required'
-    return
-  }
-  if (editing.value) {
-    store.update(editing.value.id, { ...form.value })
-  } else {
-    store.create({ ...form.value })
-  }
-  formDialogOpen.value = false
+  router.push(`/condition-presets/${preset.id}/edit`)
 }
 
 // ── Delete ────────────────────────────────────────────────────────────────────
@@ -209,3 +178,20 @@ function confirmDelete() {
   deleteDialogOpen.value = false
 }
 </script>
+
+<style scoped>
+.search-input {
+  max-width: 480px;
+}
+
+.filter-row {
+  gap: 16px;
+  padding: 20px 0;
+}
+
+.cards-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+}
+</style>

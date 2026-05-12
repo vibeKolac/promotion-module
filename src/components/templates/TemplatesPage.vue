@@ -1,29 +1,43 @@
 <!-- src/components/templates/TemplatesPage.vue -->
 <template>
   <div>
-    <div class="d-flex flex-wrap align-center gap-2 mb-5">
-      <div class="text-body-1 text-medium-emphasis flex-grow-1">
-        Reusable rule blueprints. Apply a template to pre-fill the promotion form.
-      </div>
-      <v-text-field
-        v-model="search"
-        placeholder="Search templates…"
-        prepend-inner-icon="mdi-magnify"
+    <v-text-field
+      v-model="search"
+      placeholder="Search templates…"
+      prepend-inner-icon="mdi-magnify"
+      variant="outlined"
+      density="compact"
+      hide-details
+      class="mb-4 search-input"
+      clearable
+    />
+
+    <div class="d-flex align-center flex-wrap filter-row">
+      <v-select
+        v-model="typeFilter"
+        :items="typeFilterItems"
+        item-title="label"
+        item-value="value"
+        label="Type"
         variant="outlined"
         density="compact"
         hide-details
-        class="input-search"
-        clearable
+        multiple
+        style="max-width: 220px"
       />
+      <v-btn
+        v-if="hasActiveFilters"
+        variant="text"
+        size="small"
+        color="primary"
+        @click="clearFilters"
+      >
+        <v-icon size="16" class="mr-1">mdi-close-circle</v-icon>
+        Clear filters
+      </v-btn>
     </div>
 
-    <v-chip-group v-model="selectedCategory" mandatory color="primary" class="mb-5">
-      <v-chip v-for="cat in categories" :key="cat.value" :value="cat.value" filter variant="outlined">
-        {{ cat.label }} <span v-if="cat.count" class="ml-1 text-caption">({{ cat.count }})</span>
-      </v-chip>
-    </v-chip-group>
-
-    <div v-if="filtered.length" class="d-flex flex-wrap gap-4">
+    <div v-if="filtered.length" class="cards-grid">
       <div v-for="tpl in filtered" :key="tpl.id" :style="mobile ? 'width: 100%' : 'width: 280px'">
         <TemplateCard :template="tpl" @select="applyTemplate" @edit="openEdit" @delete="openDelete" />
       </div>
@@ -59,26 +73,31 @@ const store = useTemplatesStore()
 const promoStore = usePromotionsStore()
 const router = useRouter()
 const { mobile } = useDisplay()
+
 const search = ref('')
-const selectedCategory = ref('all')
+const typeFilter = ref([])
+
+const typeFilterItems = [
+  { value: 'discount',      label: 'Standard discount' },
+  { value: 'step_discount', label: 'Step discount' },
+  { value: 'multi_buy',     label: 'Multi-buy' },
+  { value: 'gift',          label: 'Free gift' },
+]
+
+const hasActiveFilters = computed(() =>
+  search.value.trim() !== '' || typeFilter.value.length > 0
+)
+
+function clearFilters() {
+  search.value = ''
+  typeFilter.value = []
+}
 
 onMounted(() => store.fetchAll())
 
-const categories = computed(() => {
-  const cats = ['flash', 'seasonal', 'loyalty', 'bulk', 'category', 'gift']
-  return [
-    { value: 'all', label: 'All', count: store.items.length },
-    ...cats.map(c => ({
-      value: c,
-      label: c.charAt(0).toUpperCase() + c.slice(1),
-      count: store.items.filter(t => t.category === c).length,
-    })).filter(c => c.count),
-  ]
-})
-
 const filtered = computed(() =>
   store.items
-    .filter(t => selectedCategory.value === 'all' || t.category === selectedCategory.value)
+    .filter(t => !typeFilter.value.length || typeFilter.value.includes(t.ruleType))
     .filter(t => !search.value || t.label.toLowerCase().includes(search.value.toLowerCase()) || t.description?.toLowerCase().includes(search.value.toLowerCase()))
 )
 
@@ -121,3 +140,20 @@ async function confirmDelete() {
   }
 }
 </script>
+
+<style scoped>
+.search-input {
+  max-width: 480px;
+}
+
+.filter-row {
+  gap: 16px;
+  padding: 20px 0;
+}
+
+.cards-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+}
+</style>

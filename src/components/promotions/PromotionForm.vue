@@ -12,7 +12,7 @@
       <div class="action-btn-row flex-shrink-0">
         <v-btn variant="outlined" @click="openDiscardDialog">Discard</v-btn>
         <template v-if="isTemplateEdit">
-          <v-btn color="success" size="small" :loading="saving" @click="openSaveConfirm('template')">Save template</v-btn>
+          <v-btn color="success" :loading="saving" @click="openSaveConfirm('template')">Save template</v-btn>
         </template>
         <template v-else>
           <v-btn-group color="success" divided size="small">
@@ -37,14 +37,17 @@
     </div>
 
     <!-- Template metadata (template edit mode only) -->
-    <v-card v-if="isTemplateEdit" border elevation="0" class="pa-5 mb-5">
-      <div class="text-body-1 font-weight-bold mb-4">Template details</div>
-      <TextInput v-model="tplLabel" label="Template name *" class="mb-3" />
-      <TextInput v-model="tplDescription" label="Description" class="mb-3" />
-      <SelectInput v-model="tplCategory" :data="templateCategoryItems" label="Category" />
-    </v-card>
+    <v-row v-if="isTemplateEdit" class="mb-5">
+      <v-col cols="12" md="8">
+        <v-card border elevation="0" class="pa-5">
+          <div class="text-body-1 font-weight-bold mb-4">Template details</div>
+          <TextInput v-model="tplLabel" label="Template name *" class="mb-3" />
+          <TextInput v-model="tplDescription" label="Description" />
+        </v-card>
+      </v-col>
+    </v-row>
 
-    <v-row justify="center" class="mb-4">
+    <v-row class="mb-4">
       <v-col cols="12" md="8">
         <v-alert
           v-if="!stickyBarVisible && ruleDescriptionSegments"
@@ -721,12 +724,7 @@
         The rule has been saved. Fill in the template details below.
       </v-alert>
       <TextInput v-model="templateLabel" label="Template name *" class="mb-3" />
-      <TextInput v-model="templateDescription" label="Description" class="mb-3" />
-      <SelectInput
-        v-model="templateCategory"
-        :data="templateCategoryItems"
-        label="Category"
-      />
+      <TextInput v-model="templateDescription" label="Description" />
       <template #actions>
         <v-btn variant="text" @click="templateDialogOpen = false">Skip</v-btn>
         <v-btn
@@ -791,9 +789,9 @@
           </template>
           <span v-else class="text-medium-emphasis">Start filling in the rule — a plain-language description will appear here as you configure it.</span>
         </v-alert>
-        <v-btn variant="outlined" class="flex-shrink-0" size="small" @click="openDiscardDialog">Discard</v-btn>
+        <v-btn variant="outlined" class="flex-shrink-0" @click="openDiscardDialog">Discard</v-btn>
         <template v-if="isTemplateEdit">
-          <v-btn color="success" class="flex-shrink-0" size="small" :loading="saving" @click="openSaveConfirm('template')">Save template</v-btn>
+          <v-btn color="success" class="flex-shrink-0" :loading="saving" @click="openSaveConfirm('template')">Save template</v-btn>
         </template>
         <template v-else>
           <v-btn-group color="success" divided size="small" class="flex-shrink-0">
@@ -903,25 +901,13 @@ const saveError = ref(null)
 // Template edit metadata
 const tplLabel = ref('')
 const tplDescription = ref('')
-const tplCategory = ref('')
 
 // ── Save as template ──────────────────────────────────────────────────────────
 const templateDialogOpen = ref(false)
 const templateLabel = ref('')
 const templateDescription = ref('')
-const templateCategory = ref('')
 const creatingTemplate = ref(false)
 const templateCreatedSnack = ref(false)
-
-const templateCategoryItems = [
-  { value: '', title: 'None' },
-  { value: 'flash', title: 'Flash' },
-  { value: 'seasonal', title: 'Seasonal' },
-  { value: 'loyalty', title: 'Loyalty' },
-  { value: 'bulk', title: 'Bulk' },
-  { value: 'category', title: 'Category' },
-  { value: 'gift', title: 'Gift' },
-]
 
 async function openSaveAsTemplate() {
   if (!validate()) return
@@ -937,7 +923,6 @@ async function openSaveAsTemplate() {
     }
     templateLabel.value = draft.name
     templateDescription.value = ''
-    templateCategory.value = ''
     templateDialogOpen.value = true
   } catch (e) {
     saveError.value = e?.response?.data?.error ?? e?.message ?? 'Failed to save rule'
@@ -955,7 +940,6 @@ async function confirmCreateTemplate() {
     await templatesStore.create({
       label: templateLabel.value,
       description: templateDescription.value,
-      category: templateCategory.value || undefined,
       ruleType: draft.type,
       ruleSnapshot: snapshot,
     })
@@ -1521,7 +1505,6 @@ async function _persistRule(statusOverride) {
       await templatesStore.update(route.params.id, {
         label: tplLabel.value,
         description: tplDescription.value,
-        category: tplCategory.value || undefined,
         ruleType: draft.type,
         ruleSnapshot: snapshot,
       })
@@ -1602,22 +1585,27 @@ onMounted(async () => {
   if (titleActionsRef.value) titleObserver.observe(titleActionsRef.value)
   await Promise.all([sgStore.fetchAll(), store.fetchAll(), erpEntriesStore.fetchAll(), internalTagsStore.fetchAll()])
   if (isTemplateEdit.value) {
-    if (!templatesStore.items.length) await templatesStore.fetchAll()
-    const tpl = templatesStore.items.find(t => t.id === route.params.id)
-    if (tpl) {
-      tplLabel.value = tpl.label ?? ''
-      tplDescription.value = tpl.description ?? ''
-      tplCategory.value = tpl.category ?? ''
+    if (!route.params.id) {
+      tplLabel.value = ''
+      tplDescription.value = ''
       store.resetDraft()
-      if (tpl.ruleSnapshot) {
-        Object.assign(draft, tpl.ruleSnapshot)
-      } else {
-        Object.assign(draft, {
-          type: tpl.ruleType ?? 'discount',
-          value: tpl.defaultValue ?? '',
-          valueUnit: tpl.defaultValueUnit ?? '%',
-          conditions: tpl.defaultConditions ? [...tpl.defaultConditions] : [],
-        })
+    } else {
+      if (!templatesStore.items.length) await templatesStore.fetchAll()
+      const tpl = templatesStore.items.find(t => t.id === route.params.id)
+      if (tpl) {
+        tplLabel.value = tpl.label ?? ''
+        tplDescription.value = tpl.description ?? ''
+        store.resetDraft()
+        if (tpl.ruleSnapshot) {
+          Object.assign(draft, tpl.ruleSnapshot)
+        } else {
+          Object.assign(draft, {
+            type: tpl.ruleType ?? 'discount',
+            value: tpl.defaultValue ?? '',
+            valueUnit: tpl.defaultValueUnit ?? '%',
+            conditions: tpl.defaultConditions ? [...tpl.defaultConditions] : [],
+          })
+        }
       }
     }
   } else if (isEdit.value) {

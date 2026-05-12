@@ -61,6 +61,21 @@ const routes = [
   },
   { path: '/templates', redirect: '/templates-presets/templates' },
   {
+    path: '/condition-presets/new',
+    meta: { breadcrumbs: [templatesCrumb] },
+    component: () => import('../components/templates/ConditionPresetForm.vue'),
+  },
+  {
+    path: '/condition-presets/:id/edit',
+    meta: { breadcrumbs: [templatesCrumb] },
+    component: () => import('../components/templates/ConditionPresetForm.vue'),
+  },
+  {
+    path: '/templates/new',
+    meta: { breadcrumbs: [templatesCrumb] },
+    component: () => import('../components/promotions/PromotionForm.vue'),
+  },
+  {
     path: '/templates/:id/edit',
     meta: { breadcrumbs: [templatesCrumb] },
     component: () => import('../components/promotions/PromotionForm.vue'),
