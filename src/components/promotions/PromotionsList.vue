@@ -220,7 +220,19 @@
         </template>
 
         <template #item.type="{ item }">
-          <span class="text-medium-emphasis text-capitalize">{{ item.type.replace('_', ' ') }}</span>
+          <v-tooltip :text="typeLabel(item.type)" location="top">
+            <template #activator="{ props }">
+              <v-chip
+                v-bind="props"
+                color="default"
+                variant="tonal"
+                size="small"
+                label
+              >
+                <v-icon size="14">{{ typeIcon(item.type) }}</v-icon>
+              </v-chip>
+            </template>
+          </v-tooltip>
         </template>
 
         <template #item.status="{ item }">
@@ -451,7 +463,14 @@ const TYPE_LABELS = {
   multi_buy: 'Multi-buy',
   step_discount: 'Step discount',
 }
+const TYPE_ICONS = {
+  discount:      'mdi-tag-outline',
+  step_discount: 'mdi-stairs',
+  multi_buy:     'mdi-package-variant',
+  gift:          'mdi-gift',
+}
 function typeLabel(t) { return TYPE_LABELS[t] ?? t }
+function typeIcon(t)  { return TYPE_ICONS[t]  ?? 'mdi-tag-outline' }
 
 const availableTypes = computed(() =>
   [...new Set(store.items.map(r => r.type))].sort()
@@ -561,7 +580,7 @@ const errorSnack = computed({ get: () => !!store.error, set: () => {} })
 const headers = computed(() => [
   { title: 'Name', key: 'name', sortable: true },
   ...(mobile.value ? [] : [
-    { title: 'Type', key: 'type' },
+    { title: 'Type', key: 'type', width: '72px' },
     { title: 'Created by', key: 'createdBy' },
     { title: 'Action Labels', key: 'tags', sortable: false },
     { title: 'Internal Tags', key: 'internalTags', sortable: false },

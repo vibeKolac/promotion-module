@@ -6,94 +6,180 @@
     <ContentHeader>
       <h1 class="text-h5 font-weight-bold">Priority &amp; grouping</h1>
       <template #right>
-        <v-btn-toggle
-          v-model="view"
-          mandatory
-          density="compact"
-          variant="outlined"
-          divided
-        >
-          <v-btn value="groups" size="small">
-            <v-icon size="18" class="mr-1">mdi-layers</v-icon>
-            Groups
-          </v-btn>
-          <v-btn value="order" size="small">
-            <v-icon size="18" class="mr-1">mdi-format-list-numbered</v-icon>
-            Processing order
-          </v-btn>
-        </v-btn-toggle>
         <PageActionBtn v-if="view === 'groups'" @click="openCreate">New group</PageActionBtn>
       </template>
     </ContentHeader>
 
+    <div class="d-flex justify-end mb-4">
+      <v-btn-toggle
+        v-model="view"
+        mandatory
+        density="compact"
+        variant="outlined"
+        divided
+      >
+        <v-btn value="groups" size="small">
+          <v-icon size="18" class="mr-1">mdi-layers</v-icon>
+          Groups
+        </v-btn>
+        <v-btn value="order" size="small">
+          <v-icon size="18" class="mr-1">mdi-format-list-numbered</v-icon>
+          Processing order
+        </v-btn>
+      </v-btn-toggle>
+    </div>
+
     <Loader v-if="sgStore.loading || promoStore.loading" />
 
     <template v-else>
-      <!-- ── Groups table ── -->
-      <v-card v-if="view === 'groups'" border elevation="0">
-        <v-data-table
-          :headers="groupHeaders"
-          :items="orderedGroups"
-          item-value="id"
-          hover
-          hide-default-footer
-          :items-per-page="-1"
-          class="groups-table"
-          @click:row="(_, { item }) => router.push(`/stacking-groups/${item.id}`)"
-        >
-          <template #item.name="{ item }">
-            <div class="d-flex align-center gap-3 py-1">
-              <span class="color-dot mr-3" :style="`background: ${item.color ?? '#94a3b8'}`" />
-              <span class="font-weight-medium">{{ item.name }}</span>
-              <span v-if="item.isDefault" class="text-caption text-medium-emphasis ml-1">
-                — rules with no group assigned
-              </span>
-            </div>
-          </template>
+      <!-- ── Groups accordion ── -->
+      <template v-if="view === 'groups'">
+        <v-card border elevation="0" class="groups-accordion-card">
+          <!-- Table-like header -->
+          <div class="group-table-header d-flex align-center px-4">
+            <span class="col-chevron" />
+            <span class="col-priority text-caption font-weight-bold text-medium-emphasis text-uppercase">Priority</span>
+            <span class="col-name text-caption font-weight-bold text-medium-emphasis text-uppercase">Group</span>
+            <span class="col-rules text-caption font-weight-bold text-medium-emphasis text-uppercase">Rules</span>
+            <span class="col-actions" />
+          </div>
+          <v-divider />
 
-          <template #item.priority="{ item }">
-            <span v-if="item.isDefault" class="text-medium-emphasis">—</span>
-            <span v-else>{{ item.priority }}</span>
-          </template>
+          <v-expansion-panels
+            v-model="openPanels"
+            multiple
+            variant="accordion"
+            class="groups-accordion"
+          >
+            <v-expansion-panel
+              v-for="group in orderedGroups"
+              :key="group.id"
+              :value="group.id"
+              elevation="0"
+            >
+              <v-expansion-panel-title hide-actions class="px-4 group-panel-title">
+                <v-icon size="18" class="col-chevron text-medium-emphasis">
+                  {{ openPanels.includes(group.id) ? 'mdi-chevron-up' : 'mdi-chevron-down' }}
+                </v-icon>
+                <div class="col-priority">
+                  <span v-if="group.isDefault" class="text-medium-emphasis">—</span>
+                  <span v-else>{{ group.priority }}</span>
+                </div>
+                <div class="col-name d-flex align-center gap-2">
+                  <span class="color-dot mr-2" :style="`background: ${group.color ?? '#94a3b8'}`" />
+                  <span class="font-weight-medium">{{ group.name }}</span>
+                  <span v-if="group.isDefault" class="text-caption text-medium-emphasis">
+                    — rules with no group assigned
+                  </span>
+                </div>
+                <div class="col-rules">
+                  <v-chip size="x-small" label variant="outlined">
+                    {{ ruleCounts[group.id]?.active ?? 0 }} active out of {{ ruleCounts[group.id]?.total ?? 0 }}
+                  </v-chip>
+                </div>
+                <div class="col-actions d-flex gap-1 justify-end" @click.stop>
+                  <v-btn icon="mdi-pencil" variant="text" size="small" @click="openEdit(group)" />
+                  <v-btn
+                    icon="mdi-delete"
+                    variant="text"
+                    size="small"
+                    color="error"
+                    :disabled="group.isDefault"
+                    @click="openDelete(group)"
+                  />
+                </div>
+              </v-expansion-panel-title>
 
-          <template #item.rules="{ item }">
-            <div class="d-flex align-center gap-2">
-              <v-chip size="x-small" color="grey" variant="tonal">
-                {{ ruleCounts[item.id]?.active ?? 0 }} active
-              </v-chip>
-              <span class="text-caption text-medium-emphasis">
-                / {{ ruleCounts[item.id]?.total ?? 0 }} total
-              </span>
-            </div>
-          </template>
+            <v-expansion-panel-text>
+              <div class="rule-table-header d-flex align-center px-4">
+                <span class="rule-col-drag" />
+                <span class="rule-col-priority text-caption font-weight-bold text-medium-emphasis text-uppercase">Priority</span>
+                <span class="flex-grow-1 text-caption font-weight-bold text-medium-emphasis text-uppercase">Rule</span>
+                <span class="rule-type-col text-caption font-weight-bold text-medium-emphasis text-uppercase">Type</span>
+                <span class="rule-col-status text-caption font-weight-bold text-medium-emphasis text-uppercase">Status</span>
+                <span class="rule-col-action" />
+              </div>
+              <v-divider />
 
-          <template #item.actions="{ item }">
-            <div class="d-flex justify-end" @click.stop>
-              <v-btn
-                icon="mdi-eye"
-                variant="text"
-                size="small"
-                @click="router.push(`/stacking-groups/${item.id}`)"
-              />
-              <v-btn icon="mdi-pencil" variant="text" size="small" @click="openEdit(item)" />
-              <v-btn
-                icon="mdi-delete"
-                variant="text"
-                size="small"
-                color="error"
-                :disabled="item.isDefault"
-                @click="openDelete(item)"
-              />
-            </div>
-          </template>
+              <draggable
+                :list="localRulesMap[group.id] ?? []"
+                item-key="id"
+                handle=".drag-handle"
+                ghost-class="drag-ghost"
+                @change="markDirty(group.id)"
+              >
+                <template #item="{ element: rule }">
+                  <div class="rule-row d-flex align-center px-4 py-2">
+                    <v-icon
+                      class="drag-handle cursor-grab rule-col-drag"
+                      size="18"
+                      color="medium-emphasis"
+                    >mdi-drag-vertical</v-icon>
+                    <span class="text-caption text-medium-emphasis rule-col-priority">
+                      {{ rule.priority }}
+                    </span>
+                    <span class="font-weight-medium text-body-2 flex-grow-1">{{ rule.name }}</span>
+                    <div class="rule-type-col">
+                      <v-tooltip :text="ruleTypeLabel(rule.type)" location="top">
+                        <template #activator="{ props }">
+                          <v-chip
+                            v-bind="props"
+                            :color="ruleTypeColor(rule.type)"
+                            variant="tonal"
+                            size="small"
+                            label
+                          >
+                            <v-icon size="14">{{ ruleTypeIcon(rule.type) }}</v-icon>
+                          </v-chip>
+                        </template>
+                      </v-tooltip>
+                    </div>
+                    <div class="rule-col-status">
+                      <StatusBadge :status="rule.status" />
+                    </div>
+                    <div class="rule-col-action d-flex justify-end">
+                      <v-tooltip text="Go to rule detail" location="left">
+                        <template #activator="{ props }">
+                          <v-btn
+                            v-bind="props"
+                            icon="mdi-open-in-new"
+                            variant="text"
+                            size="small"
+                            :to="`/promotions/${rule.id}/edit`"
+                          />
+                        </template>
+                      </v-tooltip>
+                    </div>
+                  </div>
+                </template>
 
-          <template #no-data>
-            <div class="pa-6 text-center text-medium-emphasis text-caption">
-              No priority groups defined yet.
-            </div>
-          </template>
-        </v-data-table>
-      </v-card>
+                <template #footer>
+                  <div
+                    v-if="!(localRulesMap[group.id] ?? []).length"
+                    class="pa-6 text-center text-caption text-medium-emphasis"
+                  >
+                    No rules in this group. Assign this group in the rule editor.
+                  </div>
+                </template>
+              </draggable>
+
+              <div v-if="isDirtyMap[group.id]" class="d-flex align-center gap-2 pa-3 save-bar">
+                <span class="text-body-2 text-medium-emphasis">Rule order has been changed</span>
+                <v-spacer />
+                <v-btn variant="outlined" size="small" @click="discardGroup(group.id)">Discard</v-btn>
+                <v-btn color="success" size="small" :loading="savingMap[group.id]" @click="saveGroup(group.id)">
+                  Save order
+                </v-btn>
+              </div>
+            </v-expansion-panel-text>
+            </v-expansion-panel>
+          </v-expansion-panels>
+
+          <div v-if="!orderedGroups.length" class="pa-6 text-center text-medium-emphasis text-caption">
+            No priority groups defined yet.
+          </div>
+        </v-card>
+      </template>
 
       <!-- ── Processing order table ── -->
       <template v-else>
@@ -126,8 +212,33 @@
             hide-details
             multiple
             style="max-width: 240px"
+            class="ml-3"
           />
-          <span class="text-caption text-medium-emphasis">
+          <v-select
+            v-model="orderTypeFilter"
+            :items="orderTypeOptions"
+            item-title="label"
+            item-value="value"
+            label="Type"
+            variant="outlined"
+            density="compact"
+            hide-details
+            multiple
+            style="max-width: 200px"
+            class="ml-3"
+          />
+          <v-btn
+            v-if="orderStatusFilter.length || orderGroupFilter.length || orderTypeFilter.length"
+            variant="text"
+            size="small"
+            color="primary"
+            class="ml-3"
+            @click="orderStatusFilter = []; orderGroupFilter = []; orderTypeFilter = []"
+          >
+            <v-icon size="16" class="mr-1">mdi-close-circle</v-icon>
+            Clear filters
+          </v-btn>
+          <span class="text-caption text-medium-emphasis ml-3">
             {{ filteredProcessingOrder.length }} rules
           </span>
         </div>
@@ -139,6 +250,7 @@
             item-value="id"
             hide-default-footer
             :items-per-page="-1"
+            class="order-table"
           >
             <template #item._seq="{ item }">
               <span class="text-caption font-weight-bold text-medium-emphasis order-num">
@@ -147,13 +259,23 @@
             </template>
 
             <template #item.name="{ item }">
-              <div class="d-flex align-center gap-2 py-1">
-                <span class="status-dot" :class="`status-dot--${item.status}`" />
-                <span class="font-weight-medium">{{ item.name }}</span>
-                <v-chip size="x-small" class="text-capitalize" variant="tonal" color="default">
-                  {{ item.type.replace('_', ' ') }}
-                </v-chip>
-              </div>
+              <span class="font-weight-medium">{{ item.name }}</span>
+            </template>
+
+            <template #item.type="{ item }">
+              <v-tooltip :text="ruleTypeLabel(item.type)" location="top">
+                <template #activator="{ props }">
+                  <v-chip
+                    v-bind="props"
+                    :color="ruleTypeColor(item.type)"
+                    variant="tonal"
+                    size="small"
+                    label
+                  >
+                    <v-icon size="14">{{ ruleTypeIcon(item.type) }}</v-icon>
+                  </v-chip>
+                </template>
+              </v-tooltip>
             </template>
 
             <template #item.status="{ item }">
@@ -162,10 +284,6 @@
 
             <template #item._group="{ item }">
               <div class="d-flex align-center gap-2">
-                <span
-                  class="color-dot mr-3"
-                  :style="`background: ${item._group?.color ?? '#94a3b8'}`"
-                />
                 <span class="text-body-2">{{ item._group?.name ?? 'Unassigned' }}</span>
                 <span v-if="!item._group?.isDefault" class="text-caption text-medium-emphasis">
                   · priority {{ item._group?.priority }}
@@ -204,7 +322,8 @@
       </template>
     </ConfirmModal>
 
-    <v-snackbar v-model="errorSnack" color="error" timeout="4000">{{ sgStore.error }}</v-snackbar>
+    <v-snackbar v-model="savedSnack" color="success" timeout="2000">Order saved</v-snackbar>
+    <v-snackbar v-model="errorSnack" color="error" timeout="4000">{{ sgStore.error ?? 'Failed to save order' }}</v-snackbar>
 
     <LeaveDialog
       v-model="leaveDialogOpen"
@@ -216,8 +335,8 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, computed, watch, onMounted } from 'vue'
+import draggable from 'vuedraggable'
 import { useStackingGroupsStore } from '../../stores/stackingGroups'
 import { usePromotionsStore } from '../../stores/promotions'
 import { useNavigationGuard } from '../../composables/useNavigationGuard'
@@ -230,20 +349,14 @@ import Loader from '../_common/Loader.vue'
 import ConfirmModal from '../_common/ConfirmModal.vue'
 import LeaveDialog from '../_common/LeaveDialog.vue'
 
-const router = useRouter()
 const sgStore = useStackingGroupsStore()
 const promoStore = usePromotionsStore()
 
 // ── View toggle ───────────────────────────────────────────────────────────────
 const view = ref('groups')
 
-// ── Groups table ──────────────────────────────────────────────────────────────
-const groupHeaders = [
-  { title: 'Group',    key: 'name',     sortable: false },
-  { title: 'Priority', key: 'priority', width: '110px' },
-  { title: 'Rules',    key: 'rules',    sortable: false, width: '190px' },
-  { title: '',         key: 'actions',  sortable: false, width: '132px', align: 'end' },
-]
+// ── Groups accordion ──────────────────────────────────────────────────────────
+const openPanels = ref([])
 
 const orderedGroups = computed(() =>
   [...sgStore.items].sort((a, b) => {
@@ -257,9 +370,11 @@ const ruleCounts = computed(() => {
   const map = {}
   for (const group of sgStore.items) {
     const rules = promoStore.items.filter(r =>
-      group.isDefault
-        ? r.stackingGroupId === group.id || r.stackingGroupId == null
-        : r.stackingGroupId === group.id
+      r.status !== 'ended' && (
+        group.isDefault
+          ? r.stackingGroupId === group.id || r.stackingGroupId == null
+          : r.stackingGroupId === group.id
+      )
     )
     map[group.id] = {
       total: rules.length,
@@ -269,9 +384,71 @@ const ruleCounts = computed(() => {
   return map
 })
 
+// ── Per-group drag-and-drop state ─────────────────────────────────────────────
+const localRulesMap = ref({})
+const isDirtyMap = ref({})
+const savingMap = ref({})
+const savedSnack = ref(false)
+
+function buildRulesForGroup(group) {
+  return promoStore.items
+    .filter(r => {
+      const inGroup = group.isDefault
+        ? r.stackingGroupId === group.id || r.stackingGroupId == null
+        : r.stackingGroupId === group.id
+      return inGroup && r.status !== 'ended'
+    })
+    .sort((a, b) => (a.priority ?? 999) - (b.priority ?? 999))
+}
+
+function initLocalRules() {
+  const map = {}
+  for (const group of sgStore.items) {
+    map[group.id] = isDirtyMap.value[group.id]
+      ? (localRulesMap.value[group.id] ?? buildRulesForGroup(group))
+      : buildRulesForGroup(group)
+  }
+  localRulesMap.value = map
+}
+
+watch([() => sgStore.items, () => promoStore.items], initLocalRules, { deep: true })
+
+function markDirty(groupId) {
+  isDirtyMap.value = { ...isDirtyMap.value, [groupId]: true }
+}
+
+function discardGroup(groupId) {
+  const group = sgStore.items.find(g => g.id === groupId)
+  if (!group) return
+  localRulesMap.value = { ...localRulesMap.value, [groupId]: buildRulesForGroup(group) }
+  isDirtyMap.value = { ...isDirtyMap.value, [groupId]: false }
+}
+
+async function saveGroup(groupId) {
+  savingMap.value = { ...savingMap.value, [groupId]: true }
+  const rules = localRulesMap.value[groupId] ?? []
+  const updates = rules.map((r, i) => ({ id: r.id, priority: i + 1 }))
+  try {
+    await promoStore.updateMany(updates)
+    localRulesMap.value = {
+      ...localRulesMap.value,
+      [groupId]: rules.map((r, i) => ({ ...r, priority: i + 1 })),
+    }
+    isDirtyMap.value = { ...isDirtyMap.value, [groupId]: false }
+    savedSnack.value = true
+  } catch {
+    errorSnack.value = true
+  } finally {
+    savingMap.value = { ...savingMap.value, [groupId]: false }
+  }
+}
+
+const anyDirty = computed(() => Object.values(isDirtyMap.value).some(Boolean))
+
 // ── Processing order filters ──────────────────────────────────────────────────
 const orderStatusFilter = ref([])
 const orderGroupFilter = ref([])
+const orderTypeFilter = ref([])
 
 const orderStatusOptions = [
   { label: 'Active',    value: 'active' },
@@ -280,18 +457,42 @@ const orderStatusOptions = [
   { label: 'Draft',     value: 'draft' },
 ]
 
+const orderTypeOptions = [
+  { label: 'Discount',      value: 'discount' },
+  { label: 'Step discount', value: 'step_discount' },
+  { label: 'Multi-buy',     value: 'multi_buy' },
+  { label: 'Gift',          value: 'gift' },
+]
+
 const orderGroupOptions = computed(() =>
   orderedGroups.value.map(g => ({ label: g.name, value: g.id }))
 )
 
 // ── Processing order table ────────────────────────────────────────────────────
 const orderHeaders = [
-  { title: '#',      key: '_seq',    sortable: false, width: '56px' },
-  { title: 'Rule',   key: 'name',    sortable: false },
+  { title: '#',      key: '_seq',    sortable: false, width: '56px', align: 'center' },
+  { title: 'Rule',   key: 'name',    sortable: false, width: '280px' },
+  { title: 'Type',   key: 'type',    sortable: false, width: '72px' },
   { title: 'Status', key: 'status',  sortable: false, width: '130px' },
   { title: 'Group',  key: '_group',  sortable: false, width: '220px' },
   { title: '',       key: 'actions', sortable: false, width: '48px', align: 'end' },
 ]
+
+const RULE_TYPE_LABELS = {
+  discount:      'Discount',
+  step_discount: 'Step discount',
+  multi_buy:     'Multi-buy',
+  gift:          'Gift',
+}
+const RULE_TYPE_ICONS = {
+  discount:      'mdi-tag-outline',
+  step_discount: 'mdi-stairs',
+  multi_buy:     'mdi-package-variant',
+  gift:          'mdi-gift',
+}
+function ruleTypeLabel(t) { return RULE_TYPE_LABELS[t] ?? t }
+function ruleTypeIcon(t)  { return RULE_TYPE_ICONS[t]  ?? 'mdi-tag-outline' }
+function ruleTypeColor()  { return 'default' }
 
 function getRuleGroup(rule) {
   if (rule.stackingGroupId == null) return sgStore.items.find(g => g.isDefault) ?? null
@@ -318,11 +519,15 @@ const filteredProcessingOrder = computed(() =>
   processingOrder.value.filter(rule => {
     if (orderStatusFilter.value.length && !orderStatusFilter.value.includes(rule.status)) return false
     if (orderGroupFilter.value.length && !orderGroupFilter.value.includes(rule._group?.id)) return false
+    if (orderTypeFilter.value.length && !orderTypeFilter.value.includes(rule.type)) return false
     return true
   })
 )
 
-onMounted(() => Promise.all([sgStore.fetchAll(), promoStore.fetchAll()]))
+onMounted(async () => {
+  await Promise.all([sgStore.fetchAll(), promoStore.fetchAll()])
+  initLocalRules()
+})
 
 // ── CRUD ──────────────────────────────────────────────────────────────────────
 const dialogOpen = ref(false)
@@ -351,9 +556,9 @@ async function openDelete(group) {
 
 function onSaved() {}
 
-// ── Navigation guard (intercept nav while create/edit dialog is open) ─────────
+// ── Navigation guard ──────────────────────────────────────────────────────────
 const { leaveDialogOpen, cancelLeave, leaveWithoutSaving } = useNavigationGuard({
-  dirty: dialogOpen,
+  dirty: computed(() => dialogOpen.value || anyDirty.value),
 })
 </script>
 
@@ -364,6 +569,46 @@ const { leaveDialogOpen, cancelLeave, leaveWithoutSaving } = useNavigationGuard(
   border-radius: 50%;
   flex-shrink: 0;
   display: inline-block;
+}
+
+.group-table-header {
+  height: 48px;
+  background: rgba(var(--v-theme-surface-variant), 0.04);
+}
+
+.col-chevron  { width: 32px; flex-shrink: 0; }
+.col-name     { flex: 1 1 0; min-width: 0; }
+.col-priority { width: 110px; flex-shrink: 0; text-align: center; }
+.col-rules    { width: 190px; flex-shrink: 0; }
+.col-actions  { width: 100px; flex-shrink: 0; }
+
+.group-panel-title {
+  min-height: 48px !important;
+}
+
+.groups-accordion :deep(.v-expansion-panel-text__wrapper) {
+  padding: 0;
+}
+
+.groups-accordion :deep(.v-expansion-panel--active + .v-expansion-panel),
+.groups-accordion :deep(.v-expansion-panel + .v-expansion-panel) {
+  border-top: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
+}
+
+.rule-row {
+  border-bottom: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
+}
+.rule-row:last-child {
+  border-bottom: none;
+}
+
+.drag-ghost {
+  opacity: 0.4;
+  background: rgb(var(--v-theme-primary), 0.08);
+}
+
+.save-bar {
+  border-top: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
 }
 
 .status-dot {
@@ -379,8 +624,27 @@ const { leaveDialogOpen, cancelLeave, leaveWithoutSaving } = useNavigationGuard(
 .status-dot--scheduled { background: #3b82f6; }
 .status-dot--ended     { background: #ef4444; }
 
-.groups-table :deep(tr) {
-  cursor: pointer;
+.rule-table-header {
+  height: 40px;
+  background: rgba(var(--v-theme-surface-variant), 0.04);
+}
+
+.rule-col-drag     { width: 32px; flex-shrink: 0; }
+.rule-col-priority { width: 110px; flex-shrink: 0; text-align: center; }
+.rule-type-col     { width: 72px; flex-shrink: 0; }
+.rule-col-status   { width: 118px; flex-shrink: 0; }
+.rule-col-action   { width: 100px; flex-shrink: 0; }
+
+
+.order-table :deep(table) {
+  table-layout: fixed;
+}
+
+.order-table :deep(td.v-data-table__td:nth-child(2)),
+.order-table :deep(th.v-data-table__th:nth-child(2)) {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .order-num {

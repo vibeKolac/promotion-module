@@ -12,14 +12,6 @@
       <ColorPicker v-model="form.color" />
     </div>
 
-    <v-switch
-      v-model="form.isDefault"
-      label="Default group"
-      density="compact"
-      color="primary"
-      hide-details
-    />
-
     <template #actions>
       <v-btn variant="text" @click="$emit('update:modelValue', false)">Cancel</v-btn>
       <v-btn color="success" :loading="saving" @click="handleSave">
