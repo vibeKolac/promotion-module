@@ -10,7 +10,7 @@
       </template>
     </ContentHeader>
 
-    <div class="d-flex justify-end mb-4">
+    <div class="d-flex justify-end mb-2">
       <v-btn-toggle
         v-model="view"
         mandatory
@@ -28,6 +28,8 @@
         </v-btn>
       </v-btn-toggle>
     </div>
+
+    <p class="text-body-2 text-medium-emphasis mb-4">Drag a row to change its priority, then save.</p>
 
     <Loader v-if="sgStore.loading || promoStore.loading" />
 
@@ -118,7 +120,7 @@
                     <span class="text-caption text-medium-emphasis rule-col-priority">
                       {{ rule.priority }}
                     </span>
-                    <span class="font-weight-medium text-body-2 flex-grow-1">{{ rule.name }}</span>
+                    <RouterLink :to="`/promotions/${rule.id}/edit`" class="rule-name-link font-weight-medium text-body-2 flex-grow-1">{{ rule.name }}</RouterLink>
                     <div class="rule-type-col">
                       <v-tooltip :text="ruleTypeLabel(rule.type)" location="top">
                         <template #activator="{ props }">
@@ -163,13 +165,15 @@
                 </template>
               </draggable>
 
-              <div v-if="isDirtyMap[group.id]" class="d-flex align-center gap-2 pa-3 save-bar">
+              <div v-if="isDirtyMap[group.id]" class="d-flex align-center gap-4 pa-4 save-bar">
                 <span class="text-body-2 text-medium-emphasis">Rule order has been changed</span>
                 <v-spacer />
-                <v-btn variant="outlined" size="small" @click="discardGroup(group.id)">Discard</v-btn>
-                <v-btn color="success" size="small" :loading="savingMap[group.id]" @click="saveGroup(group.id)">
-                  Save order
-                </v-btn>
+                <div style="display: flex; gap: 12px;">
+                  <v-btn variant="outlined" @click="discardGroup(group.id)">Discard</v-btn>
+                  <v-btn color="success" :loading="savingMap[group.id]" @click="saveGroup(group.id)">
+                    Save order
+                  </v-btn>
+                </div>
               </div>
             </v-expansion-panel-text>
             </v-expansion-panel>
@@ -259,7 +263,7 @@
             </template>
 
             <template #item.name="{ item }">
-              <span class="font-weight-medium">{{ item.name }}</span>
+              <RouterLink :to="`/promotions/${item.id}/edit`" class="rule-name-link font-weight-medium">{{ item.name }}</RouterLink>
             </template>
 
             <template #item.type="{ item }">
@@ -283,12 +287,7 @@
             </template>
 
             <template #item._group="{ item }">
-              <div class="d-flex align-center gap-2">
-                <span class="text-body-2">{{ item._group?.name ?? 'Unassigned' }}</span>
-                <span v-if="!item._group?.isDefault" class="text-caption text-medium-emphasis">
-                  · priority {{ item._group?.priority }}
-                </span>
-              </div>
+              <span class="text-body-2">{{ item._group?.name ?? 'Unassigned' }}</span>
             </template>
 
             <template #item.actions="{ item }">
@@ -645,6 +644,15 @@ const { leaveDialogOpen, cancelLeave, leaveWithoutSaving } = useNavigationGuard(
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.rule-name-link {
+  color: inherit;
+  text-decoration: none;
+}
+.rule-name-link:hover {
+  color: rgb(var(--v-theme-primary));
+  text-decoration: underline;
 }
 
 .order-num {

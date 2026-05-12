@@ -7,7 +7,14 @@
       <span class="text-body-2 font-weight-semibold">Eshop Admin</span>
     </div>
     <v-spacer />
-    <span v-if="!mobile" class="text-caption text-medium-emphasis mr-4">client v0.1.0</span>
+    <v-btn
+      v-if="!mobile"
+      variant="text"
+      size="small"
+      class="text-caption text-medium-emphasis mr-2 text-none"
+      prepend-icon="mdi-robot-happy-outline"
+      @click="toggle"
+    >Ask Maxík</v-btn>
     <v-menu location="bottom end">
       <template #activator="{ props: menuProps }">
         <v-btn v-bind="menuProps" icon="mdi-account-circle" variant="text" class="mr-2" />
@@ -34,8 +41,10 @@
 
 <script setup>
 import { useDisplay } from 'vuetify'
+import { useMaxik } from '../../composables/useMaxik'
 defineEmits(['toggle-nav'])
 const { mobile } = useDisplay()
+const { toggle, isOpen } = useMaxik()
 
 function openAnalysis() {
   window.open('/promotions-analysis.html', '_blank', 'width=1280,height=800,noopener')

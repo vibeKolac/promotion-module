@@ -14,34 +14,17 @@
     <v-row class="mb-4">
       <v-col cols="6" sm="3">
         <v-card border elevation="0" class="pa-4">
-          <div class="text-caption text-medium-emphasis mb-1">Performance</div>
-          <div class="text-h6 font-weight-bold text-success">
-            {{ promotion?.performance !== undefined ? `${promotion.performance}%` : '—' }}
-          </div>
-        </v-card>
-      </v-col>
-      <v-col cols="6" sm="3">
-        <v-card border elevation="0" class="pa-4">
-          <div class="text-caption text-medium-emphasis mb-1">Estimated Revenue</div>
-          <div class="text-h6 font-weight-bold text-success">
-            {{ promotion?.revenue ?? '—' }}
-          </div>
-        </v-card>
-      </v-col>
-      <v-col cols="6" sm="3">
-        <v-card border elevation="0" class="pa-4">
           <div class="text-caption text-medium-emphasis mb-1">Total usages</div>
-          <div class="text-h6 font-weight-bold">
+          <div class="text-h6 font-weight-bold text-success">
             {{ promotion?.usageCount?.toLocaleString() ?? '—' }}
           </div>
         </v-card>
       </v-col>
       <v-col cols="6" sm="3">
         <v-card border elevation="0" class="pa-4">
-          <div class="text-caption text-medium-emphasis mb-1">Orders in export</div>
-          <div class="text-h6 font-weight-bold">
-            {{ filteredOrders.length }}
-            <span v-if="hasActiveFilters" class="text-body-2 font-weight-regular text-medium-emphasis">/ {{ orders.length }}</span>
+          <div class="text-caption text-medium-emphasis mb-1">Completed orders</div>
+          <div class="text-h6 font-weight-bold text-success">
+            {{ promotion?.completedOrders?.toLocaleString() ?? '—' }}
           </div>
         </v-card>
       </v-col>
@@ -51,35 +34,29 @@
     <TextInput
       v-model="search"
       prepend-inner-icon="mdi-magnify"
-      placeholder="Search by customer name or order ID"
+      placeholder="Search by customer name, order ID, voucher ID or coupon code"
       hide-details
       class="mb-4"
       :class="mobile ? '' : 'search-input'"
     />
 
-    <!-- Filter bar -->
-    <div class="d-flex align-center flex-wrap gap-2 mb-4">
-      <span class="text-caption text-medium-emphasis mr-1">Order type:</span>
-      <v-chip
-        v-for="t in availableOrderTypes"
-        :key="t"
-        :color="orderTypeFilter.includes(t) ? 'primary' : undefined"
-        :variant="orderTypeFilter.includes(t) ? 'flat' : 'outlined'"
-        size="small"
-        class="clickable-link"
-        @click="toggleOrderType(t)"
-      >{{ t }}</v-chip>
-
-      <v-divider v-if="!mobile" vertical class="mx-1 filter-divider" />
-
-      <SelectInput
+    <!-- Filter row -->
+    <div class="d-flex align-center flex-wrap filter-row">
+      <v-select
         v-model="dateFilter"
-        :data="dateFilterItems"
+        :items="dateFilterItems"
+        item-title="title"
+        item-value="value"
         label="Order created"
+        variant="outlined"
+        density="compact"
         hide-details
-        class="filter-select filter-select--md"
+        style="max-width: 175px"
       />
-
+      <template v-if="dateFilter === 'custom'">
+        <DatePicker v-model="customDateFrom" label="From" style="max-width: 175px" />
+        <DatePicker v-model="customDateTo" label="To" style="max-width: 175px" />
+      </template>
       <v-btn
         v-if="hasActiveFilters"
         variant="text"
@@ -89,7 +66,6 @@
       >
         <v-icon size="16" class="mr-1">mdi-close-circle</v-icon>
         Clear filters
-        <v-chip size="x-small" color="primary" class="ml-1">{{ activeFilterCount }}</v-chip>
       </v-btn>
     </div>
 
@@ -157,7 +133,7 @@ import { useDisplay } from 'vuetify'
 import axios from 'axios'
 import { usePromotionsStore } from '../../stores/promotions'
 import TextInput from '../_common/TextInput.vue'
-import SelectInput from '../_common/SelectInput.vue'
+import DatePicker from '../_common/DatePicker.vue'
 import ContentHeader from '../_common/ContentHeader.vue'
 import Breadcrumbs from '../_common/Breadcrumbs.vue'
 
@@ -176,42 +152,29 @@ const breadcrumbs = computed(() => [
 
 // ── Filter state ──────────────────────────────────────────────────────────────
 const search = ref('')
-const orderTypeFilter = ref([])
 const dateFilter = ref('any')
-
-const availableOrderTypes = computed(() => [...new Set(orders.value.map(o => o.orderType))].sort())
+const customDateFrom = ref(null)
+const customDateTo = ref(null)
 
 const dateFilterItems = [
-  { value: 'any', title: 'Any date' },
+  { value: 'any',     title: 'Any date' },
+  { value: 'last_7',  title: 'Last 7 days' },
+  { value: 'last_14', title: 'Last 14 days' },
   { value: 'last_30', title: 'Last 30 days' },
-  { value: 'last_90', title: 'Last 90 days' },
-  { value: 'this_year', title: 'This year' },
+  { value: 'custom',  title: 'Custom period' },
 ]
-
-function toggleOrderType(t) {
-  const idx = orderTypeFilter.value.indexOf(t)
-  if (idx === -1) orderTypeFilter.value.push(t)
-  else orderTypeFilter.value.splice(idx, 1)
-}
 
 const hasActiveFilters = computed(() =>
   search.value.trim() !== '' ||
-  orderTypeFilter.value.length > 0 ||
-  dateFilter.value !== 'any'
+  dateFilter.value !== 'any' ||
+  !!customDateFrom.value || !!customDateTo.value
 )
-
-const activeFilterCount = computed(() => {
-  let n = 0
-  if (search.value.trim()) n++
-  if (orderTypeFilter.value.length) n++
-  if (dateFilter.value !== 'any') n++
-  return n
-})
 
 function clearFilters() {
   search.value = ''
-  orderTypeFilter.value = []
   dateFilter.value = 'any'
+  customDateFrom.value = null
+  customDateTo.value = null
 }
 
 // ── Filtered orders ───────────────────────────────────────────────────────────
@@ -221,22 +184,22 @@ const filteredOrders = computed(() => {
     const q = search.value.toLowerCase()
     result = result.filter(o =>
       o.customerName.toLowerCase().includes(q) ||
-      String(o.orderIncrementId).includes(q)
+      String(o.orderIncrementId).includes(q) ||
+      (o.voucherId && String(o.voucherId).toLowerCase().includes(q)) ||
+      (o.ruleCouponCode && o.ruleCouponCode.toLowerCase().includes(q))
     )
   }
-  if (orderTypeFilter.value.length) {
-    result = result.filter(o => orderTypeFilter.value.includes(o.orderType))
-  }
   if (dateFilter.value !== 'any') {
-    const now = new Date()
-    if (dateFilter.value === 'last_30') {
-      const cutoff = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    if (dateFilter.value === 'last_7' || dateFilter.value === 'last_14' || dateFilter.value === 'last_30') {
+      const days = dateFilter.value === 'last_7' ? 7 : dateFilter.value === 'last_14' ? 14 : 30
+      const cutoff = new Date(today)
+      cutoff.setDate(cutoff.getDate() - days)
       result = result.filter(o => new Date(o.orderCreatedDate) >= cutoff)
-    } else if (dateFilter.value === 'last_90') {
-      const cutoff = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000)
-      result = result.filter(o => new Date(o.orderCreatedDate) >= cutoff)
-    } else if (dateFilter.value === 'this_year') {
-      result = result.filter(o => new Date(o.orderCreatedDate).getFullYear() === now.getFullYear())
+    } else if (dateFilter.value === 'custom') {
+      if (customDateFrom.value) result = result.filter(o => o.orderCreatedDate >= customDateFrom.value)
+      if (customDateTo.value) result = result.filter(o => o.orderCreatedDate <= customDateTo.value)
     }
   }
   return result
@@ -281,17 +244,8 @@ onMounted(async () => {
   max-width: 480px;
 }
 
-.filter-divider {
-  align-self: stretch;
-  opacity: 0.3;
-}
-
-.filter-select {
-  flex-shrink: 0;
-}
-
-.filter-select--md {
-  max-width: 200px;
-  min-width: 160px;
+.filter-row {
+  gap: 16px;
+  padding: 20px 0;
 }
 </style>

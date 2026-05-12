@@ -41,91 +41,89 @@
       @update:model-value="onSearch"
     />
 
-    <!-- Priority group filter + tabs row -->
-    <div class="d-flex flex-wrap align-center gap-2 mb-4">
-      <v-tabs v-model="activeTab" color="primary" density="compact">
-        <v-tab value="active">Active <v-chip size="x-small" class="ml-1">{{ activeItems.length }}</v-chip></v-tab>
-        <v-tab value="paused">Paused <v-chip size="x-small" class="ml-1">{{ pausedItems.length }}</v-chip></v-tab>
-        <v-tab value="draft">Draft <v-chip size="x-small" class="ml-1">{{ draftItems.length }}</v-chip></v-tab>
-        <v-tab value="ended">Ended <v-chip size="x-small" class="ml-1">{{ endedItems.length }}</v-chip></v-tab>
-      </v-tabs>
-      <v-spacer />
-      <SelectInput
+    <!-- Status tabs -->
+    <v-tabs v-model="activeTab" color="primary" density="compact" class="mb-2">
+      <v-tab value="active">Active <v-chip size="x-small" class="ml-1">{{ activeItems.length }}</v-chip></v-tab>
+      <v-tab value="paused">Paused <v-chip size="x-small" class="ml-1">{{ pausedItems.length }}</v-chip></v-tab>
+      <v-tab value="draft">Draft <v-chip size="x-small" class="ml-1">{{ draftItems.length }}</v-chip></v-tab>
+      <v-tab value="ended">Ended <v-chip size="x-small" class="ml-1">{{ endedItems.length }}</v-chip></v-tab>
+    </v-tabs>
+
+    <!-- Filter row -->
+    <div class="d-flex align-center flex-wrap filter-row">
+      <v-select
         v-model="stackingGroupFilter"
-        :data="stackingGroupFilterItems"
-        label=""
+        :items="stackingGroupFilterItems"
+        item-title="title"
+        item-value="value"
+        label="Group"
+        variant="outlined"
+        density="compact"
         hide-details
-        class="filter-select filter-select--md"
+        style="max-width: 220px"
       />
-    </div>
-
-    <!-- Filter bar -->
-    <div class="d-flex align-center flex-wrap gap-2 mb-3">
-      <span class="text-caption text-medium-emphasis mr-1">Type:</span>
-      <v-chip
-        v-for="t in availableTypes"
-        :key="t"
-        :color="typeFilter.includes(t) ? 'primary' : undefined"
-        :variant="typeFilter.includes(t) ? 'flat' : 'outlined'"
-        size="small"
-        class="clickable-link"
-        @click="toggleType(t)"
-      >{{ typeLabel(t) }}</v-chip>
-
-      <v-divider v-if="!mobile && tagsStore.items.length" vertical class="mx-1 filter-divider" />
-
-      <template v-if="tagsStore.items.length">
-        <span class="text-caption text-medium-emphasis mr-1">Action Labels:</span>
-        <v-chip
-          v-for="tag in tagsStore.items"
-          :key="tag.id"
-          :color="tagFilter.includes(tag.id) ? 'grey-darken-4' : undefined"
-          :variant="tagFilter.includes(tag.id) ? 'flat' : 'outlined'"
-          size="small"
-          class="clickable-link"
-          @click="toggleTag(tag.id)"
-        >
-          <v-icon v-if="tagFilter.includes(tag.id)" start size="12">mdi-check</v-icon>
-          {{ tag.name }}
-        </v-chip>
-      </template>
-
-      <v-divider v-if="!mobile && internalTagsStore.items.length" vertical class="mx-1 filter-divider" />
-
-      <template v-if="internalTagsStore.items.length">
-        <span class="text-caption text-medium-emphasis mr-1">Internal Tags:</span>
-        <v-chip
-          v-for="tag in internalTagsStore.items"
-          :key="tag.id"
-          :color="internalTagFilter.includes(tag.id) ? 'success' : 'success'"
-          :variant="internalTagFilter.includes(tag.id) ? 'flat' : 'tonal'"
-          size="small"
-          class="clickable-link"
-          @click="toggleInternalTag(tag.id)"
-        >
-          <v-icon v-if="internalTagFilter.includes(tag.id)" start size="12">mdi-check</v-icon>
-          {{ tag.name }}
-        </v-chip>
-      </template>
-
-      <v-divider v-if="!mobile" vertical class="mx-1 filter-divider" />
-
-      <SelectInput
+      <v-select
+        v-model="typeFilter"
+        :items="typeFilterItems"
+        item-title="label"
+        item-value="value"
+        label="Type"
+        variant="outlined"
+        density="compact"
+        hide-details
+        multiple
+        style="max-width: 200px"
+      />
+      <v-select
         v-model="createdByFilter"
-        :data="createdByFilterItems"
+        :items="createdByFilterItems"
+        item-title="title"
+        item-value="value"
         label="Created by"
+        variant="outlined"
+        density="compact"
         hide-details
-        class="filter-select filter-select--sm"
+        style="max-width: 180px"
       />
-
-      <SelectInput
+      <v-select
+        v-model="tagFilter"
+        :items="tagFilterItems"
+        item-title="label"
+        item-value="value"
+        label="Action Labels"
+        variant="outlined"
+        density="compact"
+        hide-details
+        multiple
+        style="max-width: 220px"
+      />
+      <v-select
+        v-model="internalTagFilter"
+        :items="internalTagFilterItems"
+        item-title="label"
+        item-value="value"
+        label="Internal Tags"
+        variant="outlined"
+        density="compact"
+        hide-details
+        multiple
+        style="max-width: 200px"
+      />
+      <v-select
         v-model="dateFilter"
-        :data="dateFilterItems"
+        :items="dateFilterItems"
+        item-title="title"
+        item-value="value"
         label="Date"
+        variant="outlined"
+        density="compact"
         hide-details
-        class="filter-select filter-select--date"
+        style="max-width: 175px"
       />
-
+      <template v-if="dateFilter === 'custom'">
+        <DatePicker v-model="customDateFrom" label="From" style="max-width: 175px" />
+        <DatePicker v-model="customDateTo" label="To" style="max-width: 175px" />
+      </template>
       <v-btn
         v-if="hasActiveFilters"
         variant="text"
@@ -135,7 +133,6 @@
       >
         <v-icon size="16" class="mr-1">mdi-close-circle</v-icon>
         Clear filters
-        <v-chip size="x-small" color="primary" class="ml-1">{{ activeFilterCount }}</v-chip>
       </v-btn>
     </div>
 
@@ -203,15 +200,13 @@
         :headers="headers"
         :items="tabItems"
         :loading="store.loading"
-        :row-props="() => ({ style: 'cursor: pointer' })"
         item-value="id"
         show-select
         hover
-        @click:row="onRowClick"
       >
         <template #item.name="{ item }">
           <div class="d-flex align-center gap-2">
-            <span class="font-weight-medium">{{ item.name }}</span>
+            <RouterLink :to="`/promotions/${item.id}/edit`" class="rule-name-link font-weight-medium">{{ item.name }}</RouterLink>
             <ConflictBadge
               v-if="conflictsMap.get(item.id)?.length"
               :conflicts="conflictsMap.get(item.id)"
@@ -381,8 +376,7 @@ import ConfirmModal from '../_common/ConfirmModal.vue'
 import ContentHeader from '../_common/ContentHeader.vue'
 import Breadcrumbs from '../_common/Breadcrumbs.vue'
 import TextInput from '../_common/TextInput.vue'
-import SelectInput from '../_common/SelectInput.vue'
-import { useDebounceFn } from '@vueuse/core'
+import DatePicker from '../_common/DatePicker.vue'
 import { detectConflicts } from '../../utils/ruleConflictDetector'
 import ConflictBadge from './ConflictBadge.vue'
 import CsvImportDialog from './CsvImportDialog.vue'
@@ -410,6 +404,8 @@ const tagFilter = ref([])
 const internalTagFilter = ref([])
 const createdByFilter = ref('')
 const dateFilter = ref('any')
+const customDateFrom = ref(null)
+const customDateTo = ref(null)
 const deleteModal = ref(null)
 const bulkDeleteModal = ref(null)
 const deletingItem = ref(null)
@@ -476,6 +472,16 @@ const availableTypes = computed(() =>
   [...new Set(store.items.map(r => r.type))].sort()
 )
 
+const typeFilterItems = computed(() =>
+  availableTypes.value.map(t => ({ label: typeLabel(t), value: t }))
+)
+const tagFilterItems = computed(() =>
+  tagsStore.items.map(t => ({ label: t.name, value: t.id }))
+)
+const internalTagFilterItems = computed(() =>
+  internalTagsStore.items.map(t => ({ label: t.name, value: t.id }))
+)
+
 const createdByFilterItems = computed(() => [
   { value: '', title: 'All creators' },
   ...[...new Set(store.items.map(r => r.createdBy).filter(Boolean))].sort()
@@ -483,10 +489,11 @@ const createdByFilterItems = computed(() => [
 ])
 
 const dateFilterItems = [
-  { value: 'any', title: 'Any date' },
-  { value: 'active_now', title: 'Active now' },
-  { value: 'no_end_date', title: 'No end date' },
-  { value: 'expiring_soon', title: 'Expiring in 7 days' },
+  { value: 'any',    title: 'Any date' },
+  { value: 'last_7', title: 'Last 7 days' },
+  { value: 'last_14', title: 'Last 14 days' },
+  { value: 'last_30', title: 'Last 30 days' },
+  { value: 'custom', title: 'Custom period' },
 ]
 
 function toggleType(t) {
@@ -508,7 +515,7 @@ function toggleInternalTag(id) {
 }
 
 const hasActiveFilters = computed(() =>
-  typeFilter.value.length > 0 || tagFilter.value.length > 0 || internalTagFilter.value.length > 0 || createdByFilter.value !== '' || dateFilter.value !== 'any'
+  typeFilter.value.length > 0 || tagFilter.value.length > 0 || internalTagFilter.value.length > 0 || createdByFilter.value !== '' || dateFilter.value !== 'any' || !!customDateFrom.value || !!customDateTo.value
 )
 
 const activeFilterCount = computed(() => {
@@ -527,10 +534,29 @@ function clearFilters() {
   internalTagFilter.value = []
   createdByFilter.value = ''
   dateFilter.value = 'any'
+  customDateFrom.value = null
+  customDateTo.value = null
 }
 
 function applyFilters(rules) {
   let result = rules
+  if (search.value.trim()) {
+    const q = search.value.toLowerCase()
+    result = result.filter(r => {
+      const tagNames = (r.tags ?? []).map(id => tagsStore.items.find(t => t.id === id)?.name ?? '').join(' ')
+      const internalTagNames = (r.internalTags ?? []).map(id => internalTagsStore.items.find(t => t.id === id)?.name ?? '').join(' ')
+      return (
+        r.name.toLowerCase().includes(q) ||
+        (TYPE_LABELS[r.type] ?? r.type).toLowerCase().includes(q) ||
+        r.status.toLowerCase().includes(q) ||
+        (r.createdBy ?? '').toLowerCase().includes(q) ||
+        (r.startDate ?? '').includes(q) ||
+        (r.endDate ?? '').includes(q) ||
+        tagNames.toLowerCase().includes(q) ||
+        internalTagNames.toLowerCase().includes(q)
+      )
+    })
+  }
   if (typeFilter.value.length) {
     result = result.filter(r => typeFilter.value.includes(r.type))
   }
@@ -544,20 +570,20 @@ function applyFilters(rules) {
     result = result.filter(r => r.createdBy === createdByFilter.value)
   }
   if (dateFilter.value !== 'any') {
-    const now = new Date()
-    const soon = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000)
-    if (dateFilter.value === 'active_now') {
-      result = result.filter(r => {
-        const start = r.startDate ? new Date(r.startDate) : null
-        const end = r.endDate ? new Date(r.endDate) : null
-        return (!start || start <= now) && (!end || end >= now)
-      })
-    } else if (dateFilter.value === 'no_end_date') {
-      result = result.filter(r => !r.endDate)
-    } else if (dateFilter.value === 'expiring_soon') {
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    if (dateFilter.value === 'last_7' || dateFilter.value === 'last_14' || dateFilter.value === 'last_30') {
+      const days = dateFilter.value === 'last_7' ? 7 : dateFilter.value === 'last_14' ? 14 : 30
+      const from = new Date(today)
+      from.setDate(from.getDate() - days)
+      const fromIso = from.toISOString().split('T')[0]
+      const todayIso = today.toISOString().split('T')[0]
       result = result.filter(r =>
-        r.endDate && new Date(r.endDate) >= now && new Date(r.endDate) <= soon
+        (!r.startDate || r.startDate <= todayIso) && (!r.endDate || r.endDate >= fromIso)
       )
+    } else if (dateFilter.value === 'custom') {
+      if (customDateFrom.value) result = result.filter(r => !r.endDate || r.endDate >= customDateFrom.value)
+      if (customDateTo.value) result = result.filter(r => !r.startDate || r.startDate <= customDateTo.value)
     }
   }
   return result
@@ -581,13 +607,13 @@ const headers = computed(() => [
   { title: 'Name', key: 'name', sortable: true },
   ...(mobile.value ? [] : [
     { title: 'Type', key: 'type', width: '72px' },
+    { title: 'Status', key: 'status' },
     { title: 'Created by', key: 'createdBy' },
     { title: 'Action Labels', key: 'tags', sortable: false },
     { title: 'Internal Tags', key: 'internalTags', sortable: false },
     { title: 'Starts', key: 'startDate' },
     { title: 'Ends', key: 'endDate' },
   ]),
-  { title: 'Status', key: 'status' },
   { title: '', key: 'actions', sortable: false, width: 60 },
 ])
 
@@ -597,15 +623,6 @@ function formatDate(iso) {
   return new Date(iso).toLocaleDateString('en-GB')
 }
 
-const onSearch = useDebounceFn(() => fetchData(), 300)
-
-function fetchData() {
-  const filters = {}
-  if (search.value) filters.q = search.value
-  store.fetchAll(filters)
-}
-
-watch(search, onSearch)
 onMounted(async () => {
   await Promise.all([store.fetchAll(), sgStore.fetchAll(), tagsStore.fetchAll(), internalTagsStore.fetchAll()])
 })
@@ -736,36 +753,26 @@ async function openBulkDelete() {
   opacity: 0.25;
 }
 
-.filter-divider {
-  align-self: stretch;
-  opacity: 0.3;
-}
-
 .search-input {
   max-width: 480px;
 }
 
-.filter-select {
-  flex-shrink: 0;
-}
-
-.filter-select--md {
-  max-width: 200px;
-  min-width: 140px;
-}
-
-.filter-select--sm {
-  max-width: 160px;
-  min-width: 130px;
-}
-
-.filter-select--date {
-  max-width: 175px;
-  min-width: 145px;
+.filter-row {
+  gap: 16px;
+  padding: 20px 0;
 }
 
 .bulk-toolbar {
   background-color: #f0fdf4;
   border-color: #86efac;
+}
+
+.rule-name-link {
+  color: inherit;
+  text-decoration: none;
+}
+.rule-name-link:hover {
+  color: rgb(var(--v-theme-primary));
+  text-decoration: underline;
 }
 </style>
