@@ -195,26 +195,25 @@ export const stackingGroups = [
 export const templates = [
   {
     id: 'tpl-flash-1', label: 'Weekend Flash Sale', category: 'flash', popularity: 'high',
-    description: 'Time-limited weekend discount', examples: ['20% off everything Sat–Sun'],
+    description: 'Time-limited weekend discount',
     ruleType: 'discount', defaultValue: '20', defaultValueUnit: '%',
     defaultConditions: [],
   },
   {
     id: 'tpl-seasonal-1', label: 'Seasonal Sale', category: 'seasonal', popularity: 'high',
-    description: 'Holiday or seasonal discount', examples: ['Christmas 30% off', 'Summer Sale'],
+    description: 'Holiday or seasonal discount',
     ruleType: 'discount', defaultValue: '30', defaultValueUnit: '%',
     defaultConditions: [],
   },
   {
     id: 'tpl-loyalty-1', label: 'VIP Exclusive', category: 'loyalty', popularity: 'high',
-    description: 'Exclusive discount for loyalty customers', examples: ['VIP 15% off all brands'],
+    description: 'Exclusive discount for loyalty customers',
     ruleType: 'discount', defaultValue: '15', defaultValueUnit: '%',
     defaultConditions: [{ field: 'customerGroup', mode: 'include', values: ['VIP'] }],
   },
   {
     id: 'tpl-bulk-1', label: 'Spend More, Save More', category: 'bulk', popularity: 'high',
     description: 'Tiered spend discount — customers unlock bigger savings with each €50 spent',
-    examples: ['Spend €50 → 5% off', 'Spend €100 → 10% off', 'Spend €150 → 15% off'],
     ruleType: 'step_discount',
     ruleSnapshot: {
       type: 'step_discount',
@@ -243,13 +242,13 @@ export const templates = [
   },
   {
     id: 'tpl-gift-1', label: 'Free Gift With Purchase', category: 'gift', popularity: 'medium',
-    description: 'Gift item with minimum spend', examples: ['Free travel kit over €150'],
+    description: 'Gift item with minimum spend',
     ruleType: 'gift', defaultValue: '0', defaultValueUnit: '%',
     defaultConditions: [{ field: 'subtotal', mode: 'include', values: ['150'], operator: '>=' }],
   },
   {
     id: 'tpl-brand-1', label: 'Brand Discount', category: 'category', popularity: 'high',
-    description: 'Percentage off a specific brand', examples: ['20% off Vichy', '15% off La Roche-Posay'],
+    description: 'Percentage off a specific brand',
     ruleType: 'discount', defaultValue: '20', defaultValueUnit: '%',
     defaultConditions: [{ field: 'brands', mode: 'include', values: [] }],
   },
