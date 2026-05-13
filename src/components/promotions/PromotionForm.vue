@@ -488,9 +488,10 @@
               <span v-if="seg.type === 'text'">{{ seg.text }}</span>
               <v-chip
                 v-else
-                size="x-small"
+                size="small"
                 variant="tonal"
-                color="primary"
+                color="grey-darken-1"
+                label
                 class="mx-1 overflow-chip"
                 @click="openOverflow(seg)"
               >or {{ seg.count }} more</v-chip>
@@ -875,9 +876,10 @@
               <span v-if="seg.type === 'text'">{{ seg.text }}</span>
               <v-chip
                 v-else
-                size="x-small"
+                size="small"
                 variant="tonal"
-                color="primary"
+                color="grey-darken-1"
+                label
                 class="mx-1 overflow-chip"
                 @click="openOverflow(seg)"
               >or {{ seg.count }} more</v-chip>
