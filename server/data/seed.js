@@ -225,18 +225,21 @@ const templates = [
       stepMaxSteps: 3,
       stepApplyTo: 'cheapest',
       amountType: 'PERCENT',
+      description: 'Tiered spend discount — each €50 in qualifying products unlocks a bigger saving. Applies to selected skin care categories and brands.',
       steps: [
         { id: 'tpl-step-t1', threshold: 50, value: '5', amountType: 'PERCENT' },
         { id: 'tpl-step-t2', threshold: 100, value: '10', amountType: 'PERCENT' },
         { id: 'tpl-step-t3', threshold: 150, value: '15', amountType: 'PERCENT' },
       ],
       conditions: [
+        { id: 'tpl-step-c1', field: 'subtotal', mode: 'include', values: ['20'], operator: '>=' },
         {
           id: 'tpl-step-g1',
           type: 'group',
+          logicalOp: 'AND',
           conditions: [
-            { id: 'tpl-step-g1-c1', field: 'categories', mode: 'include', values: ['Skincare'] },
-            { id: 'tpl-step-g1-c2', field: 'categories', mode: 'include', values: ['Health Care'], logicalOp: 'OR' },
+            { id: 'tpl-step-g1-c1', field: 'categories', mode: 'include', values: ['Face Care', 'Dermocosmetology'] },
+            { id: 'tpl-step-g1-c2', field: 'brands', mode: 'include', values: ['Vichy', 'La Roche-Posay', 'Eucerin', 'Dr. Max'], logicalOp: 'OR' },
           ],
         },
       ],
