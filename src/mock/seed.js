@@ -194,23 +194,63 @@ export const stackingGroups = [
 
 export const templates = [
   {
-    id: 'tpl-1', label: 'Flash Sale — Skincare', description: 'Time-limited discount on skincare products',
-    ruleType: 'discount', defaultValue: '30', defaultValueUnit: '%',
-    defaultConditions: [{ field: 'categories', mode: 'include', values: ['Skincare'] }],
-  },
-  {
-    id: 'tpl-2', label: 'Brand Discount', description: 'Percentage off a specific brand',
+    id: 'tpl-flash-1', label: 'Weekend Flash Sale', category: 'flash', popularity: 'high',
+    description: 'Time-limited weekend discount', examples: ['20% off everything Sat–Sun'],
     ruleType: 'discount', defaultValue: '20', defaultValueUnit: '%',
-    defaultConditions: [{ field: 'brands', mode: 'include', values: ['Vichy'] }],
+    defaultConditions: [],
   },
   {
-    id: 'tpl-3', label: 'Multi-buy Offer', description: 'Buy multiple items for a discount',
-    ruleType: 'multi_buy', defaultValue: '10', defaultValueUnit: '%',
-    defaultConditions: [{ field: 'quantity', mode: 'include', values: ['3'], operator: '>=' }],
+    id: 'tpl-seasonal-1', label: 'Seasonal Sale', category: 'seasonal', popularity: 'high',
+    description: 'Holiday or seasonal discount', examples: ['Christmas 30% off', 'Summer Sale'],
+    ruleType: 'discount', defaultValue: '30', defaultValueUnit: '%',
+    defaultConditions: [],
   },
   {
-    id: 'tpl-4', label: 'Free Gift With Purchase', description: 'Gift item with minimum spend',
+    id: 'tpl-loyalty-1', label: 'VIP Exclusive', category: 'loyalty', popularity: 'high',
+    description: 'Exclusive discount for loyalty customers', examples: ['VIP 15% off all brands'],
+    ruleType: 'discount', defaultValue: '15', defaultValueUnit: '%',
+    defaultConditions: [{ field: 'customerGroup', mode: 'include', values: ['VIP'] }],
+  },
+  {
+    id: 'tpl-bulk-1', label: 'Spend More, Save More', category: 'bulk', popularity: 'high',
+    description: 'Tiered spend discount — customers unlock bigger savings with each €50 spent',
+    examples: ['Spend €50 → 5% off', 'Spend €100 → 10% off', 'Spend €150 → 15% off'],
+    ruleType: 'step_discount',
+    ruleSnapshot: {
+      type: 'step_discount',
+      scope: 'cart',
+      stepType: 'SPENT',
+      stepValue: 50,
+      stepMaxSteps: 3,
+      stepApplyTo: 'cheapest',
+      amountType: 'PERCENT',
+      steps: [
+        { id: 'tpl-step-t1', threshold: 50, value: '5', amountType: 'PERCENT' },
+        { id: 'tpl-step-t2', threshold: 100, value: '10', amountType: 'PERCENT' },
+        { id: 'tpl-step-t3', threshold: 150, value: '15', amountType: 'PERCENT' },
+      ],
+      conditions: [
+        {
+          id: 'tpl-step-g1',
+          type: 'group',
+          conditions: [
+            { id: 'tpl-step-g1-c1', field: 'categories', mode: 'include', values: ['Skincare'] },
+            { id: 'tpl-step-g1-c2', field: 'categories', mode: 'include', values: ['Health Care'], logicalOp: 'OR' },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    id: 'tpl-gift-1', label: 'Free Gift With Purchase', category: 'gift', popularity: 'medium',
+    description: 'Gift item with minimum spend', examples: ['Free travel kit over €150'],
     ruleType: 'gift', defaultValue: '0', defaultValueUnit: '%',
     defaultConditions: [{ field: 'subtotal', mode: 'include', values: ['150'], operator: '>=' }],
+  },
+  {
+    id: 'tpl-brand-1', label: 'Brand Discount', category: 'category', popularity: 'high',
+    description: 'Percentage off a specific brand', examples: ['20% off Vichy', '15% off La Roche-Posay'],
+    ruleType: 'discount', defaultValue: '20', defaultValueUnit: '%',
+    defaultConditions: [{ field: 'brands', mode: 'include', values: [] }],
   },
 ]

@@ -214,10 +214,34 @@ const templates = [
     defaultConditions: [{ field: 'customerGroup', mode: 'include', values: ['VIP'] }],
   },
   {
-    id: 'tpl-bulk-1', label: 'Buy More Save More', category: 'bulk', popularity: 'high',
-    description: 'Tiered discount based on quantity', examples: ['Buy 3+ save 10%'],
-    ruleType: 'step_discount', defaultValue: '10', defaultValueUnit: '%',
-    defaultConditions: [],
+    id: 'tpl-bulk-1', label: 'Spend More, Save More', category: 'bulk', popularity: 'high',
+    description: 'Tiered spend discount — customers unlock bigger savings with each €50 spent',
+    examples: ['Spend €50 → 5% off', 'Spend €100 → 10% off', 'Spend €150 → 15% off'],
+    ruleType: 'step_discount',
+    ruleSnapshot: {
+      type: 'step_discount',
+      scope: 'cart',
+      stepType: 'SPENT',
+      stepValue: 50,
+      stepMaxSteps: 3,
+      stepApplyTo: 'cheapest',
+      amountType: 'PERCENT',
+      steps: [
+        { id: 'tpl-step-t1', threshold: 50, value: '5', amountType: 'PERCENT' },
+        { id: 'tpl-step-t2', threshold: 100, value: '10', amountType: 'PERCENT' },
+        { id: 'tpl-step-t3', threshold: 150, value: '15', amountType: 'PERCENT' },
+      ],
+      conditions: [
+        {
+          id: 'tpl-step-g1',
+          type: 'group',
+          conditions: [
+            { id: 'tpl-step-g1-c1', field: 'categories', mode: 'include', values: ['Skincare'] },
+            { id: 'tpl-step-g1-c2', field: 'categories', mode: 'include', values: ['Health Care'], logicalOp: 'OR' },
+          ],
+        },
+      ],
+    },
   },
   {
     id: 'tpl-gift-1', label: 'Free Gift With Purchase', category: 'gift', popularity: 'medium',
