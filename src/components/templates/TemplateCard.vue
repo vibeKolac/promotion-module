@@ -38,11 +38,11 @@ const props = defineProps({ template: { type: Object, required: true } })
 defineEmits(['select', 'edit', 'delete'])
 
 const typeColor = computed(() => ({
-  discount: 'primary',
-  step_discount: 'success',
-  multi_buy: 'warning',
-  gift: 'purple',
-}[props.template.ruleType] ?? 'default'))
+  discount: 'orange-darken-2',
+  step_discount: 'green-darken-2',
+  multi_buy: 'blue-darken-2',
+  gift: 'purple-darken-2',
+}[props.template.ruleType] ?? 'grey-darken-1'))
 
 const categoryIcon = computed(() => ({
   discount: 'mdi-tag-outline',
