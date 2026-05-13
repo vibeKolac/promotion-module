@@ -1327,7 +1327,7 @@ const giftConflicts = computed(() => detectGiftConflicts(draft.gifts, draft.cond
 // ── Conditions plain-English description ──────────────────────────────────────
 
 function _opLabel(op) {
-  return { '>=': 'at least', '>': 'more than', '<=': 'at most', '<': 'less than' }[op] ?? op
+  return { '>=': 'bigger than or equal', '>': 'bigger than', '<=': 'lower than or equal', '<': 'lower than', '=': 'equal to' }[op] ?? op
 }
 
 function _fmtList(vals) {

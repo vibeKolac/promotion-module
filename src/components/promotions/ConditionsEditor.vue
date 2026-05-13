@@ -331,10 +331,11 @@ function getOperatorItems(cond) {
     { title: 'is false', value: 'is_false' },
   ]
   if (typeDef.quantifiable) return [
-    { title: 'at least', value: '>=' },
-    { title: 'above',    value: '>'  },
-    { title: 'at most',  value: '<=' },
-    { title: 'below',    value: '<'  },
+    { title: 'bigger than or equal', value: '>=' },
+    { title: 'bigger than',          value: '>'  },
+    { title: 'lower than or equal',  value: '<=' },
+    { title: 'lower than',           value: '<'  },
+    { title: 'equal',                value: '='  },
   ]
   return [
     { title: 'include', value: 'is'     },

@@ -239,7 +239,7 @@ function getOperatorItems(cond) {
   const def = cond.field ? getTypeDef(cond.field) : null
   if (!def) return []
   if (def.boolean) return [{ title: 'is true', value: 'is_true' }, { title: 'is false', value: 'is_false' }]
-  if (def.quantifiable) return [{ title: 'at least', value: '>=' }, { title: 'above', value: '>' }, { title: 'at most', value: '<=' }, { title: 'below', value: '<' }]
+  if (def.quantifiable) return [{ title: 'bigger than or equal', value: '>=' }, { title: 'bigger than', value: '>' }, { title: 'lower than or equal', value: '<=' }, { title: 'lower than', value: '<' }, { title: 'equal', value: '=' }]
   return [{ title: 'include', value: 'is' }, { title: 'exclude', value: 'is_not' }]
 }
 
