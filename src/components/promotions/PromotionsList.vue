@@ -367,9 +367,9 @@
 
         <!-- Step 1: choose mode -->
         <v-card-text v-if="newRuleStep === 'choose'" class="pa-5">
-          <div class="d-flex flex-column" style="gap: 16px">
+          <div class="new-rule-choices">
             <v-card border elevation="0" class="pa-4 new-rule-option" @click="router.push('/promotions/new'); newRuleDialogOpen = false">
-              <div class="d-flex align-center" style="gap: 16px">
+              <div class="new-rule-option-inner">
                 <v-avatar color="primary" variant="tonal" size="44">
                   <v-icon color="primary" size="24">mdi-plus</v-icon>
                 </v-avatar>
@@ -380,7 +380,7 @@
               </div>
             </v-card>
             <v-card border elevation="0" class="pa-4 new-rule-option" @click="newRuleStep = 'template'">
-              <div class="d-flex align-center" style="gap: 16px">
+              <div class="new-rule-option-inner">
                 <v-avatar color="success" variant="tonal" size="44">
                   <v-icon color="success" size="24">mdi-file-document-outline</v-icon>
                 </v-avatar>
@@ -395,7 +395,7 @@
 
         <!-- Step 2: template picker -->
         <v-card-text v-else class="pa-4">
-          <div class="d-flex mb-4" style="gap: 16px">
+          <div class="tpl-filter-row mb-4">
             <v-text-field
               v-model="tplPickerSearch"
               placeholder="Search templates…"
@@ -404,7 +404,7 @@
               density="compact"
               hide-details
               clearable
-              style="flex: 1"
+              class="tpl-search-field"
             />
             <v-select
               v-model="tplPickerType"
@@ -416,10 +416,10 @@
               density="compact"
               hide-details
               multiple
-              style="max-width: 180px"
+              class="tpl-type-filter"
             />
           </div>
-          <div v-if="filteredPickerTemplates.length" class="d-flex flex-column" style="gap: 16px">
+          <div v-if="filteredPickerTemplates.length" class="tpl-list">
             <v-card
               v-for="tpl in filteredPickerTemplates"
               :key="tpl.id"
@@ -428,9 +428,9 @@
               class="pa-4 new-rule-option"
               @click="applyTemplate(tpl)"
             >
-              <div class="d-flex align-center" style="gap: 16px">
-                <v-avatar :color="tplTypeColor(tpl.ruleType)" variant="tonal" size="36">
-                  <v-icon :color="tplTypeColor(tpl.ruleType)" size="20">{{ tplTypeIcon(tpl.ruleType) }}</v-icon>
+              <div class="new-rule-option-inner">
+                <v-avatar variant="tonal" size="36" :class="`text-${tplTypeColor(tpl.ruleType)}`">
+                  <v-icon size="20" :class="`text-${tplTypeColor(tpl.ruleType)}`">{{ tplTypeIcon(tpl.ruleType) }}</v-icon>
                 </v-avatar>
                 <div class="flex-grow-1">
                   <div class="text-body-2 font-weight-bold">{{ tpl.label }}</div>
@@ -512,7 +512,7 @@ const filteredPickerTemplates = computed(() => {
 })
 
 function tplTypeColor(type) {
-  return { discount: 'primary', step_discount: 'success', multi_buy: 'warning', gift: 'purple' }[type] ?? 'default'
+  return { discount: 'orange-darken-2', step_discount: 'green-darken-2', multi_buy: 'blue-darken-2', gift: 'purple-darken-2' }[type] ?? 'grey-darken-1'
 }
 
 function tplTypeIcon(type) {
@@ -935,5 +935,36 @@ async function openBulkDelete() {
 .new-rule-option:hover {
   border-color: rgb(var(--v-theme-primary)) !important;
   background: rgba(var(--v-theme-primary), 0.04);
+}
+
+.new-rule-choices {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.new-rule-option-inner {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.tpl-filter-row {
+  display: flex;
+  gap: 16px;
+}
+
+.tpl-search-field {
+  flex: 1;
+}
+
+.tpl-type-filter {
+  max-width: 180px;
+}
+
+.tpl-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 </style>
