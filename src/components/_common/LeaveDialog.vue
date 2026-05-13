@@ -1,5 +1,5 @@
 <template>
-  <DialogCard v-model="model" max-width="440">
+  <DialogCard v-model="model" max-width="560">
     <template #title>Leave this section?</template>
     <p class="text-body-2 text-medium-emphasis mb-2">
       You're about to navigate away. Any unsaved changes will be lost.

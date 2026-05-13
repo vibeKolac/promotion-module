@@ -469,8 +469,8 @@ const orderGroupOptions = computed(() =>
 
 // ── Processing order table ────────────────────────────────────────────────────
 const orderHeaders = [
-  { title: '#',      key: '_seq',    sortable: false, width: '56px', align: 'center' },
-  { title: 'Rule',   key: 'name',    sortable: false, width: '280px' },
+  { title: '#',      key: '_seq',    sortable: false, width: '72px', align: 'center' },
+  { title: 'Rule',   key: 'name',    sortable: false, width: '280px', cellProps: { class: 'pl-6' }, headerProps: { class: 'pl-6' } },
   { title: 'Type',   key: 'type',    sortable: false, width: '72px' },
   { title: 'Status', key: 'status',  sortable: false, width: '130px' },
   { title: 'Group',  key: '_group',  sortable: false, width: '220px' },
@@ -572,7 +572,7 @@ const { leaveDialogOpen, cancelLeave, leaveWithoutSaving } = useNavigationGuard(
 
 .group-table-header {
   height: 48px;
-  background: rgba(var(--v-theme-surface-variant), 0.04);
+  background: white;
 }
 
 .col-chevron  { width: 32px; flex-shrink: 0; }

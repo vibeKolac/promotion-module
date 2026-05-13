@@ -20,7 +20,7 @@
           width="320"
           class="maxik-chat mr-4"
         >
-          <div class="d-flex align-center justify-space-between pa-3 pb-2">
+          <div class="d-flex align-center justify-space-between pa-4 pb-3">
             <span class="text-body-2 font-weight-bold">Maxík</span>
             <v-btn icon="mdi-close" size="x-small" variant="text" density="comfortable" @click="dismiss" />
           </div>
@@ -95,7 +95,7 @@
 
           <!-- Input -->
           <v-divider />
-          <div class="pa-2">
+          <div class="pa-3">
             <v-text-field
               v-model="userInput"
               placeholder="Ask Maxík..."
@@ -439,7 +439,7 @@ onUnmounted(() => {
 .maxik-messages {
   flex: 1;
   overflow-y: auto;
-  padding: 12px;
+  padding: 16px;
   display: flex;
   flex-direction: column;
   gap: 8px;

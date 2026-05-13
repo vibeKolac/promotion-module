@@ -7,8 +7,8 @@
       <h1 class="text-h5 font-weight-bold">{{ isEdit ? 'Edit condition preset' : 'New condition preset' }}</h1>
       <v-spacer class="d-none d-sm-flex" />
       <div class="action-btn-row">
-        <v-btn variant="outlined" @click="discard">Discard</v-btn>
-        <v-btn color="success" :loading="saving" @click="save">{{ isEdit ? 'Save' : 'Create' }}</v-btn>
+        <v-btn variant="outlined" style="height: 48px" @click="discard">Discard</v-btn>
+        <v-btn color="success" style="height: 48px" :loading="saving" @click="save">{{ isEdit ? 'Save' : 'Create' }}</v-btn>
       </div>
     </div>
 
@@ -32,7 +32,9 @@
           />
         </v-card>
 
-        <ConditionsEditor v-model="form.conditions" :show-preset="false" title="Conditions" />
+        <v-card border elevation="0" class="pa-6 mt-5">
+          <ConditionsEditor v-model="form.conditions" :show-preset="false" title="Conditions" />
+        </v-card>
       </v-col>
     </v-row>
   </v-container>

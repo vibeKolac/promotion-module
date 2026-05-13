@@ -19,15 +19,7 @@
           <span class="text-medium-emphasis mr-1">{{ entry.type === 'all' ? '' : entry.type === 'group' ? 'Group:' : 'Rule:' }}</span>
           {{ entry.label }}
         </span>
-        <v-chip
-          v-if="entry.type === 'rule' && entry.status"
-          size="x-small"
-          :color="statusColor(entry.status)"
-          variant="flat"
-          class="ml-2 text-capitalize"
-        >
-          {{ entry.status }}
-        </v-chip>
+        <StatusBadge v-if="entry.type === 'rule' && entry.status" :status="entry.status" class="ml-2" />
         <v-btn
           icon="mdi-close"
           size="x-small"
@@ -37,17 +29,6 @@
         />
       </div>
     </div>
-
-    <v-alert
-      v-else
-      color="grey"
-      variant="tonal"
-      density="compact"
-      icon="mdi-check-circle-outline"
-      class="mb-3 text-caption"
-    >
-      No restrictions — this rule can combine with any other rule.
-    </v-alert>
 
     <div class="d-flex align-center restriction-actions">
       <v-btn
@@ -62,7 +43,7 @@
         prepend-icon="mdi-cancel"
         variant="outlined"
         size="default"
-        color="error"
+        color="grey-darken-4"
         :disabled="allNonCombinable"
         @click="makeAllNonCombinable"
       >
@@ -82,9 +63,9 @@
             v-model="mode"
             mandatory
             density="compact"
-            color="primary"
+            variant="outlined"
+            divided
             class="mb-4"
-            rounded="lg"
           >
             <v-btn value="group" size="small" prepend-icon="mdi-layers-triple">
               Priority group
@@ -94,28 +75,23 @@
             </v-btn>
           </v-btn-toggle>
 
-          <!-- Group picker — chip toggles -->
-          <template v-if="mode === 'group'">
-            <div v-if="availableGroups.length" class="d-flex flex-wrap gap-2">
-              <v-chip
-                v-for="g in availableGroups"
-                :key="g.value"
-                :color="selectedIds.includes(g.value) ? 'primary' : undefined"
-                :variant="selectedIds.includes(g.value) ? 'flat' : 'outlined'"
-                size="small"
-                label
-                class="cursor-pointer"
-                @click="toggleSelection(g.value)"
-              >
-                <v-icon start size="14" :color="selectedIds.includes(g.value) ? undefined : g.color">
-                  mdi-layers-triple
-                </v-icon>
-                <v-icon v-if="selectedIds.includes(g.value)" start size="14">mdi-check</v-icon>
-                {{ g.title }}
-              </v-chip>
-            </div>
-            <p v-else class="text-caption text-medium-emphasis">All groups already added.</p>
-          </template>
+          <!-- Group picker — dropdown -->
+          <v-autocomplete
+            v-if="mode === 'group'"
+            v-model="selectedIds"
+            :items="availableGroups"
+            label="Select groups"
+            variant="outlined"
+            density="compact"
+            item-title="title"
+            item-value="value"
+            multiple
+            chips
+            closable-chips
+            chip-color="grey-darken-1"
+            no-data-text="All groups already added"
+            hide-details
+          />
 
           <!-- Rule picker — multiple autocomplete -->
           <v-autocomplete
@@ -130,20 +106,14 @@
             multiple
             chips
             closable-chips
+            chip-color="grey-darken-1"
             no-data-text="No eligible rules found"
             hide-details
           >
             <template #item="{ props: itemProps, item }">
               <v-list-item v-bind="itemProps" :subtitle="null">
                 <template #append>
-                  <v-chip
-                    size="x-small"
-                    :color="statusColor(item.raw.status)"
-                    variant="flat"
-                    class="text-capitalize"
-                  >
-                    {{ item.raw.status }}
-                  </v-chip>
+                  <StatusBadge :status="item.raw.status" />
                 </template>
               </v-list-item>
             </template>
@@ -164,6 +134,7 @@ import { useRoute } from 'vue-router'
 import { useStackingGroupsStore } from '../../stores/stackingGroups'
 import { usePromotionsStore } from '../../stores/promotions'
 import DialogCard from '../_common/DialogCard.vue'
+import StatusBadge from '../shared/StatusBadge.vue'
 
 const props = defineProps({
   modelValue: { type: Array, default: () => [] },
@@ -220,7 +191,7 @@ const availableRules = computed(() =>
 const enrichedEntries = computed(() =>
   props.modelValue.map(entry => {
     if (entry.type === 'all') {
-      return { ...entry, label: 'All other promotion rules', color: 'error' }
+      return { ...entry, label: 'Non-combinable with all other promotion rules', color: 'error' }
     }
     if (entry.type === 'group') {
       const g = sgStore.items.find(g => g.id === entry.id)
@@ -231,17 +202,6 @@ const enrichedEntries = computed(() =>
   })
 )
 
-const STATUS_COLORS = {
-  active: 'success',
-  scheduled: 'info',
-  paused: 'warning',
-  draft: 'grey',
-  ended: 'error',
-}
-
-function statusColor(status) {
-  return STATUS_COLORS[status] ?? 'grey'
-}
 
 function remove(idx) {
   const updated = [...props.modelValue]
@@ -253,11 +213,6 @@ function openDialog() {
   dialogCard.value.open()
 }
 
-function toggleSelection(id) {
-  const idx = selectedIds.value.indexOf(id)
-  if (idx === -1) selectedIds.value.push(id)
-  else selectedIds.value.splice(idx, 1)
-}
 
 function resetDialog() {
   mode.value = 'group'

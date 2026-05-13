@@ -172,9 +172,10 @@
     </div>
 
     <!-- Empty state -->
-    <v-alert v-else color="grey" variant="tonal" density="compact" icon="mdi-information" class="mb-4">
-      <slot name="empty">No conditions set.</slot>
-    </v-alert>
+    <div v-else class="d-flex align-center mb-4" style="gap: 8px">
+      <v-icon size="20" color="medium-emphasis">mdi-information-outline</v-icon>
+      <span class="text-body-2 text-medium-emphasis"><slot name="empty">No conditions set.</slot></span>
+    </div>
 
     <!-- Actions -->
     <div class="condition-actions">

@@ -10,10 +10,25 @@
         <div
           v-for="(item, idx) in flatList"
           :key="item.id"
-          class="rule-row d-flex align-center gap-2 pa-2 rounded mb-1"
+          class="rule-row d-flex align-center pa-2 rounded mb-1"
+          style="gap: 12px"
           :class="item.isCurrent ? 'rule-row--current' : 'rule-row--other'"
         >
-          <div class="position-badge text-caption font-weight-bold flex-shrink-0">
+          <!-- Position: input for current rule, badge for others -->
+          <v-text-field
+            v-if="item.isCurrent"
+            :model-value="idx + 1"
+            type="number"
+            variant="outlined"
+            density="compact"
+            hide-details
+            min="1"
+            :max="flatList.length"
+            class="position-input flex-shrink-0"
+            @change="jumpTo(Number($event.target.value))"
+            @keydown.enter="jumpTo(Number($event.target.value))"
+          />
+          <div v-else class="position-badge text-caption font-weight-bold flex-shrink-0">
             {{ idx + 1 }}
           </div>
 
@@ -27,7 +42,7 @@
             </div>
           </div>
 
-          <div v-if="item.isCurrent" class="d-flex gap-1 flex-shrink-0">
+          <div v-if="item.isCurrent" class="d-flex flex-shrink-0" style="gap: 4px">
             <v-btn
               icon="mdi-chevron-up"
               size="x-small"
@@ -50,14 +65,11 @@
         </div>
       </div>
 
-      <div class="d-flex align-center flex-wrap gap-2 mt-2">
+      <div class="d-flex align-center flex-wrap mt-2" style="gap: 8px">
         <v-icon size="14" color="medium-emphasis">mdi-layers</v-icon>
         <span class="text-caption text-medium-emphasis"><strong>{{ currentGroupName }}</strong></span>
-        <v-chip size="x-small" variant="tonal" color="primary">
-          group priority {{ currentGroup?.priority ?? '—' }}
-        </v-chip>
-        <v-chip size="x-small" variant="tonal" color="secondary">
-          rule priority {{ props.priority ?? '—' }}
+        <v-chip size="small" variant="tonal" color="grey-darken-1" label>
+          Group priority {{ currentGroup?.priority ?? '—' }}
         </v-chip>
       </div>
     </template>
@@ -122,6 +134,17 @@ const flatList = computed(() => {
 
 const currentIdx = computed(() => flatList.value.findIndex(r => r.isCurrent))
 
+function jumpTo(newPos) {
+  const list = [...flatList.value]
+  const from = currentIdx.value
+  const to = Math.min(Math.max(newPos - 1, 0), list.length - 1)
+  if (to === from) return
+  const [item] = list.splice(from, 1)
+  list.splice(to, 0, item)
+  localOrder.value = list
+  emit('update:priority', (to + 1) * 10)
+}
+
 function move(dir) {
   const list = [...flatList.value]
   const idx = currentIdx.value
@@ -171,10 +194,11 @@ onMounted(async () => {
 }
 
 .position-badge {
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  background: rgba(var(--v-border-color), 0.15);
+  width: 44px;
+  height: 28px;
+  border-radius: 4px;
+  border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
+  background: rgba(var(--v-border-color), 0.08);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -182,12 +206,33 @@ onMounted(async () => {
   font-size: 11px;
 }
 
-.rule-row--current .position-badge {
-  background: rgba(var(--v-theme-primary), 0.2);
-  color: rgb(var(--v-theme-primary));
-}
 
 .min-width-0 {
   min-width: 0;
+}
+
+.position-input {
+  width: 44px !important;
+  min-width: 44px !important;
+  flex: 0 0 44px !important;
+}
+
+.position-input :deep(.v-input__control),
+.position-input :deep(.v-field) {
+  min-width: 0 !important;
+  width: 44px !important;
+}
+
+.position-input :deep(.v-field__input) {
+  padding: 0 2px;
+  min-height: 28px;
+  font-size: 11px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.position-input :deep(input[type=number]::-webkit-inner-spin-button),
+.position-input :deep(input[type=number]::-webkit-outer-spin-button) {
+  -webkit-appearance: none;
 }
 </style>

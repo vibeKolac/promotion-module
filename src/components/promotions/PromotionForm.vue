@@ -10,28 +10,32 @@
       </h1>
       <v-spacer class="d-none d-sm-flex" />
       <div class="action-btn-row flex-shrink-0">
-        <v-btn variant="outlined" @click="openDiscardDialog">Discard</v-btn>
+        <v-btn variant="outlined" style="height: 48px" @click="openDiscardDialog">Discard</v-btn>
         <template v-if="isTemplateEdit">
-          <v-btn color="success" :loading="saving" @click="openSaveConfirm('template')">Save template</v-btn>
+          <v-btn color="success" style="height: 48px" :loading="saving" @click="openSaveConfirm('template')">Save template</v-btn>
         </template>
         <template v-else>
-          <v-btn-group color="success" divided size="small">
-            <v-btn :loading="saving" data-testid="save-btn" @click="openSaveConfirm('draft')">Save as draft</v-btn>
+          <v-btn-group variant="outlined" divided style="height: 48px; --v-btn-border-color: rgba(0,0,0,0.87)">
+            <v-btn :loading="saving" data-testid="save-btn" style="border-color: rgba(0,0,0,0.87)" @click="openSaveConfirm('draft')">Save as draft</v-btn>
             <v-menu location="bottom end">
               <template #activator="{ props: menuProps }">
-                <v-btn v-bind="menuProps" icon="mdi-chevron-down" :loading="saving" />
+                <v-btn v-bind="menuProps" icon="mdi-chevron-down" style="border-color: rgba(0,0,0,0.87)" />
               </template>
               <v-list density="compact" min-width="220">
-                <v-list-item
-                  :prepend-icon="isFutureDate(draft.startDate) ? 'mdi-calendar-clock' : 'mdi-lightning-bolt-outline'"
-                  :title="dynamicActivateLabel"
-                  :disabled="!draft.startDate"
-                  @click="openSaveConfirm('activate')"
-                />
                 <v-list-item prepend-icon="mdi-file-document-plus-outline" title="Save and create template" @click="openSaveConfirm('template_from_rule')" />
               </v-list>
             </v-menu>
           </v-btn-group>
+          <v-btn
+            color="success"
+            style="height: 48px"
+            :loading="saving"
+            :disabled="!draft.startDate"
+            @click="openSaveConfirm('activate')"
+          >
+            <v-icon start :icon="isFutureDate(draft.startDate) ? 'mdi-calendar-clock' : 'mdi-lightning-bolt-outline'" />
+            {{ dynamicActivateLabel }}
+          </v-btn>
         </template>
       </div>
     </div>
@@ -62,9 +66,10 @@
             <span v-if="seg.type === 'text'">{{ seg.text }}</span>
             <v-chip
               v-else
-              size="x-small"
+              size="small"
               variant="tonal"
-              color="primary"
+              color="grey-darken-1"
+              label
               class="mx-1 overflow-chip"
               @click="openOverflow(seg)"
             >or {{ seg.count }} more</v-chip>
@@ -101,7 +106,7 @@
             multiple
             chips
             closable-chips
-            chip-color="success"
+            chip-color="grey-darken-1"
             variant="outlined"
             density="compact"
             label="Internal tags"
@@ -220,7 +225,7 @@
             </div>
           </div>
 
-          <v-row dense class="mt-4 mb-3">
+          <v-row dense class="mt-4">
             <v-col cols="12">
               <div class="d-flex align-center gap-1 mb-1">
                 <span class="text-caption font-weight-bold text-medium-emphasis">RULE TYPE</span>
@@ -230,6 +235,7 @@
                 v-model="draft.type"
                 :data="ruleTypeItems"
                 label="Rule type *"
+                hide-details="auto"
               />
             </v-col>
           </v-row>
@@ -259,10 +265,11 @@
                 v-model="draft.value"
                 label="Discount amount *"
                 :error-messages="validationErrors.value ? [validationErrors.value] : []"
+                hide-details="auto"
               />
             </v-col>
             <v-col cols="4">
-              <SelectInput v-model="draft.amountType" :data="amountTypeItems" label="Amount type" />
+              <SelectInput v-model="draft.amountType" :data="amountTypeItems" label="Amount type" hide-details="auto" />
             </v-col>
           </v-row>
           <LiveDescriptionAlert
@@ -494,8 +501,8 @@
             <v-card>
               <v-card-title class="text-body-1 font-weight-bold pa-5 pb-3">{{ overflowInfo.label }}</v-card-title>
               <v-card-text class="pa-5 pt-0">
-                <div class="d-flex flex-wrap gap-2">
-                  <v-chip v-for="val in overflowInfo.values" :key="val" size="small" variant="tonal">{{ val }}</v-chip>
+                <div class="d-flex flex-wrap" style="gap: 8px">
+                  <v-chip v-for="val in overflowInfo.values" :key="val" size="small" variant="tonal" color="grey-darken-1" label>{{ val }}</v-chip>
                 </div>
               </v-card-text>
               <v-card-actions class="pa-4 pt-0">
@@ -533,9 +540,9 @@
           </template>
         </v-card>
 
-        <!-- Descriptions & Legal texts -->
+        <!-- Description and Action Labels -->
         <v-card border elevation="0" class="pa-6 mt-6">
-          <div class="text-body-1 font-weight-bold mb-4">Descriptions & Legal</div>
+          <div class="text-body-1 font-weight-bold mb-4">Description and Action Labels</div>
           <div class="text-caption font-weight-bold text-medium-emphasis mb-3">CUSTOMER-FACING DESCRIPTION</div>
           <TextInput
             v-model="draft.promotionTitle"
@@ -563,10 +570,39 @@
             auto-grow
             hint="Terms and conditions, fine print"
             persistent-hint
+            class="mb-6"
           />
+          <div class="text-caption font-weight-bold text-medium-emphasis mb-3">ACTION LABELS</div>
+          <v-autocomplete
+            :model-value="draft.tags"
+            :items="tagsStore.items"
+            :loading="tagsStore.loading || creatingTag"
+            item-title="name"
+            item-value="id"
+            multiple
+            chips
+            closable-chips
+            chip-color="grey-darken-1"
+            variant="outlined"
+            density="compact"
+            placeholder="Select existing or type a name to create new…"
+            hint="Select from existing labels or type a new name and pick 'Create' to add it"
+            persistent-hint
+            no-data-text="Type a name to create a new label"
+            v-model:search="newTagName"
+            @update:model-value="draft.tags = $event"
+          >
+            <template #prepend-item>
+              <v-list-item
+                v-if="newTagName.trim() && !tagExists"
+                prepend-icon="mdi-plus-circle-outline"
+                :title="`Create '${newTagName.trim()}'`"
+                color="primary"
+                @click="createTag"
+              />
+            </template>
+          </v-autocomplete>
         </v-card>
-
-        <TagsSection v-model="draft.tags" />
 
         <v-card border elevation="0" class="pa-5 mb-4 mt-6">
           <div class="d-flex align-center mb-1">
@@ -655,9 +691,9 @@
             Require customers to enter a coupon code to unlock this promotion.
           </p>
 
-          <div class="d-flex align-center gap-2 mb-2">
-            <v-icon size="16" color="medium-emphasis">mdi-information-outline</v-icon>
-            <span class="text-caption text-medium-emphasis">No coupon is linked to this promotion.</span>
+          <div class="d-flex align-center mb-2" style="gap: 8px">
+            <v-icon size="20" color="medium-emphasis">mdi-information-outline</v-icon>
+            <span class="text-body-2 text-medium-emphasis">No coupon is linked to this promotion.</span>
           </div>
           <a
             href="#"
@@ -716,6 +752,66 @@
 
     <v-snackbar :model-value="!!saveError" color="error" timeout="6000" @update:model-value="saveError = null">{{ saveError }}</v-snackbar>
 
+
+    <!-- Template picker dialog -->
+    <v-dialog v-model="templatePickerOpen" max-width="680" scrollable>
+      <v-card>
+        <v-card-title class="text-h6 pa-5 pb-3 d-flex align-center gap-3">
+          <span>Choose a template</span>
+          <v-spacer />
+          <v-btn icon="mdi-close" size="x-small" variant="text" @click="templatePickerOpen = false" />
+        </v-card-title>
+        <v-divider />
+        <v-card-text class="pa-4">
+          <div class="d-flex gap-3 mb-4">
+            <v-text-field
+              v-model="tplPickerSearch"
+              placeholder="Search templates…"
+              prepend-inner-icon="mdi-magnify"
+              variant="outlined"
+              density="compact"
+              hide-details
+              clearable
+              style="flex: 1"
+            />
+            <v-select
+              v-model="tplPickerType"
+              :items="tplPickerTypeItems"
+              item-title="label"
+              item-value="value"
+              label="Type"
+              variant="outlined"
+              density="compact"
+              hide-details
+              multiple
+              style="max-width: 180px"
+            />
+          </div>
+          <div v-if="filteredPickerTemplates.length" class="d-flex flex-column gap-2">
+            <v-card
+              v-for="tpl in filteredPickerTemplates"
+              :key="tpl.id"
+              border
+              elevation="0"
+              class="pa-4 tpl-picker-card"
+              @click="applyPickerTemplate(tpl)"
+            >
+              <div class="d-flex align-center gap-3">
+                <v-avatar :color="tplTypeColor(tpl.ruleType)" variant="tonal" size="36">
+                  <v-icon :color="tplTypeColor(tpl.ruleType)" size="20">{{ tplTypeIcon(tpl.ruleType) }}</v-icon>
+                </v-avatar>
+                <div class="flex-grow-1">
+                  <div class="text-body-2 font-weight-bold">{{ tpl.label }}</div>
+                  <div class="text-caption text-medium-emphasis">{{ tpl.description }}</div>
+                </div>
+                <v-icon color="primary" size="20">mdi-arrow-right</v-icon>
+              </div>
+            </v-card>
+          </div>
+          <v-alert v-else color="grey" variant="tonal" density="compact">No templates match.</v-alert>
+        </v-card-text>
+      </v-card>
+    </v-dialog>
 
     <!-- Save as template dialog -->
     <DialogCard v-model="templateDialogOpen" max-width="480">
@@ -789,28 +885,33 @@
           </template>
           <span v-else class="text-medium-emphasis">Start filling in the rule — a plain-language description will appear here as you configure it.</span>
         </v-alert>
-        <v-btn variant="outlined" class="flex-shrink-0" @click="openDiscardDialog">Discard</v-btn>
+        <v-btn variant="outlined" class="flex-shrink-0" style="height: 48px" @click="openDiscardDialog">Discard</v-btn>
         <template v-if="isTemplateEdit">
-          <v-btn color="success" class="flex-shrink-0" :loading="saving" @click="openSaveConfirm('template')">Save template</v-btn>
+          <v-btn color="success" class="flex-shrink-0" style="height: 48px" :loading="saving" @click="openSaveConfirm('template')">Save template</v-btn>
         </template>
         <template v-else>
-          <v-btn-group color="success" divided size="small" class="flex-shrink-0">
-            <v-btn :loading="saving" @click="openSaveConfirm('draft')">Save as draft</v-btn>
+          <v-btn-group variant="outlined" divided class="flex-shrink-0" style="height: 48px; --v-btn-border-color: rgba(0,0,0,0.87)">
+            <v-btn :loading="saving" style="border-color: rgba(0,0,0,0.87)" @click="openSaveConfirm('draft')">Save as draft</v-btn>
             <v-menu location="top end">
               <template #activator="{ props: menuProps }">
-                <v-btn v-bind="menuProps" icon="mdi-chevron-down" :loading="saving" />
+                <v-btn v-bind="menuProps" icon="mdi-chevron-down" style="border-color: rgba(0,0,0,0.87)" />
               </template>
               <v-list density="compact" min-width="220">
-                <v-list-item
-                  :prepend-icon="isFutureDate(draft.startDate) ? 'mdi-calendar-clock' : 'mdi-lightning-bolt-outline'"
-                  :title="dynamicActivateLabel"
-                  :disabled="!draft.startDate"
-                  @click="openSaveConfirm('activate')"
-                />
                 <v-list-item prepend-icon="mdi-file-document-plus-outline" title="Save and create template" @click="openSaveConfirm('template_from_rule')" />
               </v-list>
             </v-menu>
           </v-btn-group>
+          <v-btn
+            color="success"
+            class="flex-shrink-0"
+            style="height: 48px"
+            :loading="saving"
+            :disabled="!draft.startDate"
+            @click="openSaveConfirm('activate')"
+          >
+            <v-icon start :icon="isFutureDate(draft.startDate) ? 'mdi-calendar-clock' : 'mdi-lightning-bolt-outline'" />
+            {{ dynamicActivateLabel }}
+          </v-btn>
         </template>
       </div>
     </div>
@@ -838,7 +939,6 @@ import ConflictWarningBanner from './ConflictWarningBanner.vue'
 import StackingGroupSelect from './StackingGroupSelect.vue'
 import ProcessingOrderSelect from './ProcessingOrderSelect.vue'
 import NonCombinableRulesSection from './NonCombinableRulesSection.vue'
-import TagsSection from './TagsSection.vue'
 import TextInput from '../_common/TextInput.vue'
 import NumberInput from '../_common/NumberInput.vue'
 import SelectInput from '../_common/SelectInput.vue'
@@ -850,6 +950,7 @@ import DatePicker from '../_common/DatePicker.vue'
 import { useTemplatesStore } from '../../stores/templates'
 import { useErpEntriesStore } from '../../stores/erpEntries'
 import { useInternalTagsStore } from '../../stores/internalTags'
+import { useTagsStore } from '../../stores/tags'
 
 const { mobile } = useDisplay()
 const route = useRoute()
@@ -860,6 +961,7 @@ const settingsStore = useSettingsStore()
 const templatesStore = useTemplatesStore()
 const erpEntriesStore = useErpEntriesStore()
 const internalTagsStore = useInternalTagsStore()
+const tagsStore = useTagsStore()
 
 const newInternalTagName = ref('')
 const creatingInternalTag = ref(false)
@@ -876,6 +978,24 @@ async function createInternalTag() {
     newInternalTagName.value = ''
   } finally {
     creatingInternalTag.value = false
+  }
+}
+
+const newTagName = ref('')
+const creatingTag = ref(false)
+const tagExists = computed(() =>
+  tagsStore.items.some(t => t.name.toLowerCase() === newTagName.value.trim().toLowerCase())
+)
+async function createTag() {
+  const name = newTagName.value.trim()
+  if (!name || tagExists.value) return
+  creatingTag.value = true
+  try {
+    const tag = await tagsStore.create({ name })
+    draft.tags = [...(draft.tags ?? []), tag.id]
+    newTagName.value = ''
+  } finally {
+    creatingTag.value = false
   }
 }
 
@@ -901,6 +1021,50 @@ const saveError = ref(null)
 // Template edit metadata
 const tplLabel = ref('')
 const tplDescription = ref('')
+
+// ── Template picker ───────────────────────────────────────────────────────────
+const templatePickerOpen = ref(false)
+const tplPickerSearch = ref('')
+const tplPickerType = ref([])
+watch(templatePickerOpen, v => { if (v && !templatesStore.items.length) templatesStore.fetchAll() })
+
+const tplPickerTypeItems = [
+  { value: 'discount',      label: 'Standard discount' },
+  { value: 'step_discount', label: 'Step discount' },
+  { value: 'multi_buy',     label: 'Multi-buy' },
+  { value: 'gift',          label: 'Free gift' },
+]
+
+const filteredPickerTemplates = computed(() => {
+  const q = tplPickerSearch.value.toLowerCase()
+  return templatesStore.items
+    .filter(t => !tplPickerType.value.length || tplPickerType.value.includes(t.ruleType))
+    .filter(t => !q || t.label.toLowerCase().includes(q) || t.description?.toLowerCase().includes(q))
+})
+
+function tplTypeColor(type) {
+  return { discount: 'primary', step_discount: 'success', multi_buy: 'warning', gift: 'purple' }[type] ?? 'default'
+}
+
+function tplTypeIcon(type) {
+  return { discount: 'mdi-tag-outline', step_discount: 'mdi-stairs', multi_buy: 'mdi-package-variant', gift: 'mdi-gift' }[type] ?? 'mdi-tag-outline'
+}
+
+function applyPickerTemplate(tpl) {
+  store.resetDraft()
+  if (tpl.ruleSnapshot) {
+    Object.assign(draft, tpl.ruleSnapshot, { name: tpl.label, status: 'draft', startDate: null, endDate: null })
+  } else {
+    Object.assign(draft, {
+      type: tpl.ruleType ?? 'discount',
+      value: tpl.defaultValue ?? '',
+      valueUnit: tpl.defaultValueUnit ?? '%',
+      conditions: tpl.defaultConditions ? [...tpl.defaultConditions] : [],
+      name: tpl.label,
+    })
+  }
+  templatePickerOpen.value = false
+}
 
 // ── Save as template ──────────────────────────────────────────────────────────
 const templateDialogOpen = ref(false)
@@ -1583,7 +1747,7 @@ onMounted(async () => {
     { threshold: 0 }
   )
   if (titleActionsRef.value) titleObserver.observe(titleActionsRef.value)
-  await Promise.all([sgStore.fetchAll(), store.fetchAll(), erpEntriesStore.fetchAll(), internalTagsStore.fetchAll()])
+  await Promise.all([sgStore.fetchAll(), store.fetchAll(), erpEntriesStore.fetchAll(), internalTagsStore.fetchAll(), tagsStore.fetchAll()])
   if (isTemplateEdit.value) {
     if (!route.params.id) {
       tplLabel.value = ''
@@ -1625,6 +1789,15 @@ defineExpose({ store })
 <style scoped>
 .form-container {
   padding-bottom: 120px !important;
+}
+
+.tpl-picker-card {
+  cursor: pointer;
+  transition: border-color .15s, background .15s;
+}
+.tpl-picker-card:hover {
+  border-color: rgb(var(--v-theme-primary)) !important;
+  background: rgba(var(--v-theme-primary), 0.04);
 }
 
 .overflow-chip {

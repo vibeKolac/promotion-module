@@ -1,7 +1,7 @@
 <!-- src/components/promotions/GiftItemsSection.vue -->
 <template>
   <div class="text-caption font-weight-bold text-medium-emphasis mb-3">GIFT ITEMS</div>
-  <div v-for="(gift, idx) in modelValue" :key="gift.id" class="d-flex align-center gap-3 mb-2">
+  <div v-for="(gift, idx) in modelValue" :key="gift.id" class="d-flex align-center mb-2" style="gap: 12px">
     <v-autocomplete
       :model-value="gift.sku"
       :items="drMaxProducts"
