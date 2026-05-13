@@ -429,8 +429,8 @@
               @click="applyTemplate(tpl)"
             >
               <div class="new-rule-option-inner">
-                <v-avatar variant="tonal" size="36" :class="`text-${tplTypeColor(tpl.ruleType)}`">
-                  <v-icon size="20" :class="`text-${tplTypeColor(tpl.ruleType)}`">{{ tplTypeIcon(tpl.ruleType) }}</v-icon>
+                <v-avatar :color="tplTypeColor(tpl.ruleType)" variant="tonal" size="36">
+                  <v-icon :color="tplTypeColor(tpl.ruleType)" size="20">{{ tplTypeIcon(tpl.ruleType) }}</v-icon>
                 </v-avatar>
                 <div class="flex-grow-1">
                   <div class="text-body-2 font-weight-bold">{{ tpl.label }}</div>
