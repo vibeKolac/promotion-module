@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import axios from 'axios'
 import { v4 as uuidv4 } from 'uuid'
+import { usePromotionsStore } from './promotions'
 
 const UNASSIGNED = { id: 'sg-default', name: 'Unassigned', color: '#6B7280', priority: 999, isDefault: true }
 
@@ -65,6 +66,10 @@ export const useStackingGroupsStore = defineStore('stackingGroups', () => {
     try {
       await axios.delete(`/api/stacking-groups/${id}`)
       items.value = items.value.filter(item => item.id !== id)
+      const promotionsStore = usePromotionsStore()
+      promotionsStore.items
+        .filter(p => p.stackingGroupId === id)
+        .forEach(p => { p.stackingGroupId = 'sg-default' })
       return true
     } catch (err) {
       error.value = err.message

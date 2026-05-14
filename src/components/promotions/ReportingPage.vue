@@ -19,7 +19,7 @@
       placeholder="Search by name"
       hide-details
       class="mb-4"
-      :class="mobile ? '' : 'search-input'"
+      :class="mobile ? '' : 'input-search'"
     />
 
     <!-- Filter row -->
@@ -237,9 +237,6 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.search-input {
-  max-width: 480px;
-}
 
 .filter-row {
   gap: 16px;

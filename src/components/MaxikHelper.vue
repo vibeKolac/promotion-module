@@ -16,7 +16,7 @@
         <v-card
           v-if="chatOpen"
           elevation="4"
-          rounded="xl"
+          rounded="lg"
           width="320"
           class="maxik-chat mr-4"
         >
@@ -33,7 +33,7 @@
               <p class="text-caption text-medium-emphasis mb-3">
                 Hi! I can help with promotion rules. Ask me anything or pick a topic:
               </p>
-              <div class="d-flex flex-column gap-2">
+              <div class="d-flex flex-column" style="gap: 8px">
                 <v-btn
                   v-for="topic in TOPICS"
                   :key="topic.id"
@@ -79,7 +79,7 @@
               <!-- FAQ shortcuts -->
               <div v-if="!isTyping" class="maxik-faq-shortcuts">
                 <p class="text-caption text-medium-emphasis mb-1">Or ask about:</p>
-                <div class="d-flex flex-wrap gap-1">
+                <div class="d-flex flex-wrap" style="gap: 8px">
                   <v-btn
                     v-for="topic in TOPICS"
                     :key="topic.id"
@@ -517,8 +517,8 @@ onUnmounted(() => {
 
 /* ── FAQ shortcuts ── */
 .maxik-faq-shortcuts {
-  margin-top: 12px;
-  padding-top: 12px;
+  margin-top: 16px;
+  padding: 16px;
   border-top: 1px solid rgba(0,0,0,.06);
 }
 

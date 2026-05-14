@@ -6,7 +6,7 @@
     <ContentHeader>
       <h1 class="text-h5 font-weight-bold">General</h1>
       <template #right>
-        <v-btn color="success" :loading="saving" @click="save">Save</v-btn>
+        <v-btn color="success" style="height: 48px" :loading="saving" @click="save">Save</v-btn>
       </template>
     </ContentHeader>
 
@@ -137,7 +137,7 @@
             <v-radio value="automatic">
               <template #label>
                 <div>
-                  <div class="text-body-2">Automatic</div>
+                  <div class="d-flex align-center text-body-2">Automatic <v-chip size="x-small" color="warning" variant="tonal" label class="ml-2">Exploring</v-chip></div>
                   <div class="text-caption text-medium-emphasis">Prioritization and combinability are resolved by the system. Priority groups are disabled.</div>
                 </div>
               </template>

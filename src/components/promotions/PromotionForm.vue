@@ -53,28 +53,6 @@
 
     <v-row class="mb-4">
       <v-col cols="12" md="8">
-        <v-alert
-          v-if="!stickyBarVisible && ruleDescriptionSegments"
-          border="start"
-          color="grey"
-          variant="tonal"
-          density="compact"
-          icon="mdi-text-box-check-outline"
-          class="text-caption mb-6"
-        >
-          <template v-for="(seg, i) in ruleDescriptionSegments" :key="i">
-            <span v-if="seg.type === 'text'">{{ seg.text }}</span>
-            <v-chip
-              v-else
-              size="small"
-              variant="tonal"
-              color="grey-darken-1"
-              label
-              class="mx-1 overflow-chip"
-              @click="openOverflow(seg)"
-            >or {{ seg.count }} more</v-chip>
-          </template>
-        </v-alert>
         <v-card border elevation="0" class="pa-5">
           <div class="text-body-1 font-weight-bold mb-4">Basic information</div>
 
@@ -272,11 +250,6 @@
               <SelectInput v-model="draft.amountType" :data="amountTypeItems" label="Amount type" hide-details="auto" />
             </v-col>
           </v-row>
-          <LiveDescriptionAlert
-            v-if="draft.value"
-            :text="`${draft.amountType === 'PERCENT' ? draft.value + '%' : '€' + draft.value} off ${draft.scope === 'cart' ? 'the cart total' : 'each qualifying item'}.`"
-            class="mt-3"
-          />
         </v-card>
 
         <!-- Step Discount configuration (green) -->
@@ -347,11 +320,6 @@
             :max-steps="draft.stepMaxSteps || null"
           />
 
-          <LiveDescriptionAlert
-            v-if="stepDescription"
-            :text="stepDescription"
-            class="mt-4"
-          />
         </v-card>
 
         <!-- Multi-buy configuration (blue) -->
@@ -394,11 +362,6 @@
               <NumberInput v-model.number="draft.multiMaxSteps" label="Max steps" help-text="0 = unlimited" />
             </v-col>
           </v-row>
-          <LiveDescriptionAlert
-            v-if="multiBuyDescription"
-            :text="multiBuyDescription"
-            class="mt-2"
-          />
           <div class="d-flex align-center gap-2 mt-3">
             <v-icon size="16" color="medium-emphasis">mdi-calculator</v-icon>
             <span class="text-caption text-medium-emphasis">Free item accounting price</span>
@@ -442,11 +405,6 @@
               <NumberInput v-model="draft.giftMaxSteps" label="Repeat limit" />
             </v-col>
           </v-row>
-          <LiveDescriptionAlert
-            v-if="draft.giftStepValue"
-            :text="`When ${draft.giftStepType === 'SPENT' ? '€' + draft.giftStepValue + ' spent' : draft.giftStepValue + ' items purchased'}, ${draft.gifts?.filter(g => g.sku).length || 0} gift item(s) will be given ${draft.giftMaxSteps ? '— repeats up to ' + draft.giftMaxSteps + ' time(s)' : '— no repeat limit set'}.`"
-            class="mt-3"
-          />
           <div class="d-flex align-center gap-2 mt-3">
             <v-icon size="16" color="medium-emphasis">mdi-calculator</v-icon>
             <span class="text-caption text-medium-emphasis">Gift item accounting price</span>
@@ -474,29 +432,6 @@
           </ConditionsEditor>
 
           <ReachEstimateBar :conditions="draft.conditions" :scope="draft.scope" class="mt-3" />
-
-          <v-alert
-            v-if="conditionsDescriptionSegments"
-            border="start"
-            color="grey"
-            variant="tonal"
-            density="compact"
-            icon="mdi-text-box-check-outline"
-            class="text-caption mt-3"
-          >
-            <template v-for="(seg, i) in conditionsDescriptionSegments" :key="i">
-              <span v-if="seg.type === 'text'">{{ seg.text }}</span>
-              <v-chip
-                v-else
-                size="small"
-                variant="tonal"
-                color="grey-darken-1"
-                label
-                class="mx-1 overflow-chip"
-                @click="openOverflow(seg)"
-              >or {{ seg.count }} more</v-chip>
-            </template>
-          </v-alert>
 
           <v-dialog v-model="overflowDialog" max-width="420">
             <v-card>
@@ -639,6 +574,18 @@
           </template>
         </v-card>
 
+        <!-- Reservation -->
+        <v-card border elevation="0" class="pa-5 mb-4 mt-6">
+          <div class="d-flex align-center mb-1">
+            <div class="text-body-1 font-weight-bold">Allow for reservations</div>
+            <v-spacer />
+            <v-switch v-model="draft.reservationAllowed" density="compact" hide-details color="primary" />
+          </div>
+          <p class="text-caption text-medium-emphasis mb-0">
+            Allow this rule to be applied on pharmacy reservations.
+          </p>
+        </v-card>
+
         <!-- ERP Voucher ID -->
         <v-card border elevation="0" class="pa-5 mb-4">
           <div class="d-flex align-center mb-1">
@@ -687,6 +634,7 @@
             <v-icon size="18" class="mr-2 card-section-icon">mdi-ticket-percent-outline</v-icon>
             <span class="text-body-1 font-weight-bold">Coupon</span>
             <HelpTooltip text="Attach a coupon code so customers must enter it at checkout to activate this promotion." class="ml-1" />
+            <v-chip size="x-small" color="warning" variant="tonal" label class="ml-2">Exploring</v-chip>
           </div>
           <p class="text-caption text-medium-emphasis mb-3">
             Require customers to enter a coupon code to unlock this promotion.
@@ -727,8 +675,10 @@
             <div class="d-flex align-center mb-4">
               <span class="text-body-1 font-weight-bold">Processing order</span>
               <HelpTooltip text="Controls which rule fires first when multiple rules apply to the same cart. Lower priority number = fires first." class="ml-1" />
+              <v-chip v-if="processingOrderRef?.count" size="x-small" variant="tonal" color="grey-darken-1" label class="ml-2">{{ processingOrderRef.count }} promotions</v-chip>
             </div>
             <ProcessingOrderSelect
+              ref="processingOrderRef"
               :stacking-group-id="draft.stackingGroupId"
               :priority="draft.priority"
               :current-name="draft.name"
@@ -744,14 +694,47 @@
             <p class="text-caption text-medium-emphasis mb-4">
               Rules and groups listed here cannot apply together with this rule in the same cart.
             </p>
-            <NonCombinableRulesSection v-model="draft.nonCombinableRules" />
+            <NonCombinableRulesSection v-model="draft.nonCombinableRules" :stacking-group-id="draft.stackingGroupId" />
           </v-card>
         </template>
 
       </v-col>
+
+      <v-col cols="12" md="4" class="d-none d-md-block">
+        <div class="preview-sticky">
+          <v-card border elevation="0" class="pa-4">
+            <div class="d-flex align-center mb-3">
+              <v-icon color="primary" size="18">mdi-eye-outline</v-icon>
+              <span class="text-body-2 font-weight-bold ml-2">Live Preview</span>
+            </div>
+            <v-alert border="start" color="grey" variant="tonal" density="compact" icon="mdi-text-box-check-outline" class="text-caption">
+              <template v-if="ruleDescriptionSegments">
+                <template v-for="(seg, i) in ruleDescriptionSegments" :key="i">
+                  <span v-if="seg.type === 'text'">{{ seg.text }}</span>
+                  <v-chip
+                    v-else
+                    size="small"
+                    variant="tonal"
+                    color="grey-darken-1"
+                    label
+                    class="mx-1 overflow-chip"
+                    @click="openOverflow(seg)"
+                  >or {{ seg.count }} more</v-chip>
+                </template>
+              </template>
+              <span v-else class="text-medium-emphasis">Start filling in the rule — a description will appear here as you configure it.</span>
+            </v-alert>
+          </v-card>
+        </div>
+      </v-col>
     </v-row>
 
-    <v-snackbar :model-value="!!saveError" color="error" timeout="6000" @update:model-value="saveError = null">{{ saveError }}</v-snackbar>
+    <v-snackbar :model-value="!!saveError" color="error" timeout="6000" location="top" @update:model-value="saveError = null">
+      {{ saveError }}
+      <template #actions>
+        <v-btn variant="text" @click="saveError = null">Dismiss</v-btn>
+      </template>
+    </v-snackbar>
 
 
     <!-- Template picker dialog -->
@@ -823,7 +806,7 @@
       <TextInput v-model="templateLabel" label="Template name *" class="mb-3" />
       <TextInput v-model="templateDescription" label="Description" />
       <template #actions>
-        <v-btn variant="text" @click="templateDialogOpen = false">Skip</v-btn>
+        <v-btn variant="text" @click="templateDialogOpen = false">Discard</v-btn>
         <v-btn
           color="success"
           :loading="creatingTemplate"
@@ -862,31 +845,6 @@
     <Transition name="slide-up">
       <div v-if="stickyBarVisible" class="sticky-save-bar">
       <div class="sticky-save-bar__inner">
-        <v-alert
-          v-if="!mobile"
-          border="start"
-          color="grey"
-          variant="tonal"
-          density="compact"
-          icon="mdi-text-box-check-outline"
-          class="text-caption sticky-save-bar__description"
-        >
-          <template v-if="ruleDescriptionSegments">
-            <template v-for="(seg, i) in ruleDescriptionSegments" :key="i">
-              <span v-if="seg.type === 'text'">{{ seg.text }}</span>
-              <v-chip
-                v-else
-                size="small"
-                variant="tonal"
-                color="grey-darken-1"
-                label
-                class="mx-1 overflow-chip"
-                @click="openOverflow(seg)"
-              >or {{ seg.count }} more</v-chip>
-            </template>
-          </template>
-          <span v-else class="text-medium-emphasis">Start filling in the rule — a plain-language description will appear here as you configure it.</span>
-        </v-alert>
         <v-btn variant="outlined" class="flex-shrink-0" style="height: 48px" @click="openDiscardDialog">Discard</v-btn>
         <template v-if="isTemplateEdit">
           <v-btn color="success" class="flex-shrink-0" style="height: 48px" :loading="saving" @click="openSaveConfirm('template')">Save template</v-btn>
@@ -945,7 +903,6 @@ import TextInput from '../_common/TextInput.vue'
 import NumberInput from '../_common/NumberInput.vue'
 import SelectInput from '../_common/SelectInput.vue'
 import DialogCard from '../_common/DialogCard.vue'
-import LiveDescriptionAlert from './LiveDescriptionAlert.vue'
 import Breadcrumbs from '../_common/Breadcrumbs.vue'
 import HelpTooltip from '../_common/HelpTooltip.vue'
 import DatePicker from '../_common/DatePicker.vue'
@@ -1016,6 +973,7 @@ function openOverflow(seg) {
 
 // ── Sticky bar visibility ─────────────────────────────────────────────────────
 const titleActionsRef = ref(null)
+const processingOrderRef = ref(null)
 const stickyBarVisible = ref(false)
 let titleObserver = null
 const saveError = ref(null)
@@ -1069,6 +1027,7 @@ function applyPickerTemplate(tpl) {
 }
 
 // ── Save as template ──────────────────────────────────────────────────────────
+const rulePersisted = ref(false)
 const templateDialogOpen = ref(false)
 const templateLabel = ref('')
 const templateDescription = ref('')
@@ -1076,7 +1035,10 @@ const creatingTemplate = ref(false)
 const templateCreatedSnack = ref(false)
 
 async function openSaveAsTemplate() {
-  if (!validate()) return
+  if (!validate()) {
+    saveError.value = 'Please fix the highlighted errors before saving.'
+    return
+  }
   saving.value = true
   saveError.value = null
   try {
@@ -1087,6 +1049,7 @@ async function openSaveAsTemplate() {
     } else {
       await store.create(payload)
     }
+    rulePersisted.value = true
     templateLabel.value = draft.name
     templateDescription.value = ''
     templateDialogOpen.value = true
@@ -1629,9 +1592,9 @@ const ruleDescriptionSegments = computed(() => {
   }
 
   if (draft.startDate || draft.endDate) {
-    if (draft.startDate && draft.endDate) segs.push({ type: 'text', text: `Active from ${draft.startDate} to ${draft.endDate}. ` })
-    else if (draft.startDate) segs.push({ type: 'text', text: `Starts on ${draft.startDate}, no end date set. ` })
-    else segs.push({ type: 'text', text: `Active until ${draft.endDate}. ` })
+    if (draft.startDate && draft.endDate) segs.push({ type: 'text', text: `Active from ${fmtDate(draft.startDate)} to ${fmtDate(draft.endDate)}. ` })
+    else if (draft.startDate) segs.push({ type: 'text', text: `Starts on ${fmtDate(draft.startDate)}, no end date set. ` })
+    else segs.push({ type: 'text', text: `Active until ${fmtDate(draft.endDate)}. ` })
   }
 
   if (draft.usageLimitsEnabled) {
@@ -1643,6 +1606,12 @@ const ruleDescriptionSegments = computed(() => {
 
   return segs.length ? segs : null
 })
+
+function fmtDate(iso) {
+  if (!iso) return ''
+  const [y, m, d] = iso.split('-')
+  return `${d}/${m}/${y}`
+}
 
 function validate() {
   const errors = {}
@@ -1660,7 +1629,10 @@ const dynamicActivateLabel = computed(() =>
 )
 
 async function _persistRule(statusOverride) {
-  if (!validate()) return
+  if (!validate()) {
+    saveError.value = 'Please fix the highlighted errors before saving.'
+    return
+  }
   saving.value = true
   saveError.value = null
   try {
@@ -1683,7 +1655,10 @@ async function _persistRule(statusOverride) {
       } else {
         await store.create(payload)
       }
-      router.push('/promotions')
+      rulePersisted.value = true
+      if (payload.status === 'draft') router.push('/promotions?tab=draft')
+      else if (payload.status === 'active' || payload.status === 'scheduled') router.push('/promotions?tab=active')
+      else router.push('/promotions')
     }
   } catch (e) {
     saveError.value = e?.response?.data?.error ?? e?.message ?? 'Failed to save'
@@ -1694,10 +1669,13 @@ async function _persistRule(statusOverride) {
 
 async function save() { await _persistRule() }
 async function saveAsDraft() { await _persistRule('draft') }
-async function saveAndActivate() { await _persistRule() }
+async function saveAndActivate() {
+  await _persistRule(isFutureDate(draft.startDate) ? 'scheduled' : 'active')
+}
 
 const { leaveDialogOpen, openLeaveDialog, cancelLeave, leaveWithoutSaving, saveAndLeave } =
   useNavigationGuard({
+    dirty: computed(() => !rulePersisted.value),
     onSaveAndLeave: async () => {
       await _persistRule('draft')
       return !saveError.value
@@ -1791,6 +1769,11 @@ defineExpose({ store })
 <style scoped>
 .form-container {
   padding-bottom: 120px !important;
+}
+
+.preview-sticky {
+  position: sticky;
+  top: 68px;
 }
 
 .tpl-picker-card {

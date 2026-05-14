@@ -218,7 +218,6 @@ const CONDITION_TYPES = [
   { value: 'customer_group',  title: 'Customer group',  supportsMode: true,  quantifiable: false },
   { value: 'coupon_code',     title: 'Coupon code',     supportsMode: false, quantifiable: false },
   { value: 'exclude_on_sale', title: 'Exclude on sale', supportsMode: false, quantifiable: false, boolean: true },
-  { value: 'pim_status',      title: 'PIM status',      supportsMode: true,  quantifiable: false },
   { value: 'attribute_set',   title: 'Attribute set',   supportsMode: true,  quantifiable: false },
   { value: 'warehouse_type',  title: 'Warehouse type',  supportsMode: true,  quantifiable: false },
   { value: 'seller',          title: 'Seller',          supportsMode: true,  quantifiable: false },
@@ -229,7 +228,6 @@ const TYPE_OPTIONS = {
   brands: ['Vichy','La Roche-Posay','Eucerin','Bioderma','Avène','Uriage','SVR','Ducray','Lierac','CeraVe','Nuxe','Caudalie','Mustela','Weleda','Nivea','Garnier',"L'Oréal Paris",'Neutrogena','Dove','Palmolive','Sensodyne','Elmex','Colgate','Parodontax','Nurofen','Panadol','Paralen','Ibalgin','Strepsils','Septolete','Imodium','Rennie','Espumisan','Centrum','Walmark','GS','Cemio','Jamieson','Pampers','Huggies','Chicco','Canpol','Omron','Microlife','Beurer','Head & Shoulders','Pantene','Syoss','Purity Vision','Aromatica','Alevia','Hofigal','Fares','Dacia Plant','Aboca','Apteo','Dr. Max'],
   product_lines: ['Dr. Max Basic','Dr. Max Premium','Dr. Max Baby','Dr. Max Dermo','Dr. Max Vitamins','Dr. Max Ortho','Vichy Liftactiv','Vichy Mineral 89','La Roche-Posay Effaclar','La Roche-Posay Toleriane','Eucerin Hyaluron-Filler','Eucerin DermoPure','Bioderma Sensibio','Bioderma Sebium','Avène Tolerance','Nuxe Huile Prodigieuse'],
   customer_group: ['Club Basic','Club Silver','Club Gold','Club Platinum','Healthcare Professional','Employee','Guest'],
-  pim_status: ['Active','Draft','Archived','Pending Approval','Blocked'],
   attribute_set: ['OTC Medicine','Prescription Medicine','Cosmetics','Medical Device','Supplement','Baby Product','Food Supplement','Veterinary'],
   warehouse_type: ['Central Warehouse','Pharmacy Dispatch','Dropship Supplier','Express Courier','Cold Chain'],
   seller: ['Dr. Max CZ','Dr. Max SK','Dr. Max PL','Dr. Max RO','Dr. Max IT','Third-party Seller'],
@@ -254,7 +252,7 @@ const CONDITION_GROUPS = [
   { label: 'Threshold',         color: 'blue',   fields: ['subtotal','quantity','weight'] },
   { label: 'Product & Catalog', color: 'green',  fields: ['categories','brands','skus','product_lines','exclude_on_sale'] },
   { label: 'Customer',          color: 'orange', fields: ['customer_group','coupon_code'] },
-  { label: 'Advanced',          color: 'purple', fields: ['pim_status','attribute_set','warehouse_type','seller'] },
+  { label: 'Advanced',          color: 'purple', fields: ['attribute_set','warehouse_type','seller'] },
 ]
 
 const typeSelectItems = CONDITION_GROUPS.flatMap(g => [

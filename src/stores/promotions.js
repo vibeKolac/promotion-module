@@ -31,6 +31,7 @@ const emptyDraft = () => ({
   usageLimitsEnabled: false,
   maxUsagePerCustomer: null,
   maxUsagePerRule: null,
+  reservationAllowed: false,
   erpId: null,
   couponId: null,
 })

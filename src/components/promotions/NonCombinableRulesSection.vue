@@ -1,6 +1,17 @@
 <!-- src/components/promotions/NonCombinableRulesSection.vue -->
 <template>
   <div>
+    <v-alert
+      v-if="ownGroupNonCombinable"
+      type="info"
+      variant="tonal"
+      density="compact"
+      icon="mdi-information-outline"
+      class="mb-3"
+    >
+      This rule is assigned to <strong>{{ ownGroupName }}</strong> and is set as non-combinable with that group — it will not stack with other rules in its own group.
+    </v-alert>
+
     <!-- Existing restrictions list -->
     <div v-if="modelValue.length" class="d-flex flex-column gap-2 mb-3">
       <div
@@ -111,7 +122,7 @@
             hide-details
           >
             <template #item="{ props: itemProps, item }">
-              <v-list-item v-bind="itemProps" :subtitle="null">
+              <v-list-item v-bind="itemProps" :subtitle="item.raw.coveredByGroup ? 'Already covered by group restriction' : null" :disabled="item.raw.coveredByGroup">
                 <template #append>
                   <StatusBadge :status="item.raw.status" />
                 </template>
@@ -138,6 +149,7 @@ import StatusBadge from '../shared/StatusBadge.vue'
 
 const props = defineProps({
   modelValue: { type: Array, default: () => [] },
+  stackingGroupId: { type: String, default: null },
 })
 const emit = defineEmits(['update:modelValue'])
 
@@ -161,6 +173,16 @@ const allRules = computed(() =>
   )
 )
 
+const ownGroupNonCombinable = computed(() =>
+  !!props.stackingGroupId &&
+  props.modelValue.some(e => e.type === 'group' && e.id === props.stackingGroupId)
+)
+
+const ownGroupName = computed(() => {
+  if (!ownGroupNonCombinable.value) return ''
+  return sgStore.items.find(g => g.id === props.stackingGroupId)?.name ?? ''
+})
+
 const allNonCombinable = computed(() => {
   const hasAllRulesEntry = props.modelValue.some(e => e.type === 'all')
   if (hasAllRulesEntry) return true
@@ -178,14 +200,22 @@ const availableGroups = computed(() =>
     .map(g => ({ value: g.id, title: g.name, color: g.color }))
 )
 
+const restrictedGroupIds = computed(() =>
+  new Set(props.modelValue.filter(e => e.type === 'group').map(e => e.id))
+)
+
 const availableRules = computed(() =>
   promoStore.items
     .filter(p =>
-      NON_ENDED_STATUSES.includes(p.status) &&
       p.id !== currentRuleId.value &&
       !props.modelValue.some(e => e.type === 'rule' && e.id === p.id)
     )
-    .map(p => ({ value: p.id, title: p.name, status: p.status }))
+    .map(p => ({
+      value: p.id,
+      title: p.name,
+      status: p.status,
+      coveredByGroup: restrictedGroupIds.value.has(p.stackingGroupId ?? 'sg-default'),
+    }))
 )
 
 const enrichedEntries = computed(() =>

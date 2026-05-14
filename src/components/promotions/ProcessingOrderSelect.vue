@@ -25,8 +25,8 @@
             min="1"
             :max="flatList.length"
             class="position-input flex-shrink-0"
-            @change="jumpTo(Number($event.target.value))"
-            @keydown.enter="jumpTo(Number($event.target.value))"
+            @change="jumpTo(Math.min(Math.max(Number($event.target.value), 1), flatList.length))"
+            @keydown.enter="jumpTo(Math.min(Math.max(Number($event.target.value), 1), flatList.length))"
           />
           <div v-else class="position-badge text-caption font-weight-bold flex-shrink-0">
             {{ idx + 1 }}
@@ -93,7 +93,6 @@ const promotionsStore = usePromotionsStore()
 const sgStore = useStackingGroupsStore()
 const route = useRoute()
 const currentId = computed(() => route.params.id ?? null)
-
 const currentGroup = computed(() =>
   sgStore.items.find(g => g.id === props.stackingGroupId)
 )
@@ -113,10 +112,7 @@ const localOrder = ref(null)
 function buildLocalOrder() {
   const others = [...groupRules.value]
   const cur = { id: '__current__', isCurrent: true, name: props.currentName || 'This rule', type: null }
-  const insertIdx = others.findIndex(r => (r.priority ?? 999) > (props.priority ?? 999))
-  if (insertIdx === -1) others.push(cur)
-  else others.splice(insertIdx, 0, cur)
-  localOrder.value = others
+  localOrder.value = [cur, ...others]
 }
 
 watch(() => props.stackingGroupId, () => { localOrder.value = null }, { immediate: false })
@@ -165,6 +161,8 @@ onMounted(async () => {
     sgStore.items.length <= 1 ? sgStore.fetchAll() : null,
   ])
 })
+
+defineExpose({ count: computed(() => flatList.value.length) })
 </script>
 
 <style scoped>
@@ -203,7 +201,8 @@ onMounted(async () => {
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  font-size: 11px;
+  font-size: 13px;
+  font-weight: 700;
 }
 
 
@@ -226,7 +225,7 @@ onMounted(async () => {
 .position-input :deep(.v-field__input) {
   padding: 0 2px;
   min-height: 28px;
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 700;
   text-align: center;
 }

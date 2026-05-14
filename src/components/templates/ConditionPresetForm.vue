@@ -36,6 +36,27 @@
           <ConditionsEditor v-model="form.conditions" :show-preset="false" title="Conditions" />
         </v-card>
       </v-col>
+
+      <v-col cols="12" md="4" class="d-none d-md-block">
+        <div class="preview-sticky">
+          <v-card border elevation="0" class="pa-4">
+            <div class="d-flex align-center mb-3">
+              <v-icon color="primary" size="18">mdi-eye-outline</v-icon>
+              <span class="text-body-2 font-weight-bold ml-2">Live Preview</span>
+            </div>
+
+            <div v-if="!form.conditions.length" class="d-flex align-center gap-2 text-body-2 text-medium-emphasis">
+              <v-icon size="16" class="flex-shrink-0">mdi-information-outline</v-icon>
+              No conditions set.
+            </div>
+
+            <v-alert v-else border="start" color="grey" variant="tonal" density="compact" icon="mdi-text-box-check-outline" class="text-caption">
+              <span v-if="conditionsPreviewText">{{ conditionsPreviewText }}</span>
+              <span v-else class="text-medium-emphasis">Add values to conditions to see a description.</span>
+            </v-alert>
+          </v-card>
+        </div>
+      </v-col>
     </v-row>
   </v-container>
 </template>
@@ -46,6 +67,40 @@ import { useRoute, useRouter } from 'vue-router'
 import { useConditionPresetsStore } from '../../stores/conditionPresets'
 import ConditionsEditor from '../promotions/ConditionsEditor.vue'
 import Breadcrumbs from '../_common/Breadcrumbs.vue'
+
+function _opLabel(op) {
+  return { '>=': '≥', '>': '>', '<=': '≤', '<': '<', '=': '=' }[op] ?? op
+}
+
+function _fmtList(vals) {
+  if (!vals?.length) return '—'
+  if (vals.length === 1) return `"${vals[0]}"`
+  if (vals.length === 2) return `"${vals[0]}" or "${vals[1]}"`
+  return `"${vals[0]}", "${vals[1]}" +${vals.length - 2} more`
+}
+
+function _describeLeaf(c) {
+  const vals = c.values ?? []
+  if (!vals.length || (vals.length === 1 && vals[0] === '')) return null
+  const inc = c.mode !== 'exclude'
+  switch (c.field) {
+    case 'categories': return inc ? `in ${vals.length > 1 ? 'categories' : 'category'} ${_fmtList(vals)}` : `NOT in ${vals.length > 1 ? 'categories' : 'category'} ${_fmtList(vals)}`
+    case 'brands': return inc ? `brand is ${_fmtList(vals)}` : `brand is NOT ${_fmtList(vals)}`
+    case 'skus': return inc ? `SKU is ${_fmtList(vals)}` : `SKU is NOT ${_fmtList(vals)}`
+    case 'product_lines': return inc ? `product line is ${_fmtList(vals)}` : `product line is NOT ${_fmtList(vals)}`
+    case 'subtotal': return vals[0] ? `subtotal ${_opLabel(c.operator)} €${vals[0]}` : null
+    case 'quantity': return vals[0] ? `quantity ${_opLabel(c.operator)} ${vals[0]}` : null
+    case 'weight': return vals[0] ? `weight ${_opLabel(c.operator)} ${vals[0]} g` : null
+    case 'customer_group': return inc ? `customer in group ${_fmtList(vals)}` : `customer NOT in group ${_fmtList(vals)}`
+    case 'coupon_code': return vals[0] ? `coupon is ${_fmtList(vals)}` : null
+    case 'exclude_on_sale': return vals[0] === 'true' ? 'on-sale products excluded' : null
+    case 'pim_status': return inc ? `PIM status is ${_fmtList(vals)}` : `PIM status is NOT ${_fmtList(vals)}`
+    case 'attribute_set': return inc ? `attribute set is ${_fmtList(vals)}` : `attribute set is NOT ${_fmtList(vals)}`
+    case 'seller': return inc ? `seller is ${_fmtList(vals)}` : `seller is NOT ${_fmtList(vals)}`
+    case 'warehouse_type': return inc ? `warehouse type is ${_fmtList(vals)}` : `warehouse type is NOT ${_fmtList(vals)}`
+    default: return null
+  }
+}
 
 const route = useRoute()
 const router = useRouter()
@@ -59,6 +114,30 @@ const breadcrumbs = computed(() => [
 const form = ref({ name: '', description: '', conditions: [] })
 const nameError = ref('')
 const saving = ref(false)
+
+const conditionsPreviewText = computed(() => {
+  const allConds = form.value.conditions ?? []
+  if (!allConds.length) return null
+  const topParts = []
+  for (let i = 0; i < allConds.length; i++) {
+    const c = allConds[i]
+    const sep = i > 0 ? (c.logicalOp === 'OR' ? ' OR ' : ' AND ') : ''
+    if (c.type === 'group') {
+      const innerParts = []
+      for (let j = 0; j < (c.conditions ?? []).length; j++) {
+        const inner = c.conditions[j]
+        const innerSep = j > 0 ? (inner.logicalOp === 'OR' ? ' OR ' : ' AND ') : ''
+        const desc = _describeLeaf(inner)
+        if (desc) innerParts.push(innerSep + desc)
+      }
+      if (innerParts.length) topParts.push(sep + `(${innerParts.join('')})`)
+    } else {
+      const desc = _describeLeaf(c)
+      if (desc) topParts.push(sep + desc)
+    }
+  }
+  return topParts.length ? `Applies where ${topParts.join('')}.` : null
+})
 
 onMounted(async () => {
   if (isEdit.value) {
@@ -104,4 +183,10 @@ function discard() {
   gap: 12px;
   flex-shrink: 0;
 }
+
+.preview-sticky {
+  position: sticky;
+  top: 68px;
+}
+
 </style>

@@ -86,8 +86,9 @@ export function installMock() {
 
   mock.onDelete(/\/api\/stacking-groups\/(.+)/).reply(config => {
     const id = config.url.split('/').pop()
-    const inUse = db.promotions.filter(p => p.stackingGroupId === id)
-    if (inUse.length) return [409, { error: `${inUse.length} rule(s) are using this group` }]
+    db.promotions = db.promotions.map(p =>
+      p.stackingGroupId === id ? { ...p, stackingGroupId: 'sg-default' } : p
+    )
     db.stackingGroups = db.stackingGroups.filter(g => g.id !== id)
     return [204]
   })

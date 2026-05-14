@@ -317,7 +317,7 @@
     <ConfirmModal ref="deleteConfirm" confirm-text="Delete" confirm-color="error" :loading="deleting">
       <template #header>Delete group?</template>
       <template #body="{ item }">
-        <strong>{{ item?.name }}</strong> will be permanently deleted. This action cannot be undone.
+        <strong>{{ item?.name }}</strong> will be permanently deleted. All rules in this group will be moved to <strong>Unassigned</strong>.
       </template>
     </ConfirmModal>
 

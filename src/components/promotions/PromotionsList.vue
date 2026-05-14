@@ -182,7 +182,7 @@
     </v-card>
 
     <!-- Draft tab banner -->
-    <v-alert v-if="activeTab === 'draft'" type="warning" variant="tonal" density="compact" class="mb-3" icon="mdi-pencil-outline">
+    <v-alert v-if="activeTab === 'draft'" color="grey" variant="tonal" density="compact" class="mb-3" icon="mdi-pencil-outline">
       Rules in draft are not applied at checkout. Activate them when ready to go live.
     </v-alert>
 
@@ -456,7 +456,7 @@
 
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { useDisplay } from 'vuetify'
 import { usePromotionsStore } from '../../stores/promotions'
 import { useStackingGroupsStore } from '../../stores/stackingGroups'
@@ -475,6 +475,7 @@ import ConflictBadge from './ConflictBadge.vue'
 import CsvImportDialog from './CsvImportDialog.vue'
 import { downloadCSV, exportRulesToCSV } from '../../utils/csvRuleImportExport'
 const router = useRouter()
+const route = useRoute()
 const store = usePromotionsStore()
 const templatesStore = useTemplatesStore()
 
@@ -549,7 +550,8 @@ const { mobile } = useDisplay()
 const conflictsMap = computed(() => detectConflicts(store.items))
 
 const search = ref('')
-const activeTab = ref('active')
+const VALID_TABS = ['active', 'paused', 'draft', 'ended']
+const activeTab = ref(VALID_TABS.includes(route.query.tab) ? route.query.tab : 'active')
 const stackingGroupFilter = ref('all')
 const typeFilter = ref([])
 const tagFilter = ref([])

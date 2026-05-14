@@ -51,7 +51,11 @@
         rounded="sm"
         active-color="primary"
         @click="mobile && $emit('update:modelValue', false)"
-      />
+      >
+        <template v-if="item.tag" #append>
+          <v-chip size="x-small" color="warning" variant="tonal" label class="ml-2">{{ item.tag }}</v-chip>
+        </template>
+      </v-list-item>
 
       <v-divider class="my-2" />
       <v-list-subheader class="text-uppercase text-caption font-weight-bold">
