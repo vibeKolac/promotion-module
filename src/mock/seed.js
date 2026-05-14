@@ -154,6 +154,34 @@ export const promotions = [
     erpId: '7651',
     createdBy: 'Martin P.', createdAt: '2026-04-28T09:00:00Z', updatedAt: '2026-04-28T09:00:00Z',
   },
+  {
+    id: 'promo-11', name: 'Vichy Skincare Days — 15% off', type: 'discount',
+    value: '15', valueUnit: '%', amountType: 'PERCENT', steps: [], priority: 6, status: 'active',
+    scope: 'item',
+    startDate: '2026-04-15', endDate: '2026-06-15', stackingGroupId: 'sg-default',
+    conditions: [
+      { id: 'c14', field: 'brands', mode: 'include', values: ['Vichy'] },
+    ],
+    gifts: [],
+    nonCombinableRules: [{ type: 'rule', id: 'promo-1' }],
+    tags: ['tag-4'], internalTags: ['itag-2'],
+    performance: 45, revenue: '€9,200', usageCount: 621, completedOrders: 2,
+    createdBy: 'Anna K.', createdAt: '2026-04-10T09:00:00Z', updatedAt: '2026-04-10T09:00:00Z',
+  },
+  {
+    id: 'promo-12', name: 'Dermocosmetology Spring Sale — 25% off', type: 'discount',
+    value: '25', valueUnit: '%', amountType: 'PERCENT', steps: [], priority: 3, status: 'active',
+    scope: 'item',
+    startDate: '2026-05-01', endDate: '2026-05-31', stackingGroupId: 'sg-default',
+    conditions: [
+      { id: 'c15', field: 'categories', mode: 'include', values: ['Dermocosmetology'] },
+    ],
+    gifts: [],
+    nonCombinableRules: [{ type: 'group', id: 'sg-1' }],
+    tags: ['tag-1'], internalTags: ['itag-4'],
+    performance: 33, revenue: '€6,800', usageCount: 412, completedOrders: 1,
+    createdBy: 'Martin P.', createdAt: '2026-05-01T08:00:00Z', updatedAt: '2026-05-01T08:00:00Z',
+  },
 ]
 
 export const promotionOrders = {
