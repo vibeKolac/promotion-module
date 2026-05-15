@@ -89,8 +89,8 @@ const settings = useSettingsStore()
 
 const coreNavItems = computed(() => [
   { to: '/promotions', icon: 'mdi-tag-multiple', title: 'Promotion Rules' },
-  { to: '/stacking-groups', icon: 'mdi-layers', title: 'Priority & grouping', autoDisabled: settings.prioritizationMode === 'automatic' },
   { to: '/templates-presets', icon: 'mdi-file-document-outline', title: 'Templates & Presets' },
+  { to: '/stacking-groups', icon: 'mdi-layers', title: 'Priority & grouping', autoDisabled: settings.prioritizationMode === 'automatic' },
 ])
 
 const exploringNavItems = [

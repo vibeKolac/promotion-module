@@ -45,9 +45,9 @@
               <span class="text-body-2 font-weight-bold ml-2">Live Preview</span>
             </div>
 
-            <div v-if="!form.conditions.length" class="d-flex align-center gap-2 text-body-2 text-medium-emphasis">
-              <v-icon size="16" class="flex-shrink-0">mdi-information-outline</v-icon>
-              No conditions set.
+            <div v-if="!form.conditions.length" class="d-flex align-center" style="gap: 8px">
+              <v-icon size="20" color="medium-emphasis">mdi-information-outline</v-icon>
+              <span class="text-body-2 text-medium-emphasis">No conditions set.</span>
             </div>
 
             <v-alert v-else border="start" color="grey" variant="tonal" density="compact" icon="mdi-text-box-check-outline" class="text-caption">

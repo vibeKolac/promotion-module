@@ -3,7 +3,7 @@
   <div>
     <v-alert
       v-if="ownGroupNonCombinable"
-      type="info"
+      color="grey"
       variant="tonal"
       density="compact"
       icon="mdi-information-outline"
@@ -207,6 +207,7 @@ const restrictedGroupIds = computed(() =>
 const availableRules = computed(() =>
   promoStore.items
     .filter(p =>
+      NON_ENDED_STATUSES.includes(p.status) &&
       p.id !== currentRuleId.value &&
       !props.modelValue.some(e => e.type === 'rule' && e.id === p.id)
     )

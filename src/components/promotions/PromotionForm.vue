@@ -1650,6 +1650,7 @@ async function _persistRule(statusOverride) {
     } else {
       const payload = JSON.parse(JSON.stringify(toRaw(draft)))
       payload.status = statusOverride ?? resolveStatus(payload.status, payload.startDate, payload.endDate, payload.pauseScheduled, payload.pauseStart, payload.pauseEnd)
+      if (!isEdit.value && !payload.createdBy) payload.createdBy = 'Martin P.'
       if (isEdit.value) {
         await store.update(route.params.id, payload)
       } else {
