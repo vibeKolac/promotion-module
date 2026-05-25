@@ -78,10 +78,10 @@ const search = ref('')
 const typeFilter = ref([])
 
 const typeFilterItems = [
-  { value: 'discount',      label: 'Standard discount' },
+  { value: 'discount',      label: 'Discount' },
   { value: 'step_discount', label: 'Step discount' },
   { value: 'multi_buy',     label: 'Multi-buy' },
-  { value: 'gift',          label: 'Free gift' },
+  { value: 'gift',          label: 'Gift' },
 ]
 
 const hasActiveFilters = computed(() =>

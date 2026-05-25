@@ -94,7 +94,6 @@ function _describeLeaf(c) {
     case 'customer_group': return inc ? `customer in group ${_fmtList(vals)}` : `customer NOT in group ${_fmtList(vals)}`
     case 'coupon_code': return vals[0] ? `coupon is ${_fmtList(vals)}` : null
     case 'exclude_on_sale': return vals[0] === 'true' ? 'on-sale products excluded' : null
-    case 'pim_status': return inc ? `PIM status is ${_fmtList(vals)}` : `PIM status is NOT ${_fmtList(vals)}`
     case 'attribute_set': return inc ? `attribute set is ${_fmtList(vals)}` : `attribute set is NOT ${_fmtList(vals)}`
     case 'seller': return inc ? `seller is ${_fmtList(vals)}` : `seller is NOT ${_fmtList(vals)}`
     case 'warehouse_type': return inc ? `warehouse type is ${_fmtList(vals)}` : `warehouse type is NOT ${_fmtList(vals)}`

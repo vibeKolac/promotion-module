@@ -30,7 +30,7 @@ const LABELS = {
   categories: 'Categories', brands: 'Brands', skus: 'SKUs',
   product_lines: 'Product lines', customer_group: 'Customer group',
   coupon_code: 'Coupon code', exclude_on_sale: 'Exclude on sale',
-  pim_status: 'PIM status', attribute_set: 'Attribute set',
+  attribute_set: 'Attribute set',
   source: 'Source', warehouse_type: 'Warehouse type', seller: 'Seller',
 }
 

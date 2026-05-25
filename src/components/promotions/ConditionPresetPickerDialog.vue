@@ -9,6 +9,31 @@
           Select a preset to load its conditions into the rule.
         </p>
 
+        <div class="text-body-2 font-weight-bold mb-3">How to apply</div>
+        <div class="d-flex flex-column mb-4" style="gap: 12px">
+          <v-radio-group v-model="applyMode" density="compact" hide-details>
+            <v-radio value="replace">
+              <template #label>
+                <div style="margin-left: 8px">
+                  <div class="text-body-2">Replace existing conditions</div>
+                  <div class="text-caption text-medium-emphasis">Current conditions will be cleared first.</div>
+                </div>
+              </template>
+            </v-radio>
+            <div style="height: 8px" />
+            <v-radio value="append">
+              <template #label>
+                <div style="margin-left: 8px">
+                  <div class="text-body-2">Add to existing conditions</div>
+                  <div class="text-caption text-medium-emphasis">Preset conditions are appended to the current list.</div>
+                </div>
+              </template>
+            </v-radio>
+          </v-radio-group>
+        </div>
+
+        <v-divider class="mb-4" />
+
         <v-text-field
           v-model="search"
           placeholder="Search presets…"
@@ -25,7 +50,7 @@
           <router-link to="/templates-presets/condition-presets" class="ml-1">Manage presets</router-link>
         </v-alert>
 
-        <div class="d-flex flex-column gap-2">
+        <div class="d-flex flex-column" style="gap: 12px">
           <v-card
             v-for="preset in filtered"
             :key="preset.id"
@@ -35,7 +60,7 @@
             :class="{ 'border-primary': selected === preset.id }"
             @click="selected = preset.id"
           >
-            <div class="d-flex align-center gap-2 mb-1">
+            <div class="d-flex align-center mb-1" style="gap: 8px">
               <v-icon
                 :icon="selected === preset.id ? 'mdi-radiobox-marked' : 'mdi-radiobox-blank'"
                 :color="selected === preset.id ? 'primary' : undefined"
@@ -44,42 +69,21 @@
               <span class="text-body-2 font-weight-bold">{{ preset.name }}</span>
             </div>
             <div v-if="preset.description" class="text-caption text-medium-emphasis mb-2 ml-7">{{ preset.description }}</div>
-            <div class="d-flex flex-wrap gap-1 ml-7">
-              <v-chip
-                v-for="cond in preset.conditions"
-                :key="cond.id"
-                size="x-small"
-                color="primary"
-                variant="tonal"
-                label
-              >
-                {{ conditionLabel(cond) }}
-              </v-chip>
+            <div class="ml-7 d-flex flex-column" style="gap: 6px">
+              <div v-for="cond in preset.conditions" :key="cond.id" class="d-flex align-start" style="gap: 6px">
+                <v-chip size="x-small" :color="cond.mode === 'exclude' ? 'error' : 'success'" variant="tonal" label class="flex-shrink-0">
+                  {{ cond.mode === 'exclude' ? 'excl.' : 'incl.' }}
+                </v-chip>
+                <span class="text-caption">
+                  <span class="font-weight-medium">{{ FIELD_LABELS[cond.field] ?? cond.field }}</span>
+                  <template v-if="cond.values?.length">
+                    : {{ cond.values.slice(0, 3).join(', ') }}<span v-if="cond.values.length > 3" class="text-medium-emphasis"> +{{ cond.values.length - 3 }} more</span>
+                  </template>
+                </span>
+              </div>
             </div>
           </v-card>
         </div>
-
-        <v-divider class="my-4" />
-
-        <div class="text-body-2 font-weight-bold mb-2">How to apply</div>
-        <v-radio-group v-model="applyMode" density="compact" hide-details>
-          <v-radio value="replace">
-            <template #label>
-              <div>
-                <div class="text-body-2">Replace existing conditions</div>
-                <div class="text-caption text-medium-emphasis">Current conditions will be cleared first.</div>
-              </div>
-            </template>
-          </v-radio>
-          <v-radio value="append" class="mt-2">
-            <template #label>
-              <div>
-                <div class="text-body-2">Add to existing conditions</div>
-                <div class="text-caption text-medium-emphasis">Preset conditions are appended to the current list.</div>
-              </div>
-            </template>
-          </v-radio>
-        </v-radio-group>
       </v-card-text>
 
       <v-card-actions class="pa-5 pt-0">

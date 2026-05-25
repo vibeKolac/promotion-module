@@ -71,8 +71,8 @@
         style="max-width: 175px"
       />
       <template v-if="dateFilter === 'custom'">
-        <DatePicker v-model="customDateFrom" label="From" style="max-width: 175px" />
-        <DatePicker v-model="customDateTo" label="To" style="max-width: 175px" />
+        <v-text-field v-model="customDateFrom" type="date" label="From" variant="outlined" density="compact" hide-details style="max-width: 175px" />
+        <v-text-field v-model="customDateTo" type="date" label="To" variant="outlined" density="compact" hide-details style="max-width: 175px" />
       </template>
       <v-btn
         v-if="hasActiveFilters"
@@ -130,7 +130,6 @@ import ContentHeader from '../_common/ContentHeader.vue'
 import Breadcrumbs from '../_common/Breadcrumbs.vue'
 import { usePromotionsStore } from '../../stores/promotions'
 import TextInput from '../_common/TextInput.vue'
-import DatePicker from '../_common/DatePicker.vue'
 
 const store = usePromotionsStore()
 const { mobile } = useDisplay()

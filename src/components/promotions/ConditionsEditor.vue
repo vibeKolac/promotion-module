@@ -88,41 +88,12 @@
               :suffix="getValueSuffix(cond)"
               @update:model-value="onValueChange(idx, $event)"
             />
-            <!-- Value — SKU: product autocomplete -->
-            <v-autocomplete
+            <!-- Value — SKU: product autocomplete with paste + warnings -->
+            <SkuValuePicker
               v-else-if="isSkuField(cond)"
               :model-value="cond.values ?? []"
-              :items="drMaxProducts"
-              item-value="sku"
-              :item-title="p => p.name"
-              variant="outlined"
-              density="compact"
-              hide-details
-              placeholder="Search by name or SKU…"
-              clearable
-              multiple
-              :custom-filter="skuFilter"
               @update:model-value="onValueChange(idx, $event)"
-            >
-              <template #item="{ item, props: itemProps }">
-                <v-list-item v-bind="itemProps" :title="undefined" :disabled="item.raw.stock === 0 || isSkuExcluded(item.raw.sku)">
-                  <template #prepend>
-                    <v-img :src="item.raw.image" width="32" height="32" cover class="rounded mr-2 flex-shrink-0 sku-thumb" />
-                  </template>
-                  <v-list-item-title class="text-body-2">{{ item.raw.name }}</v-list-item-title>
-                  <v-list-item-subtitle class="text-caption text-medium-emphasis">{{ item.raw.sku }}</v-list-item-subtitle>
-                  <template #append>
-                    <v-chip v-if="isSkuExcluded(item.raw.sku)" size="x-small" color="error" variant="tonal" label>Not allowed</v-chip>
-                    <v-chip v-else size="x-small" :color="item.raw.stock === 0 ? 'error' : 'success'" variant="tonal" label>
-                      {{ item.raw.stock === 0 ? 'Out of stock' : `${item.raw.stock} in stock` }}
-                    </v-chip>
-                  </template>
-                </v-list-item>
-              </template>
-              <template #selection="{ item }">
-                <v-chip size="small" label class="mr-1">{{ item.raw.sku }}</v-chip>
-              </template>
-            </v-autocomplete>
+            />
             <!-- Value — list type: searchable autocomplete -->
             <v-autocomplete
               v-else-if="hasOptions(cond)"
@@ -194,19 +165,21 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { v4 as uuid } from 'uuid'
 import HelpTooltip from '../_common/HelpTooltip.vue'
 import ConditionGroupRow from './ConditionGroupRow.vue'
 import ConditionCsvImportDialog from './ConditionCsvImportDialog.vue'
 import ConditionPresetPickerDialog from './ConditionPresetPickerDialog.vue'
+import SkuValuePicker from './SkuValuePicker.vue'
 import { downloadConditionsTemplate } from '../../utils/csvRuleImportExport'
-import { drMaxProducts } from '../../mock/seed.js'
 import { useSettingsStore } from '../../stores/settings'
+import { getRecentConditionTypes, recordConditionTypes } from '../../utils/recentConditionTypes'
 
 const settingsStore = useSettingsStore()
+const recentTypeValues = ref(getRecentConditionTypes())
 
-// ── Type definitions (mirrored from ConditionBuilderDialog) ───────────────────
+// ── Type definitions ──────────────────────────────────────────────────────────
 const CONDITION_TYPES = [
   { value: 'categories',      title: 'Categories',      supportsMode: true,  quantifiable: false },
   { value: 'brands',          title: 'Brands',          supportsMode: true,  quantifiable: false },
@@ -255,13 +228,24 @@ const CONDITION_GROUPS = [
   { label: 'Advanced',          color: 'purple', fields: ['attribute_set','warehouse_type','seller'] },
 ]
 
-const typeSelectItems = CONDITION_GROUPS.flatMap(g => [
-  { type: 'subheader', title: g.label },
-  ...g.fields.map(f => {
-    const t = CONDITION_TYPES.find(ct => ct.value === f)
-    return { title: t.title, value: t.value }
-  }),
-])
+const typeSelectItems = computed(() => {
+  const recent = recentTypeValues.value
+    .map(v => CONDITION_TYPES.find(t => t.value === v))
+    .filter(Boolean)
+  const grouped = CONDITION_GROUPS.flatMap(g => [
+    { type: 'subheader', title: g.label },
+    ...g.fields.map(f => {
+      const t = CONDITION_TYPES.find(ct => ct.value === f)
+      return { title: t.title, value: t.value }
+    }),
+  ])
+  if (!recent.length) return grouped
+  return [
+    { type: 'subheader', title: 'Recently used' },
+    ...recent.map(t => ({ title: t.title, value: t.value })),
+    ...grouped,
+  ]
+})
 
 function getTypeDef(field) {
   return CONDITION_TYPES.find(t => t.value === field)
@@ -288,11 +272,6 @@ function hasOptions(cond) {
   return !!(cond.field && TYPE_OPTIONS[cond.field])
 }
 
-function skuFilter(value, query, item) {
-  const q = query.toLowerCase()
-  return item.raw.name.toLowerCase().includes(q) || item.raw.sku.includes(q)
-}
-
 function getExcludedForField(field) {
   if (field === 'categories') return settingsStore.excludedCategories
   if (field === 'brands') return settingsStore.excludedBrands
@@ -307,10 +286,6 @@ function getOptions(cond) {
     value: v,
     disabled: excluded.includes(v),
   }))
-}
-
-function isSkuExcluded(sku) {
-  return settingsStore.excludedSkus.includes(sku)
 }
 
 function getUiOperator(cond) {
@@ -400,6 +375,7 @@ function onGroupUpdate(idx, updatedGroup) {
 
 // ── Inline field updates ──────────────────────────────────────────────────────
 function onFieldChange(idx, newField) {
+  if (!newField) return
   const typeDef = getTypeDef(newField)
   const next = [...props.modelValue]
   next[idx] = {
@@ -410,6 +386,8 @@ function onFieldChange(idx, newField) {
     operator: typeDef?.quantifiable ? '>=' : undefined,
   }
   emit_(next)
+  recordConditionTypes([newField])
+  recentTypeValues.value = getRecentConditionTypes()
 }
 
 function onOperatorChange(idx, uiOp) {
@@ -467,7 +445,4 @@ function onPresetApply({ conditions, mode }) {
   align-items: center;
 }
 
-.sku-thumb {
-  border: 1px solid rgba(0, 0, 0, 0.08);
-}
 </style>

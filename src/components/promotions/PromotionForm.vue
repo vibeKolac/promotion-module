@@ -131,10 +131,12 @@
               hide-details
               color="warning"
               class="mb-1"
+              :disabled="!draft.startDate || !draft.endDate"
             >
               <template #label>
                 <span class="mr-2">Schedule rule pausing</span>
                 <v-chip size="x-small" color="warning" variant="tonal" label>Exploring</v-chip>
+                <span v-if="!draft.startDate || !draft.endDate" class="text-caption text-medium-emphasis ml-2">Requires start and end date</span>
               </template>
             </v-checkbox>
             <template v-if="draft.pauseScheduled">
@@ -431,6 +433,67 @@
             <template #empty>No conditions set — this rule applies to all products.</template>
           </ConditionsEditor>
 
+          <v-alert
+            v-if="skuConditionWarnings.notAllowed.length"
+            type="error"
+            variant="tonal"
+            density="compact"
+            class="mt-3 text-caption"
+          >
+            <div class="d-flex align-center justify-space-between" style="gap: 8px">
+              <span>
+                <strong>{{ skuConditionWarnings.notAllowed.length }} not allowed (globally excluded):</strong>
+                {{ skuConditionWarnings.notAllowed.join(', ') }}
+              </span>
+              <v-btn
+                size="x-small"
+                variant="tonal"
+                color="error"
+                @click="removeSkusFromConditions(skuConditionWarnings.notAllowed)"
+              >Remove</v-btn>
+            </div>
+          </v-alert>
+          <v-alert
+            v-if="skuConditionWarnings.outOfStock.length"
+            type="warning"
+            variant="tonal"
+            density="compact"
+            class="mt-3 text-caption"
+          >
+            <div class="d-flex align-center justify-space-between" style="gap: 8px">
+              <span>
+                <strong>{{ skuConditionWarnings.outOfStock.length }} out of stock:</strong>
+                {{ skuConditionWarnings.outOfStock.join(', ') }}
+              </span>
+              <v-btn
+                size="x-small"
+                variant="tonal"
+                color="warning"
+                @click="removeSkusFromConditions(skuConditionWarnings.outOfStock)"
+              >Remove</v-btn>
+            </div>
+          </v-alert>
+          <v-alert
+            v-if="skuConditionWarnings.notFound.length"
+            type="error"
+            variant="tonal"
+            density="compact"
+            class="mt-3 text-caption"
+          >
+            <div class="d-flex align-center justify-space-between" style="gap: 8px">
+              <span>
+                <strong>{{ skuConditionWarnings.notFound.length }} not found:</strong>
+                {{ skuConditionWarnings.notFound.join(', ') }}
+              </span>
+              <v-btn
+                size="x-small"
+                variant="tonal"
+                color="error"
+                @click="removeSkusFromConditions(skuConditionWarnings.notFound)"
+              >Remove</v-btn>
+            </div>
+          </v-alert>
+
           <ReachEstimateBar :conditions="draft.conditions" :scope="draft.scope" class="mt-3" />
 
           <v-dialog v-model="overflowDialog" max-width="420">
@@ -543,6 +606,7 @@
         <v-card border elevation="0" class="pa-5 mb-4 mt-6">
           <div class="d-flex align-center mb-1">
             <div class="text-body-1 font-weight-bold">Usage limits</div>
+            <HelpTooltip text="Cap how many times this rule can fire. Per-customer limit prevents one shopper from using the same discount repeatedly. Total cap protects budget across all customers." class="ml-1" />
             <v-spacer />
             <v-switch v-model="draft.usageLimitsEnabled" density="compact" hide-details color="primary" />
           </div>
@@ -551,6 +615,7 @@
           </p>
           <template v-if="draft.usageLimitsEnabled">
             <v-text-field
+              v-if="draft.type === 'discount'"
               v-model.number="draft.maxUsagePerCustomer"
               label="Max usages per customer"
               type="number"
@@ -578,6 +643,7 @@
         <v-card border elevation="0" class="pa-5 mb-4 mt-6">
           <div class="d-flex align-center mb-1">
             <div class="text-body-1 font-weight-bold">Allow for reservations</div>
+            <HelpTooltip text="When enabled, this promotion rule also applies to orders placed as pharmacy reservations (click &amp; collect). Disable if the discount should only be valid for immediate online purchases." class="ml-1" />
             <v-spacer />
             <v-switch v-model="draft.reservationAllowed" density="compact" hide-details color="primary" />
           </div>
@@ -667,7 +733,10 @@
         </template>
         <template v-else>
           <v-card border elevation="0" class="pa-5 mb-4">
-            <div class="text-body-1 font-weight-bold mb-4">Priority group</div>
+            <div class="d-flex align-center mb-4">
+              <span class="text-body-1 font-weight-bold">Priority group</span>
+              <HelpTooltip text="Groups rules that can stack together. Rules in the same group compete with each other; rules in different groups can combine. Assign a group to control which promotions apply together at checkout." class="ml-1" />
+            </div>
             <StackingGroupSelect v-model="draft.stackingGroupId" />
           </v-card>
 
@@ -889,6 +958,7 @@ import { usePromotionsStore } from '../../stores/promotions'
 import { useStackingGroupsStore } from '../../stores/stackingGroups'
 import { useSettingsStore } from '../../stores/settings'
 import { validateConditions } from '../../utils/conditionValidator'
+import { validateSkus } from '../../utils/skuValidation'
 import { detectGiftConflicts } from '../../utils/giftConflictDetector'
 import ConditionsEditor from './ConditionsEditor.vue'
 import { v4 as uuid } from 'uuid'
@@ -1135,18 +1205,27 @@ function validatePause() {
 
 watch(() => draft.type, (type) => {
   if (type === 'multi_buy') draft.scope = 'item'
+  if (type !== 'discount') draft.maxUsagePerCustomer = null
 })
 
 watch(() => draft.startDate, () => {
   draft.status = resolveStatus(draft.status, draft.startDate, draft.endDate, draft.pauseScheduled, draft.pauseStart, draft.pauseEnd)
-  if (draft.pauseScheduled && (draft.pauseStart || draft.pauseEnd)) {
+  if (!draft.startDate || !draft.endDate) {
+    draft.pauseScheduled = false
+    draft.pauseStart = null
+    draft.pauseEnd = null
+  } else if (draft.pauseScheduled && (draft.pauseStart || draft.pauseEnd)) {
     pauseAdjustWarning.value = true
   }
 })
 
 watch(() => draft.endDate, () => {
   draft.status = resolveStatus(draft.status, draft.startDate, draft.endDate, draft.pauseScheduled, draft.pauseStart, draft.pauseEnd)
-  if (draft.pauseScheduled && (draft.pauseStart || draft.pauseEnd)) {
+  if (!draft.startDate || !draft.endDate) {
+    draft.pauseScheduled = false
+    draft.pauseStart = null
+    draft.pauseEnd = null
+  } else if (draft.pauseScheduled && (draft.pauseStart || draft.pauseEnd)) {
     pauseAdjustWarning.value = true
   }
 })
@@ -1285,6 +1364,26 @@ const breadcrumbs = computed(() => [{
 }])
 
 const conditionValidation = computed(() => validateConditions(draft.conditions))
+
+const skuConditionWarnings = computed(() => {
+  const skus = draft.conditions
+    .filter(c => c.field === 'skus')
+    .flatMap(c => c.values ?? [])
+  if (!skus.length) return { outOfStock: [], notFound: [], notAllowed: [] }
+  const { outOfStock, notFound } = validateSkus(skus)
+  const excludedSet = new Set(settingsStore.excludedSkus)
+  const notAllowed = skus.filter(s => excludedSet.has(s))
+  return { outOfStock, notFound, notAllowed }
+})
+
+function removeSkusFromConditions(skusToRemove) {
+  const toRemove = new Set(skusToRemove)
+  for (const c of draft.conditions) {
+    if (c.field === 'skus' && c.values) {
+      c.values = c.values.filter(s => !toRemove.has(s))
+    }
+  }
+}
 const giftConflicts = computed(() => detectGiftConflicts(draft.gifts, draft.conditions))
 
 // ── Conditions plain-English description ──────────────────────────────────────
@@ -1539,9 +1638,13 @@ const ruleDescription = computed(() => {
     else sentences.push(`Active until ${draft.endDate}.`)
   }
 
+  if (draft.pauseScheduled && draft.pauseStart && draft.pauseEnd) {
+    sentences.push(`Paused from ${draft.pauseStart} to ${draft.pauseEnd}.`)
+  }
+
   if (draft.usageLimitsEnabled) {
     const lp = []
-    if (draft.maxUsagePerCustomer) lp.push(`${draft.maxUsagePerCustomer}× per customer`)
+    if (draft.type === 'discount' && draft.maxUsagePerCustomer) lp.push(`${draft.maxUsagePerCustomer}× per customer`)
     if (draft.maxUsagePerRule) lp.push(`${draft.maxUsagePerRule}× total`)
     if (lp.length) sentences.push(`Limited to ${lp.join(', ')}.`)
   }
@@ -1597,9 +1700,13 @@ const ruleDescriptionSegments = computed(() => {
     else segs.push({ type: 'text', text: `Active until ${fmtDate(draft.endDate)}. ` })
   }
 
+  if (draft.pauseScheduled && draft.pauseStart && draft.pauseEnd) {
+    segs.push({ type: 'text', text: `Paused from ${fmtDate(draft.pauseStart)} to ${fmtDate(draft.pauseEnd)}. ` })
+  }
+
   if (draft.usageLimitsEnabled) {
     const lp = []
-    if (draft.maxUsagePerCustomer) lp.push(`${draft.maxUsagePerCustomer}× per customer`)
+    if (draft.type === 'discount' && draft.maxUsagePerCustomer) lp.push(`${draft.maxUsagePerCustomer}× per customer`)
     if (draft.maxUsagePerRule) lp.push(`${draft.maxUsagePerRule}× total`)
     if (lp.length) segs.push({ type: 'text', text: `Limited to ${lp.join(', ')}. ` })
   }

@@ -108,6 +108,7 @@ const groupRules = computed(() =>
 // Local ordered array — drives display and moves.
 // Reset whenever the stacking group changes; priority changes from arrows do NOT reset it.
 const localOrder = ref(null)
+const userMoved = ref(false)
 
 function buildLocalOrder() {
   const others = [...groupRules.value]
@@ -115,7 +116,16 @@ function buildLocalOrder() {
   localOrder.value = [cur, ...others]
 }
 
-watch(() => props.stackingGroupId, () => { localOrder.value = null }, { immediate: false })
+watch(() => props.stackingGroupId, () => {
+  localOrder.value = null
+  userMoved.value = false
+}, { immediate: false })
+
+// Rebuild when store loads (before user has reordered)
+watch(groupRules, () => {
+  if (!userMoved.value) localOrder.value = null
+})
+
 watch(() => props.currentName, (name) => {
   if (!localOrder.value) return
   const entry = localOrder.value.find(r => r.isCurrent)
@@ -137,6 +147,7 @@ function jumpTo(newPos) {
   if (to === from) return
   const [item] = list.splice(from, 1)
   list.splice(to, 0, item)
+  userMoved.value = true
   localOrder.value = list
   emit('update:priority', (to + 1) * 10)
 }
@@ -146,12 +157,9 @@ function move(dir) {
   const idx = currentIdx.value
   const newIdx = idx + dir
   if (newIdx < 0 || newIdx >= list.length) return
-
-  // Swap current rule with neighbour
   ;[list[idx], list[newIdx]] = [list[newIdx], list[idx]]
+  userMoved.value = true
   localOrder.value = list
-
-  // Emit whole-number priority: position × 10, always an integer with gaps
   emit('update:priority', (newIdx + 1) * 10)
 }
 

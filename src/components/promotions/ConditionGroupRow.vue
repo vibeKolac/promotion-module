@@ -72,40 +72,12 @@
                 :suffix="getValueSuffix(cond)"
                 @update:model-value="onValueChange(idx, $event)"
               />
-              <!-- SKU: product autocomplete -->
-              <v-autocomplete
+              <!-- SKU: product autocomplete with paste + warnings -->
+              <SkuValuePicker
                 v-else-if="isSkuField(cond)"
                 :model-value="cond.values ?? []"
-                :items="drMaxProducts"
-                item-value="sku"
-                :item-title="p => p.name"
-                variant="outlined"
-                density="compact"
-                hide-details
-                placeholder="Search by name or SKU…"
-                clearable
-                multiple
-                :custom-filter="skuFilter"
                 @update:model-value="onValueChange(idx, $event)"
-              >
-                <template #item="{ item, props: itemProps }">
-                  <v-list-item v-bind="itemProps" :title="undefined" :disabled="item.raw.stock === 0">
-                    <template #prepend>
-                      <v-img :src="item.raw.image" width="32" height="32" cover class="rounded mr-2 flex-shrink-0 sku-thumb" />
-                    </template>
-                    <v-list-item-title class="text-body-2">{{ item.raw.name }}</v-list-item-title>
-                    <v-list-item-subtitle class="text-caption text-medium-emphasis">{{ item.raw.sku }}</v-list-item-subtitle>
-                    <template #append>
-                      <v-chip size="x-small" :color="item.raw.stock === 0 ? 'error' : 'success'" variant="tonal" label>
-                        {{ item.raw.stock === 0 ? 'Out of stock' : `${item.raw.stock} in stock` }}
-                      </v-chip>
-                    </template>
-                  </v-list-item>
-                </template>
-                <template #selection="{ item }">
-                  <v-chip size="small" label class="mr-1">{{ item.raw.sku }}</v-chip>
-                </template>
-              </v-autocomplete>
+              />
               <!-- List type: searchable autocomplete -->
               <v-autocomplete
                 v-else-if="hasOptions(cond)"
@@ -157,7 +129,7 @@
 
 <script setup>
 import { v4 as uuid } from 'uuid'
-import { drMaxProducts } from '../../mock/seed.js'
+import SkuValuePicker from './SkuValuePicker.vue'
 
 const CONDITION_TYPES = [
   { value: 'categories',      title: 'Categories',      supportsMode: true,  quantifiable: false },
@@ -170,7 +142,6 @@ const CONDITION_TYPES = [
   { value: 'customer_group',  title: 'Customer group',  supportsMode: true,  quantifiable: false },
   { value: 'coupon_code',     title: 'Coupon code',     supportsMode: false, quantifiable: false },
   { value: 'exclude_on_sale', title: 'Exclude on sale', supportsMode: false, quantifiable: false, boolean: true },
-  { value: 'pim_status',      title: 'PIM status',      supportsMode: true,  quantifiable: false },
   { value: 'attribute_set',   title: 'Attribute set',   supportsMode: true,  quantifiable: false },
   { value: 'warehouse_type',  title: 'Warehouse type',  supportsMode: true,  quantifiable: false },
   { value: 'seller',          title: 'Seller',          supportsMode: true,  quantifiable: false },
@@ -181,7 +152,6 @@ const TYPE_OPTIONS = {
   brands: ['Vichy','La Roche-Posay','Eucerin','Bioderma','Avène','Uriage','SVR','Ducray','Lierac','CeraVe','Nuxe','Caudalie','Mustela','Weleda','Nivea','Garnier',"L'Oréal Paris",'Neutrogena','Dove','Palmolive','Sensodyne','Elmex','Colgate','Parodontax','Nurofen','Panadol','Paralen','Ibalgin','Strepsils','Septolete','Imodium','Rennie','Espumisan','Centrum','Walmark','GS','Cemio','Jamieson','Pampers','Huggies','Chicco','Canpol','Omron','Microlife','Beurer','Head & Shoulders','Pantene','Syoss','Purity Vision','Aromatica','Alevia','Hofigal','Fares','Dacia Plant','Aboca','Apteo','Dr. Max'],
   product_lines: ['Dr. Max Basic','Dr. Max Premium','Dr. Max Baby','Dr. Max Dermo','Dr. Max Vitamins','Dr. Max Ortho','Vichy Liftactiv','Vichy Mineral 89','La Roche-Posay Effaclar','La Roche-Posay Toleriane','Eucerin Hyaluron-Filler','Eucerin DermoPure','Bioderma Sensibio','Bioderma Sebium','Avène Tolerance','Nuxe Huile Prodigieuse'],
   customer_group: ['Club Basic','Club Silver','Club Gold','Club Platinum','Healthcare Professional','Employee','Guest'],
-  pim_status: ['Active','Draft','Archived','Pending Approval','Blocked'],
   attribute_set: ['OTC Medicine','Prescription Medicine','Cosmetics','Medical Device','Supplement','Baby Product','Food Supplement','Veterinary'],
   warehouse_type: ['Central Warehouse','Pharmacy Dispatch','Dropship Supplier','Express Courier','Cold Chain'],
   seller: ['Dr. Max CZ','Dr. Max SK','Dr. Max PL','Dr. Max RO','Dr. Max IT','Third-party Seller'],
@@ -191,7 +161,7 @@ const CONDITION_GROUPS = [
   { label: 'Threshold',         color: 'blue',   fields: ['subtotal','quantity','weight'] },
   { label: 'Product & Catalog', color: 'green',  fields: ['categories','brands','skus','product_lines','exclude_on_sale'] },
   { label: 'Customer',          color: 'orange', fields: ['customer_group','coupon_code'] },
-  { label: 'Advanced',          color: 'purple', fields: ['pim_status','attribute_set','warehouse_type','seller'] },
+  { label: 'Advanced',          color: 'purple', fields: ['attribute_set','warehouse_type','seller'] },
 ]
 
 const typeSelectItems = CONDITION_GROUPS.flatMap(g => [
@@ -222,10 +192,6 @@ function isSkuField(cond)     { return cond.field === 'skus' }
 function getValueSuffix(cond) { return cond.field === 'weight' ? 'g' : undefined }
 function hasOptions(cond)     { return !!(cond.field && TYPE_OPTIONS[cond.field]) }
 function getOptions(cond)     { return (TYPE_OPTIONS[cond.field] ?? []).map(v => ({ title: v, value: v })) }
-function skuFilter(value, query, item) {
-  const q = query.toLowerCase()
-  return item.raw.name.toLowerCase().includes(q) || item.raw.sku.includes(q)
-}
 
 function getUiOperator(cond) {
   const def = cond.field ? getTypeDef(cond.field) : null
@@ -323,7 +289,4 @@ function onValueChange(idx, val) {
   align-items: center;
 }
 
-.sku-thumb {
-  border: 1px solid rgba(0, 0, 0, 0.08);
-}
 </style>

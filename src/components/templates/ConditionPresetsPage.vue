@@ -100,7 +100,6 @@ const conditionFilterItems = [
   { value: 'customer_group',  title: 'Customer group' },
   { value: 'coupon_code',     title: 'Coupon code' },
   { type: 'subheader', title: 'Advanced' },
-  { value: 'pim_status',      title: 'PIM status' },
   { value: 'attribute_set',   title: 'Attribute set' },
   { value: 'warehouse_type',  title: 'Warehouse type' },
   { value: 'seller',          title: 'Seller' },
@@ -142,7 +141,7 @@ const FIELD_LABELS = {
   categories: 'Category', brands: 'Brand', skus: 'SKU', product_lines: 'Product line',
   subtotal: 'Subtotal', quantity: 'Quantity', weight: 'Weight',
   customer_group: 'Customer group', coupon_code: 'Coupon', exclude_on_sale: 'Exclude on sale',
-  pim_status: 'PIM status', attribute_set: 'Attribute set', source: 'Source',
+  attribute_set: 'Attribute set', source: 'Source',
   warehouse_type: 'Warehouse', seller: 'Seller',
 }
 

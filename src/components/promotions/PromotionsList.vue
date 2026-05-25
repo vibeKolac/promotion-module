@@ -119,8 +119,8 @@
         style="max-width: 175px"
       />
       <template v-if="dateFilter === 'custom'">
-        <DatePicker v-model="customDateFrom" label="From" style="max-width: 175px" />
-        <DatePicker v-model="customDateTo" label="To" style="max-width: 175px" />
+        <v-text-field v-model="customDateFrom" type="date" label="From" variant="outlined" density="compact" hide-details style="max-width: 175px" />
+        <v-text-field v-model="customDateTo" type="date" label="To" variant="outlined" density="compact" hide-details style="max-width: 175px" />
       </template>
       <v-btn
         v-if="hasActiveFilters"
@@ -141,15 +141,15 @@
       elevation="0"
       class="pa-3 mb-3 bulk-toolbar"
     >
-      <div class="d-flex align-center justify-space-between flex-wrap gap-2">
-        <div class="d-flex align-center gap-2">
+      <div class="d-flex align-center justify-space-between flex-wrap" style="gap: 8px">
+        <div class="d-flex align-center" style="gap: 8px">
           <v-icon color="green-darken-2" size="20">mdi-check-circle</v-icon>
           <span class="font-weight-medium text-green-darken-2">{{ selected.length }} rule{{ selected.length > 1 ? 's' : '' }} selected</span>
           <v-btn variant="text" size="small" color="green-darken-2" @click="selected = []">
             <v-icon size="16" class="mr-1">mdi-close</v-icon>Clear
           </v-btn>
         </div>
-        <div class="d-flex align-center gap-2 flex-wrap">
+        <div class="d-flex align-center flex-wrap" style="gap: 8px">
           <template v-if="activeTab !== 'ended'">
             <v-btn
               v-if="activeTab === 'draft' || activeTab === 'paused'"
@@ -469,7 +469,6 @@ import ConfirmModal from '../_common/ConfirmModal.vue'
 import ContentHeader from '../_common/ContentHeader.vue'
 import Breadcrumbs from '../_common/Breadcrumbs.vue'
 import TextInput from '../_common/TextInput.vue'
-import DatePicker from '../_common/DatePicker.vue'
 import { detectConflicts } from '../../utils/ruleConflictDetector'
 import ConflictBadge from './ConflictBadge.vue'
 import CsvImportDialog from './CsvImportDialog.vue'
@@ -565,6 +564,11 @@ const bulkDeleteModal = ref(null)
 const deletingItem = ref(null)
 const deleting = ref(false)
 const selected = ref([])
+
+watch(activeTab, () => {
+  selected.value = []
+})
+
 const csvImportOpen = ref(false)
 const duplicateSnack = ref(false)
 const bulkSnack = ref(false)

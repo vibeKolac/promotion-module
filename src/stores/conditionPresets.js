@@ -37,14 +37,6 @@ const DEFAULTS = [
       { id: 'cpd-4', field: 'brands', mode: 'include', values: ['Dr. Max'] },
     ],
   },
-  {
-    id: 'cp-5',
-    name: 'Web & App Only',
-    description: 'Limit to web and mobile app traffic sources',
-    conditions: [
-      { id: 'cpd-5', field: 'source', mode: 'include', values: ['Web', 'Mobile App', 'iOS App', 'Android App'] },
-    ],
-  },
 ]
 
 export const useConditionPresetsStore = defineStore('conditionPresets', () => {
@@ -55,7 +47,9 @@ export const useConditionPresetsStore = defineStore('conditionPresets', () => {
     } catch { return null }
   })()
 
-  const items = ref(saved ?? DEFAULTS.map(d => ({ ...d })))
+  const REMOVED_IDS = new Set(['cp-5'])
+  const base = (saved ?? DEFAULTS.map(d => ({ ...d }))).filter(p => !REMOVED_IDS.has(p.id))
+  const items = ref(base)
 
   function persist() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(items.value))
