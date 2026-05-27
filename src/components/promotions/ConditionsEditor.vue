@@ -232,12 +232,15 @@ const typeSelectItems = computed(() => {
   const recent = recentTypeValues.value
     .map(v => CONDITION_TYPES.find(t => t.value === v))
     .filter(Boolean)
+  const recentSet = new Set(recent.map(t => t.value))
   const grouped = CONDITION_GROUPS.flatMap(g => [
     { type: 'subheader', title: g.label },
-    ...g.fields.map(f => {
-      const t = CONDITION_TYPES.find(ct => ct.value === f)
-      return { title: t.title, value: t.value }
-    }),
+    ...g.fields
+      .filter(f => !recentSet.has(f))
+      .map(f => {
+        const t = CONDITION_TYPES.find(ct => ct.value === f)
+        return { title: t.title, value: t.value }
+      }),
   ])
   if (!recent.length) return grouped
   return [
