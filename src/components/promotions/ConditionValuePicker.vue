@@ -1,16 +1,18 @@
 <!-- src/components/promotions/ConditionValuePicker.vue
      Searchable multi-select for list-type condition fields (categories, brands,
      product lines, customer groups, etc.). Marks globally-excluded items with a
-     "Not allowed" chip so users can see them but understand they are restricted. -->
+     "Not allowed" chip so users can see them but understand they are restricted.
+     Any extra props/attrs (label, chips, closable-chips, placeholder, class…)
+     are forwarded to the underlying v-autocomplete via v-bind="$attrs". -->
 <template>
   <v-autocomplete
+    v-bind="$attrs"
     :model-value="modelValue"
     :items="items"
     variant="outlined"
     density="compact"
     hide-details
     placeholder="Search or select…"
-    clearable
     multiple
     :disabled="disabled"
     @update:model-value="$emit('update:modelValue', $event)"
@@ -29,6 +31,8 @@
 import { computed } from 'vue'
 import { useSettingsStore } from '../../stores/settings'
 import { TYPE_OPTIONS } from '../../utils/conditionTypes'
+
+defineOptions({ inheritAttrs: false })
 
 const props = defineProps({
   field:       { type: String,  required: true },
