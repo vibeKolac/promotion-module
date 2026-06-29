@@ -2,22 +2,24 @@
 <template>
   <div>
     <!-- Header -->
-    <div class="d-flex align-center mb-1">
-      <span class="text-body-1 font-weight-bold">{{ title }}</span>
-      <HelpTooltip v-if="helpText" :text="helpText" class="ml-1" />
-      <v-spacer />
-      <v-btn prepend-icon="mdi-upload" variant="text" size="small" @click="csvImportOpen = true">
-        Import CSV
-        <v-chip size="x-small" color="warning" variant="tonal" label class="ml-2">Exploring</v-chip>
-      </v-btn>
-      <v-btn v-if="showPreset" prepend-icon="mdi-filter-variant" variant="text" size="small" @click="presetPickerOpen = true">
-        Preset
-        <v-chip size="x-small" color="warning" variant="tonal" label class="ml-2">Exploring</v-chip>
-      </v-btn>
-    </div>
-    <div class="text-caption text-medium-emphasis mb-4">
-      Add conditions or groups. Click the chips between rows to switch between AND and OR.
-    </div>
+    <template v-if="showHeader">
+      <div class="d-flex align-center mb-1">
+        <span class="text-body-1 font-weight-bold">{{ title }}</span>
+        <HelpTooltip v-if="helpText" :text="helpText" class="ml-1" />
+        <v-spacer />
+        <v-btn prepend-icon="mdi-upload" variant="text" size="small" @click="csvImportOpen = true">
+          Import CSV
+          <v-chip size="x-small" color="warning" variant="tonal" label class="ml-2">Exploring</v-chip>
+        </v-btn>
+        <v-btn v-if="showPreset" prepend-icon="mdi-filter-variant" variant="text" size="small" @click="presetPickerOpen = true">
+          Preset
+          <v-chip size="x-small" color="warning" variant="tonal" label class="ml-2">Exploring</v-chip>
+        </v-btn>
+      </div>
+      <div class="text-caption text-medium-emphasis mb-4">
+        Add conditions or groups. Click the AND / OR chip to switch the operator for the entire group.
+      </div>
+    </template>
 
     <!-- Conditions list -->
     <div v-if="modelValue.length" class="mb-4">
@@ -148,19 +150,66 @@
       <span class="text-body-2 text-medium-emphasis"><slot name="empty">No conditions set.</slot></span>
     </div>
 
+    <!-- SKU validation warnings -->
+    <v-alert
+      v-if="skuConditionWarnings.notAllowed.length"
+      type="error"
+      variant="tonal"
+      density="compact"
+      class="mb-3 text-caption"
+    >
+      <div class="d-flex align-center justify-space-between" style="gap: 8px">
+        <span>
+          <strong>{{ skuConditionWarnings.notAllowed.length }} not allowed (globally excluded):</strong>
+          {{ skuConditionWarnings.notAllowed.join(', ') }}
+        </span>
+        <v-btn size="x-small" variant="tonal" color="error" @click="removeSkusFromConditions(skuConditionWarnings.notAllowed)">Remove</v-btn>
+      </div>
+    </v-alert>
+    <v-alert
+      v-if="skuConditionWarnings.outOfStock.length"
+      type="warning"
+      variant="tonal"
+      density="compact"
+      class="mb-3 text-caption"
+    >
+      <div class="d-flex align-center justify-space-between" style="gap: 8px">
+        <span>
+          <strong>{{ skuConditionWarnings.outOfStock.length }} out of stock:</strong>
+          {{ skuConditionWarnings.outOfStock.join(', ') }}
+        </span>
+        <v-btn size="x-small" variant="tonal" color="warning" @click="removeSkusFromConditions(skuConditionWarnings.outOfStock)">Remove</v-btn>
+      </div>
+    </v-alert>
+    <v-alert
+      v-if="skuConditionWarnings.notFound.length"
+      type="error"
+      variant="tonal"
+      density="compact"
+      class="mb-3 text-caption"
+    >
+      <div class="d-flex align-center justify-space-between" style="gap: 8px">
+        <span>
+          <strong>{{ skuConditionWarnings.notFound.length }} not found:</strong>
+          {{ skuConditionWarnings.notFound.join(', ') }}
+        </span>
+        <v-btn size="x-small" variant="tonal" color="error" @click="removeSkusFromConditions(skuConditionWarnings.notFound)">Remove</v-btn>
+      </div>
+    </v-alert>
+
     <!-- Actions -->
     <div class="condition-actions">
       <v-btn prepend-icon="mdi-plus" variant="outlined" size="default" @click="addConditionInline">
         Add condition
       </v-btn>
-      <v-btn prepend-icon="mdi-table-plus" variant="outlined" size="default" @click="openAddGroup">
+      <v-btn v-if="allowGroups" prepend-icon="mdi-table-plus" variant="outlined" size="default" @click="openAddGroup">
         Add group
       </v-btn>
     </div>
 
     <!-- Dialogs -->
-    <ConditionCsvImportDialog v-model="csvImportOpen" @import="onCsvImport" />
-    <ConditionPresetPickerDialog v-if="showPreset" v-model="presetPickerOpen" @apply="onPresetApply" />
+    <ConditionCsvImportDialog v-if="showHeader" v-model="csvImportOpen" @import="onCsvImport" />
+    <ConditionPresetPickerDialog v-if="showPreset && showHeader" v-model="presetPickerOpen" @apply="onPresetApply" />
   </div>
 </template>
 
@@ -173,6 +222,7 @@ import ConditionCsvImportDialog from './ConditionCsvImportDialog.vue'
 import ConditionPresetPickerDialog from './ConditionPresetPickerDialog.vue'
 import SkuValuePicker from './SkuValuePicker.vue'
 import { downloadConditionsTemplate } from '../../utils/csvRuleImportExport'
+import { validateSkus } from '../../utils/skuValidation'
 import { useSettingsStore } from '../../stores/settings'
 import { getRecentConditionTypes, recordConditionTypes } from '../../utils/recentConditionTypes'
 
@@ -208,11 +258,13 @@ const TYPE_OPTIONS = {
 
 // ── Props / emits ─────────────────────────────────────────────────────────────
 const props = defineProps({
-  modelValue: { type: Array, default: () => [] },
-  scope:      { type: String, default: 'cart' },
-  showPreset: { type: Boolean, default: true },
-  title:      { type: String, default: 'Condition Builder' },
-  helpText:   { type: String, default: null },
+  modelValue:  { type: Array,   default: () => [] },
+  scope:       { type: String,  default: 'cart' },
+  showPreset:  { type: Boolean, default: true },
+  showHeader:  { type: Boolean, default: true },
+  allowGroups: { type: Boolean, default: true },
+  title:       { type: String,  default: 'Condition Builder' },
+  helpText:    { type: String,  default: null },
 })
 const emit = defineEmits(['update:modelValue'])
 
@@ -324,11 +376,37 @@ function emit_(conditions) {
   emit('update:modelValue', conditions)
 }
 
+// ── SKU validation ────────────────────────────────────────────────────────────
+const skuConditionWarnings = computed(() => {
+  const skus = props.modelValue
+    .filter(c => c.field === 'skus')
+    .flatMap(c => c.values ?? [])
+  if (!skus.length) return { outOfStock: [], notFound: [], notAllowed: [] }
+  const { outOfStock, notFound } = validateSkus(skus)
+  const excludedSet = new Set(settingsStore.excludedSkus)
+  const notAllowed = skus.filter(s => excludedSet.has(s))
+  return { outOfStock, notFound, notAllowed }
+})
+
+function removeSkusFromConditions(skusToRemove) {
+  const toRemove = new Set(skusToRemove)
+  emit_(props.modelValue.map(c =>
+    c.field === 'skus' && c.values
+      ? { ...c, values: c.values.filter(s => !toRemove.has(s)) }
+      : c
+  ))
+}
+
+function currentGroupOp() {
+  return props.modelValue.find(c => c.logicalOp)?.logicalOp ?? 'AND'
+}
+
 function withDefaultOp(conditions, isFirst) {
+  const groupOp = isFirst ? 'AND' : currentGroupOp()
   return conditions.map((c, i) => ({
     ...c,
     id: c.id ?? uuid(),
-    logicalOp: (isFirst && i === 0) ? undefined : (c.logicalOp ?? 'AND'),
+    logicalOp: (isFirst && i === 0) ? undefined : groupOp,
   }))
 }
 
@@ -341,7 +419,7 @@ function addConditionInline() {
     mode: 'include',
     values: [],
     operator: undefined,
-    logicalOp: isFirst ? undefined : 'AND',
+    logicalOp: isFirst ? undefined : currentGroupOp(),
   }])
 }
 
@@ -351,7 +429,7 @@ function openAddGroup() {
     id: uuid(),
     type: 'group',
     conditions: [],
-    logicalOp: isFirst ? undefined : 'AND',
+    logicalOp: isFirst ? undefined : currentGroupOp(),
   }])
 }
 
@@ -365,8 +443,9 @@ function remove(idx) {
 }
 
 function toggleOp(idx) {
+  const nextOp = (props.modelValue[idx]?.logicalOp ?? 'AND') === 'OR' ? 'AND' : 'OR'
   emit_(props.modelValue.map((c, i) =>
-    i === idx ? { ...c, logicalOp: c.logicalOp === 'OR' ? 'AND' : 'OR' } : c
+    i === 0 ? c : { ...c, logicalOp: nextOp }
   ))
 }
 

@@ -433,67 +433,6 @@
             <template #empty>No conditions set — this rule applies to all products.</template>
           </ConditionsEditor>
 
-          <v-alert
-            v-if="skuConditionWarnings.notAllowed.length"
-            type="error"
-            variant="tonal"
-            density="compact"
-            class="mt-3 text-caption"
-          >
-            <div class="d-flex align-center justify-space-between" style="gap: 8px">
-              <span>
-                <strong>{{ skuConditionWarnings.notAllowed.length }} not allowed (globally excluded):</strong>
-                {{ skuConditionWarnings.notAllowed.join(', ') }}
-              </span>
-              <v-btn
-                size="x-small"
-                variant="tonal"
-                color="error"
-                @click="removeSkusFromConditions(skuConditionWarnings.notAllowed)"
-              >Remove</v-btn>
-            </div>
-          </v-alert>
-          <v-alert
-            v-if="skuConditionWarnings.outOfStock.length"
-            type="warning"
-            variant="tonal"
-            density="compact"
-            class="mt-3 text-caption"
-          >
-            <div class="d-flex align-center justify-space-between" style="gap: 8px">
-              <span>
-                <strong>{{ skuConditionWarnings.outOfStock.length }} out of stock:</strong>
-                {{ skuConditionWarnings.outOfStock.join(', ') }}
-              </span>
-              <v-btn
-                size="x-small"
-                variant="tonal"
-                color="warning"
-                @click="removeSkusFromConditions(skuConditionWarnings.outOfStock)"
-              >Remove</v-btn>
-            </div>
-          </v-alert>
-          <v-alert
-            v-if="skuConditionWarnings.notFound.length"
-            type="error"
-            variant="tonal"
-            density="compact"
-            class="mt-3 text-caption"
-          >
-            <div class="d-flex align-center justify-space-between" style="gap: 8px">
-              <span>
-                <strong>{{ skuConditionWarnings.notFound.length }} not found:</strong>
-                {{ skuConditionWarnings.notFound.join(', ') }}
-              </span>
-              <v-btn
-                size="x-small"
-                variant="tonal"
-                color="error"
-                @click="removeSkusFromConditions(skuConditionWarnings.notFound)"
-              >Remove</v-btn>
-            </div>
-          </v-alert>
-
           <ReachEstimateBar :conditions="draft.conditions" :scope="draft.scope" class="mt-3" />
 
           <v-dialog v-model="overflowDialog" max-width="420">
@@ -958,7 +897,6 @@ import { usePromotionsStore } from '../../stores/promotions'
 import { useStackingGroupsStore } from '../../stores/stackingGroups'
 import { useSettingsStore } from '../../stores/settings'
 import { validateConditions } from '../../utils/conditionValidator'
-import { validateSkus } from '../../utils/skuValidation'
 import { detectGiftConflicts } from '../../utils/giftConflictDetector'
 import ConditionsEditor from './ConditionsEditor.vue'
 import { v4 as uuid } from 'uuid'
@@ -1365,25 +1303,7 @@ const breadcrumbs = computed(() => [{
 
 const conditionValidation = computed(() => validateConditions(draft.conditions))
 
-const skuConditionWarnings = computed(() => {
-  const skus = draft.conditions
-    .filter(c => c.field === 'skus')
-    .flatMap(c => c.values ?? [])
-  if (!skus.length) return { outOfStock: [], notFound: [], notAllowed: [] }
-  const { outOfStock, notFound } = validateSkus(skus)
-  const excludedSet = new Set(settingsStore.excludedSkus)
-  const notAllowed = skus.filter(s => excludedSet.has(s))
-  return { outOfStock, notFound, notAllowed }
-})
 
-function removeSkusFromConditions(skusToRemove) {
-  const toRemove = new Set(skusToRemove)
-  for (const c of draft.conditions) {
-    if (c.field === 'skus' && c.values) {
-      c.values = c.values.filter(s => !toRemove.has(s))
-    }
-  }
-}
 const giftConflicts = computed(() => detectGiftConflicts(draft.gifts, draft.conditions))
 
 // ── Conditions plain-English description ──────────────────────────────────────
