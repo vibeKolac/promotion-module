@@ -19,20 +19,13 @@
 
 <script setup>
 import { computed } from 'vue'
+import { FIELD_LABELS } from '../../utils/conditionTypes'
 
 const props = defineProps({
   condition: { type: Object, required: true },
   scope: { type: String, default: 'cart' },
 })
 defineEmits(['edit', 'remove'])
-
-const LABELS = {
-  categories: 'Categories', brands: 'Brands', skus: 'SKUs',
-  product_lines: 'Product lines', customer_group: 'Customer group',
-  coupon_code: 'Coupon code', exclude_on_sale: 'Exclude on sale',
-  attribute_set: 'Attribute set',
-  source: 'Source', warehouse_type: 'Warehouse type', seller: 'Seller',
-}
 
 const SCOPE_LABELS = {
   cart: { subtotal: 'Cart subtotal (incl. VAT)', quantity: 'Cart qty', weight: 'Cart weight' },
@@ -43,7 +36,7 @@ const OPERATORS = { '>=': 'at least', '>': 'more than', '<=': 'at most', '<': 'l
 
 const label = computed(() => {
   const fieldLabel = SCOPE_LABELS[props.scope]?.[props.condition.field]
-    ?? LABELS[props.condition.field]
+    ?? FIELD_LABELS[props.condition.field]
     ?? props.condition.field
   const vals = props.condition.values.join(', ')
   if (props.condition.operator) {

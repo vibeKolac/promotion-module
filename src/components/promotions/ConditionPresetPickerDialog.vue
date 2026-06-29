@@ -99,6 +99,7 @@
 import { ref, computed } from 'vue'
 import { v4 as uuid } from 'uuid'
 import { useConditionPresetsStore } from '../../stores/conditionPresets'
+import { FIELD_LABELS } from '../../utils/conditionTypes'
 
 defineProps({ modelValue: Boolean })
 const emit = defineEmits(['update:modelValue', 'apply'])
@@ -116,13 +117,6 @@ const filtered = computed(() =>
   )
 )
 
-const FIELD_LABELS = {
-  categories: 'Category', brands: 'Brand', skus: 'SKU', product_lines: 'Product line',
-  subtotal: 'Subtotal', quantity: 'Quantity', weight: 'Weight',
-  customer_group: 'Customer group', coupon_code: 'Coupon', exclude_on_sale: 'Exclude on sale',
-  pim_status: 'PIM status', attribute_set: 'Attribute set', source: 'Source',
-  warehouse_type: 'Warehouse', seller: 'Seller',
-}
 
 function conditionLabel(cond) {
   const fieldLabel = FIELD_LABELS[cond.field] ?? cond.field

@@ -96,28 +96,14 @@
               :model-value="cond.values ?? []"
               @update:model-value="onValueChange(idx, $event)"
             />
-            <!-- Value — list type: searchable autocomplete -->
-            <v-autocomplete
+            <!-- Value — list type: shared picker with "Not allowed" support -->
+            <ConditionValuePicker
               v-else-if="hasOptions(cond)"
+              :field="cond.field"
               :model-value="cond.values ?? []"
-              :items="getOptions(cond)"
-              variant="outlined"
-              density="compact"
-              hide-details
-              placeholder="Search or select…"
-              clearable
-              multiple
               :disabled="!cond.field"
               @update:model-value="onValueChange(idx, $event)"
-            >
-              <template #item="{ item, props: itemProps }">
-                <v-list-item v-bind="itemProps" :disabled="item.raw.disabled">
-                  <template v-if="item.raw.disabled" #append>
-                    <v-chip size="x-small" color="error" variant="tonal" label>Not allowed</v-chip>
-                  </template>
-                </v-list-item>
-              </template>
-            </v-autocomplete>
+            />
             <!-- Value — free text -->
             <v-text-field
               v-else-if="cond.field && !isBoolean(cond)"
@@ -221,40 +207,15 @@ import ConditionGroupRow from './ConditionGroupRow.vue'
 import ConditionCsvImportDialog from './ConditionCsvImportDialog.vue'
 import ConditionPresetPickerDialog from './ConditionPresetPickerDialog.vue'
 import SkuValuePicker from './SkuValuePicker.vue'
+import ConditionValuePicker from './ConditionValuePicker.vue'
 import { downloadConditionsTemplate } from '../../utils/csvRuleImportExport'
 import { validateSkus } from '../../utils/skuValidation'
 import { useSettingsStore } from '../../stores/settings'
 import { getRecentConditionTypes, recordConditionTypes } from '../../utils/recentConditionTypes'
+import { CONDITION_TYPES, CONDITION_GROUPS, TYPE_OPTIONS, getConditionTypeDef } from '../../utils/conditionTypes'
 
 const settingsStore = useSettingsStore()
 const recentTypeValues = ref(getRecentConditionTypes())
-
-// ── Type definitions ──────────────────────────────────────────────────────────
-const CONDITION_TYPES = [
-  { value: 'categories',      title: 'Categories',      supportsMode: true,  quantifiable: false },
-  { value: 'brands',          title: 'Brands',          supportsMode: true,  quantifiable: false },
-  { value: 'skus',            title: 'SKUs',            supportsMode: true,  quantifiable: false },
-  { value: 'product_lines',   title: 'Product lines',   supportsMode: true,  quantifiable: false },
-  { value: 'subtotal',        title: 'Subtotal',        supportsMode: false, quantifiable: true  },
-  { value: 'quantity',        title: 'Quantity',        supportsMode: false, quantifiable: true  },
-  { value: 'weight',          title: 'Weight',          supportsMode: false, quantifiable: true  },
-  { value: 'customer_group',  title: 'Customer group',  supportsMode: true,  quantifiable: false },
-  { value: 'coupon_code',     title: 'Coupon code',     supportsMode: false, quantifiable: false },
-  { value: 'exclude_on_sale', title: 'Exclude on sale', supportsMode: false, quantifiable: false, boolean: true },
-  { value: 'attribute_set',   title: 'Attribute set',   supportsMode: true,  quantifiable: false },
-  { value: 'warehouse_type',  title: 'Warehouse type',  supportsMode: true,  quantifiable: false },
-  { value: 'seller',          title: 'Seller',          supportsMode: true,  quantifiable: false },
-]
-
-const TYPE_OPTIONS = {
-  categories: ['Vitamins & Supplements','OTC Medications','Dermocosmetology','Face Care','Body Care','Hair Care','Dental Care','Baby & Child Care','Diapers & Wipes','Medical Devices','Weight Loss & Diet','Sport & Fitness','Sexual Health & Contraception','Testing & Diagnostics','Eye Care','Foot Care','Sun Protection','Wound Care','Homeopathy & Herbs','For Seniors','Allergy & Immunity','Pain Relief','Cold & Flu','Digestive Health','Sleep & Relaxation'],
-  brands: ['Vichy','La Roche-Posay','Eucerin','Bioderma','Avène','Uriage','SVR','Ducray','Lierac','CeraVe','Nuxe','Caudalie','Mustela','Weleda','Nivea','Garnier',"L'Oréal Paris",'Neutrogena','Dove','Palmolive','Sensodyne','Elmex','Colgate','Parodontax','Nurofen','Panadol','Paralen','Ibalgin','Strepsils','Septolete','Imodium','Rennie','Espumisan','Centrum','Walmark','GS','Cemio','Jamieson','Pampers','Huggies','Chicco','Canpol','Omron','Microlife','Beurer','Head & Shoulders','Pantene','Syoss','Purity Vision','Aromatica','Alevia','Hofigal','Fares','Dacia Plant','Aboca','Apteo','Dr. Max'],
-  product_lines: ['Dr. Max Basic','Dr. Max Premium','Dr. Max Baby','Dr. Max Dermo','Dr. Max Vitamins','Dr. Max Ortho','Vichy Liftactiv','Vichy Mineral 89','La Roche-Posay Effaclar','La Roche-Posay Toleriane','Eucerin Hyaluron-Filler','Eucerin DermoPure','Bioderma Sensibio','Bioderma Sebium','Avène Tolerance','Nuxe Huile Prodigieuse'],
-  customer_group: ['Club Basic','Club Silver','Club Gold','Club Platinum','Healthcare Professional','Employee','Guest'],
-  attribute_set: ['OTC Medicine','Prescription Medicine','Cosmetics','Medical Device','Supplement','Baby Product','Food Supplement','Veterinary'],
-  warehouse_type: ['Central Warehouse','Pharmacy Dispatch','Dropship Supplier','Express Courier','Cold Chain'],
-  seller: ['Dr. Max CZ','Dr. Max SK','Dr. Max PL','Dr. Max RO','Dr. Max IT','Third-party Seller'],
-}
 
 // ── Props / emits ─────────────────────────────────────────────────────────────
 const props = defineProps({
@@ -273,13 +234,6 @@ const csvImportOpen = ref(false)
 const presetPickerOpen = ref(false)
 
 // ── Type helpers ──────────────────────────────────────────────────────────────
-const CONDITION_GROUPS = [
-  { label: 'Threshold',         color: 'blue',   fields: ['subtotal','quantity','weight'] },
-  { label: 'Product & Catalog', color: 'green',  fields: ['categories','brands','skus','product_lines','exclude_on_sale'] },
-  { label: 'Customer',          color: 'orange', fields: ['customer_group','coupon_code'] },
-  { label: 'Advanced',          color: 'purple', fields: ['attribute_set','warehouse_type','seller'] },
-]
-
 const typeSelectItems = computed(() => {
   const recent = recentTypeValues.value
     .map(v => CONDITION_TYPES.find(t => t.value === v))
@@ -302,46 +256,12 @@ const typeSelectItems = computed(() => {
   ]
 })
 
-function getTypeDef(field) {
-  return CONDITION_TYPES.find(t => t.value === field)
-}
-
-function isQuantifiable(cond) {
-  return !!getTypeDef(cond.field)?.quantifiable
-}
-
-function isBoolean(cond) {
-  return !!getTypeDef(cond.field)?.boolean
-}
-
-function isSkuField(cond) {
-  return cond.field === 'skus'
-}
-
-function getValueSuffix(cond) {
-  if (cond.field === 'weight') return 'g'
-  return undefined
-}
-
-function hasOptions(cond) {
-  return !!(cond.field && TYPE_OPTIONS[cond.field])
-}
-
-function getExcludedForField(field) {
-  if (field === 'categories') return settingsStore.excludedCategories
-  if (field === 'brands') return settingsStore.excludedBrands
-  if (field === 'product_lines') return settingsStore.excludedProductLines
-  return []
-}
-
-function getOptions(cond) {
-  const excluded = getExcludedForField(cond.field)
-  return (TYPE_OPTIONS[cond.field] ?? []).map(v => ({
-    title: v,
-    value: v,
-    disabled: excluded.includes(v),
-  }))
-}
+function getTypeDef(field) { return getConditionTypeDef(field) }
+function isQuantifiable(cond) { return !!getTypeDef(cond.field)?.quantifiable }
+function isBoolean(cond)      { return !!getTypeDef(cond.field)?.boolean }
+function isSkuField(cond)     { return cond.field === 'skus' }
+function getValueSuffix(cond) { return cond.field === 'weight' ? 'g' : undefined }
+function hasOptions(cond)     { return !!(cond.field && TYPE_OPTIONS[cond.field]) }
 
 function getUiOperator(cond) {
   const typeDef = cond.field ? getTypeDef(cond.field) : null
