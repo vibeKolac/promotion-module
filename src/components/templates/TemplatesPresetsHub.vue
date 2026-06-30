@@ -32,20 +32,23 @@ import Breadcrumbs from '../_common/Breadcrumbs.vue'
 const router = useRouter()
 const route = useRoute()
 
+const italyMode = computed(() => route.path.startsWith('/italy'))
+const basePath = computed(() => italyMode.value ? '/italy' : '')
+
 const activeTab = computed(() => {
   if (route.path.endsWith('/condition-presets')) return 'condition-presets'
   return 'templates'
 })
 
 function navigate(tab) {
-  router.push(`/templates-presets/${tab}`)
+  router.push(`${basePath.value}/templates-presets/${tab}`)
 }
 
 function openCreatePreset() {
-  router.push('/condition-presets/new')
+  router.push(`${basePath.value}/condition-presets/new`)
 }
 
 function openCreateTemplate() {
-  router.push('/templates/new')
+  router.push(`${basePath.value}/templates/new`)
 }
 </script>
