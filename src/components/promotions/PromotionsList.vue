@@ -6,7 +6,7 @@
     <ContentHeader>
       <h1 class="text-h5 font-weight-bold">Promotion rules management</h1>
       <template #right>
-        <div v-if="!mobile" class="bulk-csv-wrapper">
+        <div v-if="!mobile && !italyMode" class="bulk-csv-wrapper">
           <v-chip
             size="x-small"
             color="warning"
@@ -204,9 +204,9 @@
       >
         <template #item.name="{ item }">
           <div class="d-flex align-center gap-2">
-            <RouterLink :to="`/promotions/${item.id}/edit`" class="rule-name-link font-weight-medium">{{ item.name }}</RouterLink>
+            <RouterLink :to="`${basePath}/promotions/${item.id}/edit`" class="rule-name-link font-weight-medium">{{ item.name }}</RouterLink>
             <ConflictBadge
-              v-if="conflictsMap.get(item.id)?.length"
+              v-if="!italyMode && conflictsMap.get(item.id)?.length"
               :conflicts="conflictsMap.get(item.id)"
             />
           </div>
@@ -301,7 +301,7 @@
               />
             </template>
             <v-list density="compact" min-width="180">
-              <v-list-item v-if="item.status !== 'ended'" prepend-icon="mdi-pencil" title="Edit" :to="`/promotions/${item.id}/edit`" />
+              <v-list-item v-if="item.status !== 'ended'" prepend-icon="mdi-pencil" title="Edit" :to="`${basePath}/promotions/${item.id}/edit`" />
               <v-list-item prepend-icon="mdi-content-copy" title="Duplicate" @click="duplicateRule(item.id)" />
               <template v-if="item.status !== 'ended'">
                 <v-list-item
@@ -353,7 +353,7 @@
         This action cannot be undone. The selected {{ selected.length }} rule{{ selected.length > 1 ? 's' : '' }} will be permanently deleted.
       </template>
     </ConfirmModal>
-    <CsvImportDialog v-model="csvImportOpen" @import="onCSVImport" />
+    <CsvImportDialog v-if="!italyMode" v-model="csvImportOpen" @import="onCSVImport" />
 
     <!-- New rule dialog -->
     <v-dialog v-model="newRuleDialogOpen" max-width="560" scrollable>
@@ -368,7 +368,7 @@
         <!-- Step 1: choose mode -->
         <v-card-text v-if="newRuleStep === 'choose'" class="pa-5">
           <div class="new-rule-choices">
-            <v-card border elevation="0" class="pa-4 new-rule-option" @click="router.push('/promotions/new'); newRuleDialogOpen = false">
+            <v-card border elevation="0" class="pa-4 new-rule-option" @click="router.push(`${basePath}/promotions/new`); newRuleDialogOpen = false">
               <div class="new-rule-option-inner">
                 <v-avatar color="primary" variant="tonal" size="44">
                   <v-icon color="primary" size="24">mdi-plus</v-icon>
@@ -475,6 +475,8 @@ import CsvImportDialog from './CsvImportDialog.vue'
 import { downloadCSV, exportRulesToCSV } from '../../utils/csvRuleImportExport'
 const router = useRouter()
 const route = useRoute()
+const italyMode = computed(() => route.path.startsWith('/italy'))
+const basePath = computed(() => italyMode.value ? '/italy' : '')
 const store = usePromotionsStore()
 const templatesStore = useTemplatesStore()
 
@@ -533,13 +535,13 @@ function applyTemplate(tpl) {
     })
   }
   newRuleDialogOpen.value = false
-  router.push({ path: '/promotions/new', query: { fromTemplate: '1' } })
+  router.push({ path: `${basePath.value}/promotions/new`, query: { fromTemplate: '1' } })
 }
 
 function onRowClick(event, { item }) {
   // Skip navigation when clicking checkbox or the actions menu
   if (event.target.closest('.v-selection-control') || event.target.closest('[data-testid="row-actions"]')) return
-  router.push(`/promotions/${item.id}/edit`)
+  router.push(`${basePath.value}/promotions/${item.id}/edit`)
 }
 const sgStore = useStackingGroupsStore()
 const tagsStore = useTagsStore()
