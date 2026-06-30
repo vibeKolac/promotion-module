@@ -31,6 +31,17 @@
         {{ skuWarnings.outOfStock.join(', ') }}
       </v-alert>
       <v-alert
+        v-if="skuWarnings.notAllowed.length"
+        type="error"
+        variant="tonal"
+        density="compact"
+        class="mb-2 text-caption"
+        closable
+      >
+        <strong>{{ skuWarnings.notAllowed.length }} SKU{{ skuWarnings.notAllowed.length > 1 ? 's' : '' }} not allowed (globally excluded):</strong>
+        {{ skuWarnings.notAllowed.join(', ') }}
+      </v-alert>
+      <v-alert
         v-if="skuWarnings.notFound.length"
         type="error"
         variant="tonal"
@@ -124,6 +135,7 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { validateSkus } from '../../utils/skuValidation'
+import { useSettingsStore } from '../../stores/settings'
 
 const props = defineProps({
   modelValue: { type: Array, default: () => [] },
@@ -133,6 +145,7 @@ const props = defineProps({
 })
 const emit = defineEmits(['update:modelValue'])
 
+const settingsStore = useSettingsStore()
 const search = ref('')
 
 const trimmedSearch = computed(() => search.value?.trim() ?? '')
@@ -149,9 +162,12 @@ const exactMatchExists = computed(() =>
 
 const skuWarnings = computed(() => {
   if (props.fieldType !== 'skus' || !props.modelValue.length) {
-    return { notFound: [], outOfStock: [] }
+    return { notFound: [], outOfStock: [], notAllowed: [] }
   }
-  return validateSkus(props.modelValue)
+  const { notFound, outOfStock } = validateSkus(props.modelValue)
+  const excludedSet = new Set(settingsStore.excludedSkus)
+  const notAllowed = props.modelValue.filter(s => excludedSet.has(s))
+  return { notFound, outOfStock, notAllowed }
 })
 
 function remove(val) {

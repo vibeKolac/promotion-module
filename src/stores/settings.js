@@ -21,7 +21,7 @@ export const useSettingsStore = defineStore('settings', () => {
   const prioritizationMode = ref(saved.prioritizationMode ?? 'manual')
   const excludedCategories = ref(saved.excludedCategories ?? [])
   const excludedBrands = ref(saved.excludedBrands ?? [])
-  const excludedSkus = ref(saved.excludedSkus ?? [])
+  const excludedSkus = ref(saved.excludedSkus ?? ['100200309'])
   const excludedProductLines = ref(saved.excludedProductLines ?? [])
   const cartDiscountCalculation = ref(saved.cartDiscountCalculation ?? 'per_item')
 
