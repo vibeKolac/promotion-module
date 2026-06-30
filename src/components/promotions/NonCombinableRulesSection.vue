@@ -29,6 +29,7 @@
         <span class="text-body-2 flex-grow-1">
           <span class="text-medium-emphasis mr-1">{{ entry.type === 'all' ? '' : entry.type === 'group' ? 'Group:' : 'Rule:' }}</span>
           {{ entry.label }}
+          <span v-if="entry.type === 'rule'" class="text-caption text-medium-emphasis ml-1">({{ entry.id }})</span>
         </span>
         <StatusBadge v-if="entry.type === 'rule' && entry.status" :status="entry.status" class="ml-2" />
         <v-btn
@@ -120,9 +121,14 @@
             chip-color="grey-darken-1"
             no-data-text="No eligible rules found"
             hide-details
+            :custom-filter="(value, query, item) => {
+              if (!query) return true
+              const q = query.toLowerCase()
+              return item.raw.title.toLowerCase().includes(q) || item.raw.id.toLowerCase().includes(q)
+            }"
           >
             <template #item="{ props: itemProps, item }">
-              <v-list-item v-bind="itemProps" :subtitle="item.raw.coveredByGroup ? 'Already covered by group restriction' : null" :disabled="item.raw.coveredByGroup">
+              <v-list-item v-bind="itemProps" :subtitle="item.raw.coveredByGroup ? `${item.raw.id} — Already covered by group restriction` : item.raw.id" :disabled="item.raw.coveredByGroup">
                 <template #append>
                   <StatusBadge :status="item.raw.status" />
                 </template>
@@ -214,6 +220,7 @@ const availableRules = computed(() =>
     .map(p => ({
       value: p.id,
       title: p.name,
+      id: p.id,
       status: p.status,
       coveredByGroup: restrictedGroupIds.value.has(p.stackingGroupId ?? 'sg-default'),
     }))
