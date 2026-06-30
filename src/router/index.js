@@ -110,11 +110,11 @@ const exploringChildren = [
 ]
 
 const routes = [
-  { path: '/', redirect: '/promotions' },
   { path: '/templates', redirect: '/templates-presets/templates' },
   {
     path: '/',
     component: DefaultLayout,
+    redirect: '/promotions',
     children: [...coreChildren(''), ...exploringChildren],
   },
   {
