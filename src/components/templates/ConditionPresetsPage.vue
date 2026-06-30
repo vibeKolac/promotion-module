@@ -76,12 +76,14 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { useDisplay } from 'vuetify'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { useConditionPresetsStore } from '../../stores/conditionPresets'
 
 const store = useConditionPresetsStore()
 const { mobile } = useDisplay()
 const router = useRouter()
+const route = useRoute()
+const italyMode = computed(() => route.path.startsWith('/italy'))
 const search = ref('')
 const conditionFilter = ref([])
 
@@ -126,15 +128,16 @@ function presetConditionFields(preset) {
   return fields
 }
 
-const filtered = computed(() =>
-  store.items
+const filtered = computed(() => {
+  if (italyMode.value) return []
+  return store.items
     .filter(p => !conditionFilter.value.length || conditionFilter.value.some(f => presetConditionFields(p).has(f)))
     .filter(p =>
       !search.value ||
       p.name.toLowerCase().includes(search.value.toLowerCase()) ||
       p.description?.toLowerCase().includes(search.value.toLowerCase())
     )
-)
+})
 
 // ── Labels ────────────────────────────────────────────────────────────────────
 const FIELD_LABELS = {

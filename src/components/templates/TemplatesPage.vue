@@ -64,7 +64,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useDisplay } from 'vuetify'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { useTemplatesStore } from '../../stores/templates'
 import { usePromotionsStore } from '../../stores/promotions'
 import TemplateCard from './TemplateCard.vue'
@@ -72,6 +72,8 @@ import TemplateCard from './TemplateCard.vue'
 const store = useTemplatesStore()
 const promoStore = usePromotionsStore()
 const router = useRouter()
+const route = useRoute()
+const italyMode = computed(() => route.path.startsWith('/italy'))
 const { mobile } = useDisplay()
 
 const search = ref('')
@@ -95,11 +97,12 @@ function clearFilters() {
 
 onMounted(() => store.fetchAll())
 
-const filtered = computed(() =>
-  store.items
+const filtered = computed(() => {
+  if (italyMode.value) return []
+  return store.items
     .filter(t => !typeFilter.value.length || typeFilter.value.includes(t.ruleType))
     .filter(t => !search.value || t.label.toLowerCase().includes(search.value.toLowerCase()) || t.description?.toLowerCase().includes(search.value.toLowerCase()))
-)
+})
 
 function applyTemplate(tpl) {
   promoStore.resetDraft()
