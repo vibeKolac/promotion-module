@@ -103,36 +103,38 @@
         </v-card>
 
         <!-- Prioritization & combinability -->
-        <div class="text-overline text-medium-emphasis mb-3">Prioritization &amp; combinability</div>
-        <v-card border elevation="0" class="pa-5 mb-6">
-          <div class="text-body-1 font-weight-bold mb-1">Rule prioritization mode</div>
-          <p class="text-caption text-medium-emphasis mb-5">
-            Controls how promotion rules are prioritized and whether they can combine in a single cart.
-          </p>
+        <template v-if="!italyMode">
+          <div class="text-overline text-medium-emphasis mb-3">Prioritization &amp; combinability</div>
+          <v-card border elevation="0" class="pa-5 mb-6">
+            <div class="text-body-1 font-weight-bold mb-1">Rule prioritization mode</div>
+            <p class="text-caption text-medium-emphasis mb-5">
+              Controls how promotion rules are prioritized and whether they can combine in a single cart.
+            </p>
 
-          <v-radio-group v-model="form.prioritizationMode" density="compact" hide-details>
-            <v-radio value="manual">
-              <template #label>
-                <div>
-                  <div class="text-body-2">Manual</div>
-                  <div class="text-caption text-medium-emphasis">Priority groups, processing order, and non-combinable rules are configured per rule.</div>
-                </div>
-              </template>
-            </v-radio>
-            <v-radio value="automatic">
-              <template #label>
-                <div>
-                  <div class="d-flex align-center text-body-2">Automatic <v-chip size="x-small" color="warning" variant="tonal" label class="ml-2">Exploring</v-chip></div>
-                  <div class="text-caption text-medium-emphasis">Prioritization and combinability are resolved by the system. Priority groups are disabled.</div>
-                </div>
-              </template>
-            </v-radio>
-          </v-radio-group>
+            <v-radio-group v-model="form.prioritizationMode" density="compact" hide-details>
+              <v-radio value="manual">
+                <template #label>
+                  <div>
+                    <div class="text-body-2">Manual</div>
+                    <div class="text-caption text-medium-emphasis">Priority groups, processing order, and non-combinable rules are configured per rule.</div>
+                  </div>
+                </template>
+              </v-radio>
+              <v-radio value="automatic">
+                <template #label>
+                  <div>
+                    <div class="d-flex align-center text-body-2">Automatic <v-chip size="x-small" color="warning" variant="tonal" label class="ml-2">Exploring</v-chip></div>
+                    <div class="text-caption text-medium-emphasis">Prioritization and combinability are resolved by the system. Priority groups are disabled.</div>
+                  </div>
+                </template>
+              </v-radio>
+            </v-radio-group>
 
-          <v-alert v-if="form.prioritizationMode === 'automatic'" color="grey" variant="tonal" density="compact" class="mt-4">
-            User gets the best sales rule based on cart items to always get the best value. All rules are non-combinable.
-          </v-alert>
-        </v-card>
+            <v-alert v-if="form.prioritizationMode === 'automatic'" color="grey" variant="tonal" density="compact" class="mt-4">
+              User gets the best sales rule based on cart items to always get the best value. All rules are non-combinable.
+            </v-alert>
+          </v-card>
+        </template>
 
         <!-- Accounting -->
         <div class="text-overline text-medium-emphasis mb-3">Accounting</div>
@@ -220,13 +222,16 @@
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue'
+import { ref, reactive, computed } from 'vue'
+import { useRoute } from 'vue-router'
 import { useSettingsStore } from '../../stores/settings'
 import { drMaxProducts } from '../../mock/seed.js'
 import ContentHeader from '../_common/ContentHeader.vue'
 import Breadcrumbs from '../_common/Breadcrumbs.vue'
 import ConditionValuePicker from '../promotions/ConditionValuePicker.vue'
 
+const route = useRoute()
+const italyMode = computed(() => route.path.startsWith('/italy'))
 const store = useSettingsStore()
 
 const form = reactive({
