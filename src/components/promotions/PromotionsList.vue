@@ -508,7 +508,10 @@ function closeNewRuleDialog() {
 
 const filteredPickerTemplates = computed(() => {
   const q = tplPickerSearch.value.toLowerCase()
-  return templatesStore.items
+  const base = italyMode.value
+    ? templatesStore.items.filter(t => templatesStore.sessionIds.has(t.id))
+    : templatesStore.items
+  return base
     .filter(t => !tplPickerType.value.length || tplPickerType.value.includes(t.ruleType))
     .filter(t => !q || t.label.toLowerCase().includes(q) || t.description?.toLowerCase().includes(q))
 })

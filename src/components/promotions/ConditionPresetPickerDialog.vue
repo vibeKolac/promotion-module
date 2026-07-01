@@ -47,7 +47,7 @@
 
         <v-alert v-if="!filtered.length" color="grey" variant="tonal" density="compact">
           No presets found.
-          <router-link to="/templates-presets/condition-presets" class="ml-1">Manage presets</router-link>
+          <router-link :to="`${italyMode ? '/italy' : ''}/templates-presets/condition-presets`" class="ml-1">Manage presets</router-link>
         </v-alert>
 
         <div class="d-flex flex-column" style="gap: 12px">
@@ -68,20 +68,7 @@
               />
               <span class="text-body-2 font-weight-bold">{{ preset.name }}</span>
             </div>
-            <div v-if="preset.description" class="text-caption text-medium-emphasis mb-2 ml-7">{{ preset.description }}</div>
-            <div class="ml-7 d-flex flex-column" style="gap: 6px">
-              <div v-for="cond in preset.conditions" :key="cond.id" class="d-flex align-start" style="gap: 6px">
-                <v-chip size="x-small" :color="cond.mode === 'exclude' ? 'error' : 'success'" variant="tonal" label class="flex-shrink-0">
-                  {{ cond.mode === 'exclude' ? 'excl.' : 'incl.' }}
-                </v-chip>
-                <span class="text-caption">
-                  <span class="font-weight-medium">{{ FIELD_LABELS[cond.field] ?? cond.field }}</span>
-                  <template v-if="cond.values?.length">
-                    : {{ cond.values.slice(0, 3).join(', ') }}<span v-if="cond.values.length > 3" class="text-medium-emphasis"> +{{ cond.values.length - 3 }} more</span>
-                  </template>
-                </span>
-              </div>
-            </div>
+            <div v-if="preset.description" class="text-caption text-medium-emphasis ml-7">{{ preset.description }}</div>
           </v-card>
         </div>
       </v-card-text>
@@ -98,24 +85,30 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { v4 as uuid } from 'uuid'
+import { useRoute } from 'vue-router'
 import { useConditionPresetsStore } from '../../stores/conditionPresets'
 import { FIELD_LABELS } from '../../utils/conditionTypes'
 
 defineProps({ modelValue: Boolean })
 const emit = defineEmits(['update:modelValue', 'apply'])
 
+const route = useRoute()
+const italyMode = computed(() => route.path.startsWith('/italy'))
 const store = useConditionPresetsStore()
 const search = ref('')
 const selected = ref(null)
 const applyMode = ref('replace')
 
-const filtered = computed(() =>
-  store.items.filter(p =>
+const filtered = computed(() => {
+  const base = italyMode.value
+    ? store.items.filter(p => store.sessionIds.has(p.id))
+    : store.items
+  return base.filter(p =>
     !search.value ||
     p.name.toLowerCase().includes(search.value.toLowerCase()) ||
     p.description?.toLowerCase().includes(search.value.toLowerCase())
   )
-)
+})
 
 
 function conditionLabel(cond) {

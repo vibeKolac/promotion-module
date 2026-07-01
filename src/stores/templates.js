@@ -4,6 +4,7 @@ import axios from 'axios'
 
 export const useTemplatesStore = defineStore('templates', () => {
   const items = ref([])
+  const sessionIds = ref(new Set())
 
   async function fetchAll() {
     const { data } = await axios.get('/api/templates')
@@ -13,6 +14,7 @@ export const useTemplatesStore = defineStore('templates', () => {
   async function create(payload) {
     const { data } = await axios.post('/api/templates', payload)
     items.value.push(data)
+    sessionIds.value.add(data.id)
     return data
   }
 
@@ -28,5 +30,5 @@ export const useTemplatesStore = defineStore('templates', () => {
     items.value = items.value.filter(t => t.id !== id)
   }
 
-  return { items, fetchAll, create, update, remove }
+  return { items, sessionIds, fetchAll, create, update, remove }
 })

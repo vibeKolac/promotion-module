@@ -7,13 +7,12 @@
         <span class="text-body-1 font-weight-bold">{{ title }}</span>
         <HelpTooltip v-if="helpText" :text="helpText" class="ml-1" />
         <v-spacer />
-        <v-btn prepend-icon="mdi-upload" variant="text" size="small" @click="csvImportOpen = true">
+        <v-btn v-if="!italyMode" prepend-icon="mdi-upload" variant="text" size="small" @click="csvImportOpen = true">
           Import CSV
           <v-chip size="x-small" color="warning" variant="tonal" label class="ml-2">Exploring</v-chip>
         </v-btn>
         <v-btn v-if="showPreset" prepend-icon="mdi-filter-variant" variant="text" size="small" @click="presetPickerOpen = true">
-          Preset
-          <v-chip size="x-small" color="warning" variant="tonal" label class="ml-2">Exploring</v-chip>
+          Select preset
         </v-btn>
       </div>
       <div class="text-caption text-medium-emphasis mb-4">
@@ -201,6 +200,7 @@
 
 <script setup>
 import { ref, computed } from 'vue'
+import { useRoute } from 'vue-router'
 import { v4 as uuid } from 'uuid'
 import HelpTooltip from '../_common/HelpTooltip.vue'
 import ConditionGroupRow from './ConditionGroupRow.vue'
@@ -214,6 +214,8 @@ import { useSettingsStore } from '../../stores/settings'
 import { getRecentConditionTypes, recordConditionTypes } from '../../utils/recentConditionTypes'
 import { CONDITION_TYPES, CONDITION_GROUPS, TYPE_OPTIONS, getConditionTypeDef } from '../../utils/conditionTypes'
 
+const route = useRoute()
+const italyMode = computed(() => route.path.startsWith('/italy'))
 const settingsStore = useSettingsStore()
 const recentTypeValues = ref(getRecentConditionTypes())
 

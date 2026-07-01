@@ -4,7 +4,7 @@ import axios from 'axios'
 import { v4 as uuid } from 'uuid'
 
 const emptyDraft = () => ({
-  name: '', createdBy: 'Martin P.', type: 'discount', value: '', valueUnit: '%',
+  name: '', createdBy: 'User', type: 'discount', value: '', valueUnit: '%',
   amountType: 'PERCENT',
   scope: 'cart',
   steps: [], priority: 10, status: 'draft',

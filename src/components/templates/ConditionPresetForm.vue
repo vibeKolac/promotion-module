@@ -173,7 +173,7 @@ async function save() {
 }
 
 function discard() {
-  router.push('/templates-presets/condition-presets')
+  router.push(`${basePath.value}/templates-presets/condition-presets`)
 }
 </script>
 

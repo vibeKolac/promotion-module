@@ -129,8 +129,10 @@ function presetConditionFields(preset) {
 }
 
 const filtered = computed(() => {
-  if (italyMode.value) return []
-  return store.items
+  const base = italyMode.value
+    ? store.items.filter(p => store.sessionIds.has(p.id))
+    : store.items
+  return base
     .filter(p => !conditionFilter.value.length || conditionFilter.value.some(f => presetConditionFields(p).has(f)))
     .filter(p =>
       !search.value ||

@@ -74,6 +74,13 @@ const coreChildren = (base = '') => [
     meta: { breadcrumbs: [settingsCrumb, { title: 'Accounting', disabled: true }] },
     component: () => import('../components/settings/AccountingPage.vue'),
   },
+  {
+    path: 'coupons',
+    meta: { breadcrumbs: [promotionsDisabled, { title: 'Coupons', disabled: true }] },
+    ...(base === '/italy'
+      ? { component: { template: '<div/>', mounted() { window.location.replace('https://coms-cze-admin.dr-maxtest.global/login') } } }
+      : { component: () => import('../components/coupons/CouponsPage.vue') }),
+  },
 ]
 
 const exploringChildren = [

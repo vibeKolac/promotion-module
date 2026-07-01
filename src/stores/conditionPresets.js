@@ -50,6 +50,7 @@ export const useConditionPresetsStore = defineStore('conditionPresets', () => {
   const REMOVED_IDS = new Set(['cp-5'])
   const base = (saved ?? DEFAULTS.map(d => ({ ...d }))).filter(p => !REMOVED_IDS.has(p.id))
   const items = ref(base)
+  const sessionIds = ref(new Set())
 
   function persist() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(items.value))
@@ -58,6 +59,7 @@ export const useConditionPresetsStore = defineStore('conditionPresets', () => {
   function create(payload) {
     const item = { ...payload, id: uuid(), conditions: payload.conditions.map(c => ({ ...c, id: uuid() })) }
     items.value.push(item)
+    sessionIds.value.add(item.id)
     persist()
     return item
   }
@@ -75,5 +77,5 @@ export const useConditionPresetsStore = defineStore('conditionPresets', () => {
     persist()
   }
 
-  return { items, create, update, remove }
+  return { items, sessionIds, create, update, remove }
 })

@@ -124,7 +124,7 @@
           </v-row>
 
           <!-- Schedule pausing -->
-          <div class="mt-3">
+          <div v-if="!italyMode" class="mt-3">
             <v-checkbox
               v-model="draft.pauseScheduled"
               density="compact"
@@ -433,7 +433,7 @@
             <template #empty>No conditions set — this rule applies to all products.</template>
           </ConditionsEditor>
 
-          <ReachEstimateBar :conditions="draft.conditions" :scope="draft.scope" class="mt-3" />
+          <ReachEstimateBar v-if="!italyMode" :conditions="draft.conditions" :scope="draft.scope" class="mt-3" />
 
           <v-dialog v-model="overflowDialog" max-width="420">
             <v-card>
@@ -639,7 +639,7 @@
             <v-icon size="18" class="mr-2 card-section-icon">mdi-ticket-percent-outline</v-icon>
             <span class="text-body-1 font-weight-bold">Coupon</span>
             <HelpTooltip text="Attach a coupon code so customers must enter it at checkout to activate this promotion." class="ml-1" />
-            <v-chip size="x-small" color="warning" variant="tonal" label class="ml-2">Exploring</v-chip>
+            <v-chip v-if="!italyMode" size="x-small" color="warning" variant="tonal" label class="ml-2">Exploring</v-chip>
           </div>
           <p class="text-caption text-medium-emphasis mb-3">
             Require customers to enter a coupon code to unlock this promotion.
@@ -968,7 +968,7 @@ async function createTag() {
   }
 }
 
-const isTemplateEdit = computed(() => route.path.startsWith('/templates/'))
+const isTemplateEdit = computed(() => route.path.includes('/templates/'))
 const isEdit = computed(() => !!route.params.id && !isTemplateEdit.value)
 
 const saving = ref(false)
@@ -1007,7 +1007,10 @@ const tplPickerTypeItems = [
 
 const filteredPickerTemplates = computed(() => {
   const q = tplPickerSearch.value.toLowerCase()
-  return templatesStore.items
+  const base = italyMode.value
+    ? templatesStore.items.filter(t => templatesStore.sessionIds.has(t.id))
+    : templatesStore.items
+  return base
     .filter(t => !tplPickerType.value.length || tplPickerType.value.includes(t.ruleType))
     .filter(t => !q || t.label.toLowerCase().includes(q) || t.description?.toLowerCase().includes(q))
 })
@@ -1097,7 +1100,8 @@ const pauseErrors = ref({})
 
 const draft = store.formDraft
 
-const todayIso = new Date().toISOString().split('T')[0]
+const _now = new Date()
+const todayIso = `${_now.getFullYear()}-${String(_now.getMonth() + 1).padStart(2, '0')}-${String(_now.getDate()).padStart(2, '0')}`
 
 function isFutureDate(dateStr) {
   return !!dateStr && dateStr > todayIso
@@ -1679,7 +1683,7 @@ async function _persistRule(statusOverride) {
     } else {
       const payload = JSON.parse(JSON.stringify(toRaw(draft)))
       payload.status = statusOverride ?? resolveStatus(payload.status, payload.startDate, payload.endDate, payload.pauseScheduled, payload.pauseStart, payload.pauseEnd)
-      if (!isEdit.value && !payload.createdBy) payload.createdBy = 'Martin P.'
+      if (!isEdit.value && !payload.createdBy) payload.createdBy = 'User'
       if (isEdit.value) {
         await store.update(route.params.id, payload)
       } else {

@@ -98,8 +98,10 @@ function clearFilters() {
 onMounted(() => store.fetchAll())
 
 const filtered = computed(() => {
-  if (italyMode.value) return []
-  return store.items
+  const base = italyMode.value
+    ? store.items.filter(t => store.sessionIds.has(t.id))
+    : store.items
+  return base
     .filter(t => !typeFilter.value.length || typeFilter.value.includes(t.ruleType))
     .filter(t => !search.value || t.label.toLowerCase().includes(search.value.toLowerCase()) || t.description?.toLowerCase().includes(search.value.toLowerCase()))
 })
