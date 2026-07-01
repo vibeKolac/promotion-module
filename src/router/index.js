@@ -118,6 +118,7 @@ const exploringChildren = [
 
 const routes = [
   { path: '/templates', redirect: '/templates-presets/templates' },
+  { path: '/italy/templates', redirect: '/italy/templates-presets/templates' },
   {
     path: '/',
     component: DefaultLayout,
