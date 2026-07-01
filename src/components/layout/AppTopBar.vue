@@ -25,19 +25,17 @@
       color="success"
       to="/italy"
     >Test ITA</v-btn>
-    <v-btn
-      v-if="!mobile && italyMode"
-      variant="text"
-      size="small"
-      class="text-caption text-medium-emphasis mr-2 text-none"
-      prepend-icon="mdi-arrow-left"
-      to="/promotions"
-    >Main prototype</v-btn>
     <v-menu location="bottom end">
       <template #activator="{ props: menuProps }">
         <v-btn v-bind="menuProps" icon="mdi-account-circle" variant="text" class="mr-2" />
       </template>
       <v-list density="compact" min-width="240">
+        <v-list-item
+          v-if="italyMode"
+          prepend-icon="mdi-arrow-left"
+          title="Main prototype"
+          to="/promotions"
+        />
         <v-list-item
           prepend-icon="mdi-presentation"
           title="Promotions analysis"
