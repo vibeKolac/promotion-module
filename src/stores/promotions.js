@@ -62,9 +62,10 @@ export const usePromotionsStore = defineStore('promotions', () => {
   async function create(payload) {
     const newPriority = payload.priority ?? 1
     const groupId = payload.stackingGroupId ?? null
-    items.value
+    const toShift = items.value
       .filter(r => (r.stackingGroupId ?? null) === groupId && (r.priority ?? 999) >= newPriority)
-      .forEach(r => { r.priority = (r.priority ?? 999) + 1 })
+      .map(r => ({ id: r.id, priority: (r.priority ?? 999) + 1 }))
+    await Promise.all(toShift.map(({ id, priority }) => update(id, { priority })))
     const { data } = await axios.post('/api/promotions', payload)
     items.value.push(data)
     return data
