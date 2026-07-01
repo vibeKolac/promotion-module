@@ -169,7 +169,7 @@
               <v-icon size="16" class="mr-1">mdi-pause</v-icon>Pause
             </v-btn>
           </template>
-          <v-btn size="small" variant="outlined" @click="bulkDuplicate">
+          <v-btn v-if="!italyMode" size="small" variant="outlined" @click="bulkDuplicate">
             <v-icon size="16" class="mr-1">mdi-content-copy</v-icon>Duplicate
           </v-btn>
           <template v-if="activeTab !== 'ended'">
@@ -302,7 +302,7 @@
             </template>
             <v-list density="compact" min-width="180">
               <v-list-item v-if="item.status !== 'ended'" prepend-icon="mdi-pencil" title="Edit" :to="`${basePath}/promotions/${item.id}/edit`" />
-              <v-list-item prepend-icon="mdi-content-copy" title="Duplicate" @click="duplicateRule(item.id)" />
+              <v-list-item v-if="!italyMode" prepend-icon="mdi-content-copy" title="Duplicate" @click="duplicateRule(item.id)" />
               <template v-if="item.status !== 'ended'">
                 <v-list-item
                   v-if="item.status === 'active' || item.status === 'scheduled'"
