@@ -368,7 +368,7 @@
             <v-icon size="16" color="medium-emphasis">mdi-calculator</v-icon>
             <span class="text-caption text-medium-emphasis">Free item accounting price</span>
             <v-chip size="small" color="primary" variant="tonal">€{{ settingsStore.multiBuyFreePrice }}</v-chip>
-            <a class="section-link ml-1" @click="openLeaveDialog('/settings/accounting')">
+            <a class="section-link ml-1" @click="openLeaveDialog(`${basePath}/settings/accounting`)">
               Configure in General Section
               <v-icon size="14" class="ml-1">mdi-open-in-new</v-icon>
             </a>
@@ -411,7 +411,7 @@
             <v-icon size="16" color="medium-emphasis">mdi-calculator</v-icon>
             <span class="text-caption text-medium-emphasis">Gift item accounting price</span>
             <v-chip size="small" color="purple" variant="tonal">€{{ settingsStore.giftFreePrice }}</v-chip>
-            <a class="section-link ml-1" @click="openLeaveDialog('/settings/accounting')">
+            <a class="section-link ml-1" @click="openLeaveDialog(`${basePath}/settings/accounting`)">
               Configure in General Section
               <v-icon size="14" class="ml-1">mdi-open-in-new</v-icon>
             </a>
@@ -652,7 +652,7 @@
           <a
             href="#"
             class="section-link"
-            @click.prevent="openLeaveDialog('/coupons')"
+            @click.prevent="openLeaveDialog(`${basePath}/coupons`)"
           >
             Manage coupon codes
             <v-icon size="14" class="ml-1">mdi-open-in-new</v-icon>
@@ -922,6 +922,8 @@ import { useTagsStore } from '../../stores/tags'
 const { mobile } = useDisplay()
 const route = useRoute()
 const router = useRouter()
+const italyMode = computed(() => route.path.startsWith('/italy'))
+const basePath = computed(() => italyMode.value ? '/italy' : '')
 const store = usePromotionsStore()
 const sgStore = useStackingGroupsStore()
 const settingsStore = useSettingsStore()
@@ -1082,7 +1084,7 @@ async function confirmCreateTemplate() {
     })
     templateDialogOpen.value = false
     templateCreatedSnack.value = true
-    setTimeout(() => router.push('/promotions'), 1500)
+    setTimeout(() => router.push(`${basePath.value}/promotions`), 1500)
   } catch (e) {
     saveError.value = e?.response?.data?.error ?? e?.message ?? 'Failed to create template'
   } finally {
@@ -1673,7 +1675,7 @@ async function _persistRule(statusOverride) {
         ruleType: draft.type,
         ruleSnapshot: snapshot,
       })
-      router.push('/templates')
+      router.push(`${basePath.value}/templates`)
     } else {
       const payload = JSON.parse(JSON.stringify(toRaw(draft)))
       payload.status = statusOverride ?? resolveStatus(payload.status, payload.startDate, payload.endDate, payload.pauseScheduled, payload.pauseStart, payload.pauseEnd)
@@ -1684,9 +1686,9 @@ async function _persistRule(statusOverride) {
         await store.create(payload)
       }
       rulePersisted.value = true
-      if (payload.status === 'draft') router.push('/promotions?tab=draft')
-      else if (payload.status === 'active' || payload.status === 'scheduled') router.push('/promotions?tab=active')
-      else router.push('/promotions')
+      if (payload.status === 'draft') router.push(`${basePath.value}/promotions?tab=draft`)
+      else if (payload.status === 'active' || payload.status === 'scheduled') router.push(`${basePath.value}/promotions?tab=active`)
+      else router.push(`${basePath.value}/promotions`)
     }
   } catch (e) {
     saveError.value = e?.response?.data?.error ?? e?.message ?? 'Failed to save'
@@ -1711,7 +1713,7 @@ const { leaveDialogOpen, openLeaveDialog, cancelLeave, leaveWithoutSaving, saveA
   })
 
 function openDiscardDialog() {
-  openLeaveDialog(isTemplateEdit.value ? '/templates' : '/promotions')
+  openLeaveDialog(isTemplateEdit.value ? `${basePath.value}/templates` : `${basePath.value}/promotions`)
 }
 
 // ── Save confirm ──────────────────────────────────────────────────────────────

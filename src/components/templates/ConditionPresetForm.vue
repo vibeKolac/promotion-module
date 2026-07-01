@@ -103,6 +103,7 @@ function _describeLeaf(c) {
 
 const route = useRoute()
 const router = useRouter()
+const basePath = computed(() => route.path.startsWith('/italy') ? '/italy' : '')
 const store = useConditionPresetsStore()
 
 const isEdit = computed(() => !!route.params.id)
@@ -165,7 +166,7 @@ async function save() {
     } else {
       await store.create({ ...form.value })
     }
-    router.push('/templates-presets/condition-presets')
+    router.push(`${basePath.value}/templates-presets/condition-presets`)
   } finally {
     saving.value = false
   }
