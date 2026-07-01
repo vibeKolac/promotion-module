@@ -7,7 +7,7 @@ const emptyDraft = () => ({
   name: '', createdBy: 'User', type: 'discount', value: '', valueUnit: '%',
   amountType: 'PERCENT',
   scope: 'cart',
-  steps: [], priority: 10, status: 'draft',
+  steps: [], priority: 1, status: 'draft',
   startDate: null, endDate: null,
   pauseScheduled: false, pauseStart: null, pauseEnd: null,
   description: '',
@@ -60,6 +60,11 @@ export const usePromotionsStore = defineStore('promotions', () => {
   }
 
   async function create(payload) {
+    const newPriority = payload.priority ?? 1
+    const groupId = payload.stackingGroupId ?? null
+    items.value
+      .filter(r => (r.stackingGroupId ?? null) === groupId && (r.priority ?? 999) >= newPriority)
+      .forEach(r => { r.priority = (r.priority ?? 999) + 1 })
     const { data } = await axios.post('/api/promotions', payload)
     items.value.push(data)
     return data

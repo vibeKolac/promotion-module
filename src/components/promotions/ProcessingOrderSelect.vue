@@ -149,7 +149,7 @@ function jumpTo(newPos) {
   list.splice(to, 0, item)
   userMoved.value = true
   localOrder.value = list
-  emit('update:priority', (to + 1) * 10)
+  emit('update:priority', to + 1)
 }
 
 function move(dir) {
@@ -160,7 +160,7 @@ function move(dir) {
   ;[list[idx], list[newIdx]] = [list[newIdx], list[idx]]
   userMoved.value = true
   localOrder.value = list
-  emit('update:priority', (newIdx + 1) * 10)
+  emit('update:priority', newIdx + 1)
 }
 
 onMounted(async () => {
