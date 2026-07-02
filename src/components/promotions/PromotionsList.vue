@@ -822,8 +822,16 @@ async function duplicateRule(id) {
 }
 
 async function bulkActivate() {
-  await store.bulkUpdateStatus(selected.value, 'active')
-  bulkSnackText.value = `${selected.value.length} rule${selected.value.length > 1 ? 's' : ''} activated`
+  const today = new Date().toISOString().split('T')[0]
+  const ids = selected.value
+  const scheduledIds = ids.filter(id => {
+    const item = store.items.find(i => i.id === id)
+    return item?.startDate && item.startDate > today
+  })
+  const activeIds = ids.filter(id => !scheduledIds.includes(id))
+  if (scheduledIds.length) await store.bulkUpdateStatus(scheduledIds, 'scheduled')
+  if (activeIds.length) await store.bulkUpdateStatus(activeIds, 'active')
+  bulkSnackText.value = `${ids.length} rule${ids.length > 1 ? 's' : ''} activated`
   selected.value = []
   activeTab.value = 'active'
   bulkSnack.value = true
