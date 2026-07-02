@@ -37,7 +37,7 @@
         </v-list-item>
       </template>
 
-      <template v-if="!italyMode">
+      <template v-if="!italyMode && !serbiaMode">
         <v-divider class="my-2" />
         <v-list-subheader class="text-uppercase text-caption font-weight-bold text-warning">
           Exploring
@@ -86,18 +86,21 @@ import { useSettingsStore } from '../../stores/settings'
 const props = defineProps({
   modelValue: { type: Boolean, default: true },
   italyMode: { type: Boolean, default: false },
+  serbiaMode: { type: Boolean, default: false },
 })
 defineEmits(['update:modelValue'])
 
 const { mobile } = useDisplay()
 const settings = useSettingsStore()
 
-const basePath = computed(() => props.italyMode ? '/italy' : '')
+const basePath = computed(() => props.italyMode ? '/italy' : props.serbiaMode ? '/serbia' : '')
 
 const coreNavItems = computed(() => [
   { to: `${basePath.value}/promotions`, icon: 'mdi-tag-multiple', title: 'Promotion Rules' },
-  { to: `${basePath.value}/templates-presets`, icon: 'mdi-file-document-outline', title: 'Templates & Presets' },
-  { to: `${basePath.value}/stacking-groups`, icon: 'mdi-layers', title: 'Priority & grouping', autoDisabled: settings.prioritizationMode === 'automatic' },
+  ...(props.serbiaMode ? [] : [
+    { to: `${basePath.value}/templates-presets`, icon: 'mdi-file-document-outline', title: 'Templates & Presets' },
+    { to: `${basePath.value}/stacking-groups`, icon: 'mdi-layers', title: 'Priority & grouping', autoDisabled: settings.prioritizationMode === 'automatic' },
+  ]),
 ])
 
 const exploringNavItems = [

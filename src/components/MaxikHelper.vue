@@ -2,14 +2,14 @@
 <template>
   <!-- FAB trigger — hidden once user dismisses Maxík -->
   <Transition name="maxik-fab-pop">
-    <button v-if="!visible && !dismissed" class="maxik-fab" aria-label="Open Maxík" @click="open">
+    <button v-if="!visible && !dismissed" class="maxik-fab" :style="fabOffsetStyle" aria-label="Open Maxík" @click="open">
       <img src="/maxik.png" class="maxik-fab-img" draggable="false" />
     </button>
   </Transition>
 
   <!-- Main overlay — slides in from right on open -->
   <Transition name="maxik-slide">
-    <div v-if="visible" class="maxik-wrapper" @click.stop>
+    <div v-if="visible" class="maxik-wrapper" :style="fabOffsetStyle" @click.stop>
 
       <!-- Chat panel -->
       <Transition name="bubble-pop">
@@ -140,9 +140,14 @@ import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import { useMaxik } from '../composables/useMaxik'
 
 // ── Visibility ────────────────────────────────────────────────────────────────
-const { openTrigger, closeTrigger, isOpen } = useMaxik()
+const { openTrigger, closeTrigger, isOpen, stickyBarActive } = useMaxik()
 const visible = ref(false)
 const dismissed = ref(false)
+
+// Shift up so the FAB never overlaps the fixed sticky-save-bar's action buttons
+const fabOffsetStyle = computed(() => (
+  stickyBarActive.value ? { bottom: '92px' } : {}
+))
 
 watch(openTrigger, () => { if (!visible.value) open() })
 watch(closeTrigger, () => { if (visible.value) dismiss() })

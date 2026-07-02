@@ -26,7 +26,7 @@
             <v-btn variant="outlined" size="small" class="px-3" prepend-icon="mdi-upload" @click="csvImportOpen = true">Import</v-btn>
           </div>
         </div>
-        <PageActionBtn @click="newRuleDialogOpen = true">New Rule</PageActionBtn>
+        <PageActionBtn @click="openNewRule">New Rule</PageActionBtn>
       </template>
     </ContentHeader>
 
@@ -41,9 +41,10 @@
       />
       <v-tabs v-model="activeTab" color="primary" density="compact">
         <v-tab value="active">Active <v-chip size="x-small" class="ml-1">{{ activeItems.length }}</v-chip></v-tab>
-        <v-tab value="paused">Paused <v-chip size="x-small" class="ml-1">{{ pausedItems.length }}</v-chip></v-tab>
+        <v-tab v-if="!serbiaMode" value="paused">Paused <v-chip size="x-small" class="ml-1">{{ pausedItems.length }}</v-chip></v-tab>
         <v-tab value="draft">Draft <v-chip size="x-small" class="ml-1">{{ draftItems.length }}</v-chip></v-tab>
         <v-tab value="ended">Ended <v-chip size="x-small" class="ml-1">{{ endedItems.length }}</v-chip></v-tab>
+        <v-tab v-if="!serbiaMode" value="archived">Archived <v-chip size="x-small" class="ml-1">{{ archivedItems.length }}</v-chip></v-tab>
       </v-tabs>
     </div>
 
@@ -150,7 +151,7 @@
           </v-btn>
         </div>
         <div class="d-flex align-center flex-wrap" style="gap: 8px">
-          <template v-if="activeTab !== 'ended'">
+          <template v-if="activeTab !== 'ended' && activeTab !== 'archived'">
             <v-btn
               v-if="activeTab === 'draft' || activeTab === 'paused'"
               size="small"
@@ -160,7 +161,7 @@
               <v-icon size="16" class="mr-1">mdi-lightning-bolt-outline</v-icon>Activate
             </v-btn>
             <v-btn
-              v-if="activeTab !== 'draft'"
+              v-if="activeTab === 'active' && !serbiaMode"
               size="small"
               variant="outlined"
               color="warning"
@@ -169,14 +170,18 @@
               <v-icon size="16" class="mr-1">mdi-pause</v-icon>Pause
             </v-btn>
           </template>
+          <v-btn v-if="activeTab === 'active'" size="small" variant="outlined" color="error" @click="bulkEnd">
+            <v-icon size="16" class="mr-1">mdi-stop-circle-outline</v-icon>End
+          </v-btn>
           <v-btn v-if="!italyMode" size="small" variant="outlined" @click="bulkDuplicate">
             <v-icon size="16" class="mr-1">mdi-content-copy</v-icon>Duplicate
           </v-btn>
-          <template v-if="activeTab !== 'ended'">
-            <v-btn size="small" variant="outlined" color="error" @click="openBulkDelete">
-              <v-icon size="16" class="mr-1">mdi-delete</v-icon>Delete
-            </v-btn>
-          </template>
+          <v-btn v-if="activeTab === 'draft'" size="small" variant="outlined" color="error" @click="openBulkDelete">
+            <v-icon size="16" class="mr-1">mdi-delete</v-icon>Delete
+          </v-btn>
+          <v-btn v-if="activeTab === 'ended' && !serbiaMode" size="small" variant="outlined" @click="openBulkArchive">
+            <v-icon size="16" class="mr-1">mdi-archive-outline</v-icon>Archive
+          </v-btn>
         </div>
       </div>
     </v-card>
@@ -191,6 +196,11 @@
       Rules whose end date has passed. These rules are no longer applied at checkout.
     </v-alert>
 
+    <!-- Archived tab banner -->
+    <v-alert v-if="activeTab === 'archived'" color="grey" variant="tonal" density="compact" class="mb-3" icon="mdi-archive-outline">
+      Archived rules are hidden from all other views and cannot be restored from here.
+    </v-alert>
+
     <!-- Shared table for all tabs -->
     <v-card border elevation="0">
       <v-data-table
@@ -199,7 +209,7 @@
         :items="tabItems"
         :loading="store.loading"
         item-value="id"
-        show-select
+        :show-select="activeTab !== 'archived'"
         hover
       >
         <template #item.name="{ item }">
@@ -290,7 +300,7 @@
         </template>
 
         <template #item.actions="{ item }">
-          <v-menu>
+          <v-menu v-if="item.status !== 'archived'">
             <template #activator="{ props: menuProps }">
               <v-btn
                 icon="mdi-dots-vertical"
@@ -305,13 +315,13 @@
               <v-list-item v-if="!italyMode" prepend-icon="mdi-content-copy" title="Duplicate" @click="duplicateRule(item.id)" />
               <template v-if="item.status !== 'ended'">
                 <v-list-item
-                  v-if="item.status === 'active' || item.status === 'scheduled'"
+                  v-if="!serbiaMode && (item.status === 'active' || item.status === 'scheduled')"
                   prepend-icon="mdi-pause"
                   title="Pause"
                   @click="pauseRule(item.id)"
                 />
                 <v-list-item
-                  v-else-if="item.status === 'paused'"
+                  v-else-if="!serbiaMode && item.status === 'paused'"
                   prepend-icon="mdi-play"
                   title="Resume"
                   @click="resumeRule(item.id)"
@@ -323,12 +333,28 @@
                   :disabled="!item.startDate || !item.endDate"
                   @click="activateRule(item.id)"
                 />
+                <v-list-item
+                  v-if="item.status === 'active' || item.status === 'scheduled'"
+                  prepend-icon="mdi-stop-circle-outline"
+                  title="End"
+                  @click="endRule(item.id)"
+                />
+                <template v-if="item.status === 'draft'">
+                  <v-divider />
+                  <v-list-item
+                    prepend-icon="mdi-delete"
+                    title="Delete"
+                    class="text-error"
+                    @click="openDelete(item)"
+                  />
+                </template>
+              </template>
+              <template v-if="item.status === 'ended' && !serbiaMode">
                 <v-divider />
                 <v-list-item
-                  prepend-icon="mdi-delete"
-                  title="Delete"
-                  class="text-error"
-                  @click="openDelete(item)"
+                  prepend-icon="mdi-archive-outline"
+                  title="Archive"
+                  @click="openArchive(item)"
                 />
               </template>
             </v-list>
@@ -351,6 +377,18 @@
       <template #header>Delete {{ selected.length }} rule{{ selected.length > 1 ? 's' : '' }}?</template>
       <template #body>
         This action cannot be undone. The selected {{ selected.length }} rule{{ selected.length > 1 ? 's' : '' }} will be permanently deleted.
+      </template>
+    </ConfirmModal>
+    <ConfirmModal ref="archiveModal" confirm-text="Archive" confirm-color="primary" :loading="archiving">
+      <template #header>Archive promotion rule?</template>
+      <template #body>
+        <strong>{{ archivingItem?.name }}</strong> will move to the Archived tab and be hidden from all other views. This can't be undone here.
+      </template>
+    </ConfirmModal>
+    <ConfirmModal ref="bulkArchiveModal" confirm-text="Archive" confirm-color="primary" :loading="store.loading">
+      <template #header>Archive {{ selected.length }} rule{{ selected.length > 1 ? 's' : '' }}?</template>
+      <template #body>
+        The selected {{ selected.length }} rule{{ selected.length > 1 ? 's' : '' }} will move to the Archived tab and be hidden from all other views. This can't be undone here.
       </template>
     </ConfirmModal>
     <CsvImportDialog v-if="!italyMode" v-model="csvImportOpen" @import="onCSVImport" />
@@ -475,8 +513,9 @@ import CsvImportDialog from './CsvImportDialog.vue'
 import { downloadCSV, exportRulesToCSV } from '../../utils/csvRuleImportExport'
 const router = useRouter()
 const route = useRoute()
-const italyMode = computed(() => route.path.startsWith('/italy'))
-const basePath = computed(() => italyMode.value ? '/italy' : '')
+const italyMode = computed(() => route.path.startsWith('/italy') || route.path.startsWith('/serbia'))
+const serbiaMode = computed(() => route.path.startsWith('/serbia'))
+const basePath = computed(() => route.path.startsWith('/italy') ? '/italy' : route.path.startsWith('/serbia') ? '/serbia' : '')
 const store = usePromotionsStore()
 const templatesStore = useTemplatesStore()
 
@@ -504,6 +543,14 @@ watch(newRuleDialogOpen, v => {
 
 function closeNewRuleDialog() {
   newRuleDialogOpen.value = false
+}
+
+function openNewRule() {
+  if (serbiaMode.value) {
+    router.push(`${basePath.value}/promotions/new`)
+  } else {
+    newRuleDialogOpen.value = true
+  }
 }
 
 const filteredPickerTemplates = computed(() => {
@@ -554,8 +601,12 @@ const { mobile } = useDisplay()
 const conflictsMap = computed(() => detectConflicts(store.items))
 
 const search = ref('')
-const VALID_TABS = ['active', 'paused', 'draft', 'ended']
-const activeTab = ref(VALID_TABS.includes(route.query.tab) ? route.query.tab : 'active')
+const VALID_TABS = ['active', 'paused', 'draft', 'ended', 'archived']
+const activeTab = ref(
+  VALID_TABS.includes(route.query.tab) && !(route.path.startsWith('/serbia') && ['paused', 'archived'].includes(route.query.tab))
+    ? route.query.tab
+    : 'active'
+)
 const stackingGroupFilter = ref('all')
 const typeFilter = ref([])
 const tagFilter = ref([])
@@ -568,6 +619,10 @@ const deleteModal = ref(null)
 const bulkDeleteModal = ref(null)
 const deletingItem = ref(null)
 const deleting = ref(false)
+const archiveModal = ref(null)
+const bulkArchiveModal = ref(null)
+const archivingItem = ref(null)
+const archiving = ref(false)
 const selected = ref([])
 
 watch(activeTab, () => {
@@ -592,6 +647,9 @@ const pausedItems = computed(() =>
 const draftItems = computed(() =>
   applyFiltersAll(store.items.filter(r => r.status === 'draft'))
 )
+const archivedItems = computed(() =>
+  applyFiltersAll(store.items.filter(r => r.status === 'archived'))
+)
 
 function applyStackingFilter(rules) {
   if (stackingGroupFilter.value === 'all') return rules
@@ -606,6 +664,7 @@ const tabItems = computed(() => {
   if (activeTab.value === 'paused') return pausedItems.value
   if (activeTab.value === 'draft') return draftItems.value
   if (activeTab.value === 'ended') return endedItems.value
+  if (activeTab.value === 'archived') return archivedItems.value
   return activeItems.value
 })
 
@@ -803,6 +862,18 @@ async function openDelete(item) {
   deletingItem.value = null
 }
 
+async function endRule(id) {
+  await store.updateStatus(id, 'ended')
+}
+async function openArchive(item) {
+  archivingItem.value = item
+  const confirmed = await archiveModal.value.open()
+  if (!confirmed) { archivingItem.value = null; return }
+  archiving.value = true
+  await store.updateStatus(item.id, 'archived')
+  archiving.value = false
+  archivingItem.value = null
+}
 async function pauseRule(id) {
   await store.updateStatus(id, 'paused')
 }
@@ -822,8 +893,16 @@ async function duplicateRule(id) {
 }
 
 async function bulkActivate() {
-  await store.bulkUpdateStatus(selected.value, 'active')
-  bulkSnackText.value = `${selected.value.length} rule${selected.value.length > 1 ? 's' : ''} activated`
+  const today = new Date().toISOString().split('T')[0]
+  const ids = selected.value
+  const scheduledIds = ids.filter(id => {
+    const item = store.items.find(i => i.id === id)
+    return item?.startDate && item.startDate > today
+  })
+  const activeIds = ids.filter(id => !scheduledIds.includes(id))
+  if (scheduledIds.length) await store.bulkUpdateStatus(scheduledIds, 'scheduled')
+  if (activeIds.length) await store.bulkUpdateStatus(activeIds, 'active')
+  bulkSnackText.value = `${ids.length} rule${ids.length > 1 ? 's' : ''} activated`
   selected.value = []
   activeTab.value = 'active'
   bulkSnack.value = true
@@ -853,6 +932,26 @@ async function openBulkDelete() {
   await store.bulkRemove(selected.value)
   bulkSnackText.value = `${count} rule${count > 1 ? 's' : ''} deleted`
   selected.value = []
+  bulkSnack.value = true
+}
+
+async function bulkEnd() {
+  const count = selected.value.length
+  await store.bulkUpdateStatus(selected.value, 'ended')
+  bulkSnackText.value = `${count} rule${count > 1 ? 's' : ''} ended`
+  selected.value = []
+  activeTab.value = 'ended'
+  bulkSnack.value = true
+}
+
+async function openBulkArchive() {
+  const confirmed = await bulkArchiveModal.value.open()
+  if (!confirmed) return
+  const count = selected.value.length
+  await store.bulkUpdateStatus(selected.value, 'archived')
+  bulkSnackText.value = `${count} rule${count > 1 ? 's' : ''} archived`
+  selected.value = []
+  activeTab.value = 'archived'
   bulkSnack.value = true
 }
 </script>

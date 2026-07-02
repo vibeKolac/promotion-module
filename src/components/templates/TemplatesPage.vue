@@ -73,7 +73,7 @@ const store = useTemplatesStore()
 const promoStore = usePromotionsStore()
 const router = useRouter()
 const route = useRoute()
-const italyMode = computed(() => route.path.startsWith('/italy'))
+const italyMode = computed(() => route.path.startsWith('/italy') || route.path.startsWith('/serbia'))
 const { mobile } = useDisplay()
 
 const search = ref('')

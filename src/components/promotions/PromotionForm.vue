@@ -15,7 +15,8 @@
           <v-btn color="success" style="height: 48px" :loading="saving" @click="openSaveConfirm('template')">Save template</v-btn>
         </template>
         <template v-else>
-          <v-btn-group variant="outlined" divided style="height: 48px; --v-btn-border-color: rgba(0,0,0,0.87)">
+          <v-btn v-if="serbiaMode" variant="outlined" :loading="saving" data-testid="save-btn" style="height: 48px" @click="openSaveConfirm('draft')">Save as draft</v-btn>
+          <v-btn-group v-else variant="outlined" divided style="height: 48px; --v-btn-border-color: rgba(0,0,0,0.87)">
             <v-btn :loading="saving" data-testid="save-btn" style="border-color: rgba(0,0,0,0.87)" @click="openSaveConfirm('draft')">Save as draft</v-btn>
             <v-menu location="bottom end">
               <template #activator="{ props: menuProps }">
@@ -178,7 +179,7 @@
           </div>
 
           <!-- Channels -->
-          <div class="mt-4">
+          <div v-if="!serbiaMode" class="mt-4">
             <div class="d-flex align-center gap-1 mb-2">
               <span class="text-caption font-weight-bold text-medium-emphasis">SALES CHANNELS</span>
               <HelpTooltip text="Choose which sales channels this promotion applies to. At least one channel must be selected." />
@@ -428,7 +429,7 @@
             :scope="draft.scope"
             title="Targeting conditions"
             help-text="Filter which products, customers, or cart state this rule applies to. All conditions in a group must match (AND). Groups are evaluated with OR between them."
-            show-preset
+            :show-preset="!serbiaMode"
           >
             <template #empty>No conditions set — this rule applies to all products.</template>
           </ConditionsEditor>
@@ -579,7 +580,7 @@
         </v-card>
 
         <!-- Reservation -->
-        <v-card border elevation="0" class="pa-5 mb-4 mt-6">
+        <v-card v-if="!serbiaMode" border elevation="0" class="pa-5 mb-4 mt-6">
           <div class="d-flex align-center mb-1">
             <div class="text-body-1 font-weight-bold">Allow for reservations</div>
             <HelpTooltip text="When enabled, this promotion rule also applies to orders placed as pharmacy reservations (click &amp; collect). Disable if the discount should only be valid for immediate online purchases." class="ml-1" />
@@ -645,70 +646,80 @@
             Require customers to enter a coupon code to unlock this promotion.
           </p>
 
-          <div class="d-flex align-center mb-2" style="gap: 8px">
-            <v-icon size="20" color="medium-emphasis">mdi-information-outline</v-icon>
-            <span class="text-body-2 text-medium-emphasis">No coupon is linked to this promotion.</span>
-          </div>
-          <a
-            href="#"
-            class="section-link"
-            @click.prevent="openLeaveDialog(`${basePath}/coupons`)"
-          >
-            Manage coupon codes
-            <v-icon size="14" class="ml-1">mdi-open-in-new</v-icon>
-          </a>
+          <TextInput
+            v-if="serbiaMode"
+            v-model="draft.couponId"
+            label="Coupon code"
+            placeholder="e.g. SUMMER20"
+          />
+          <template v-else>
+            <div class="d-flex align-center mb-2" style="gap: 8px">
+              <v-icon size="20" color="medium-emphasis">mdi-information-outline</v-icon>
+              <span class="text-body-2 text-medium-emphasis">No coupon is linked to this promotion.</span>
+            </div>
+            <a
+              href="#"
+              class="section-link"
+              @click.prevent="openLeaveDialog(`${basePath}/coupons`)"
+            >
+              Manage coupon codes
+              <v-icon size="14" class="ml-1">mdi-open-in-new</v-icon>
+            </a>
+          </template>
         </v-card>
 
-        <template v-if="settingsStore.prioritizationMode === 'automatic'">
-          <v-card border elevation="0" class="pa-5 mb-4">
-            <div class="d-flex align-center gap-2 mb-2">
-              <div class="text-body-1 font-weight-bold">Prioritization &amp; combinability</div>
-              <v-chip size="x-small" color="default" variant="tonal" label>Auto</v-chip>
-            </div>
-            <v-alert color="grey" variant="tonal" density="compact">
-              User gets the best sales rule based on cart items to always get the best value. All rules are non-combinable.
-            </v-alert>
-          </v-card>
-        </template>
-        <template v-else>
-          <v-card border elevation="0" class="pa-5 mb-4">
-            <div class="d-flex align-center mb-4">
-              <span class="text-body-1 font-weight-bold">Priority group</span>
-              <HelpTooltip text="Groups rules that can stack together. Rules in the same group compete with each other; rules in different groups can combine. Assign a group to control which promotions apply together at checkout." class="ml-1" />
-            </div>
-            <StackingGroupSelect v-model="draft.stackingGroupId" />
-          </v-card>
+        <template v-if="!serbiaMode">
+          <template v-if="settingsStore.prioritizationMode === 'automatic'">
+            <v-card border elevation="0" class="pa-5 mb-4">
+              <div class="d-flex align-center gap-2 mb-2">
+                <div class="text-body-1 font-weight-bold">Prioritization &amp; combinability</div>
+                <v-chip size="x-small" color="default" variant="tonal" label>Auto</v-chip>
+              </div>
+              <v-alert color="grey" variant="tonal" density="compact">
+                User gets the best sales rule based on cart items to always get the best value. All rules are non-combinable.
+              </v-alert>
+            </v-card>
+          </template>
+          <template v-else>
+            <v-card border elevation="0" class="pa-5 mb-4">
+              <div class="d-flex align-center mb-4">
+                <span class="text-body-1 font-weight-bold">Priority group</span>
+                <HelpTooltip text="Groups rules that can stack together. Rules in the same group compete with each other; rules in different groups can combine. Assign a group to control which promotions apply together at checkout." class="ml-1" />
+              </div>
+              <StackingGroupSelect v-model="draft.stackingGroupId" />
+            </v-card>
 
-          <v-card border elevation="0" class="pa-5 mb-4">
-            <div class="d-flex align-center mb-4">
-              <span class="text-body-1 font-weight-bold">Processing order</span>
-              <HelpTooltip text="Controls which rule fires first when multiple rules apply to the same cart. Lower priority number = fires first." class="ml-1" />
-              <v-chip v-if="processingOrderRef?.count" size="x-small" variant="tonal" color="grey-darken-1" label class="ml-2">{{ processingOrderRef.count }} promotions</v-chip>
-            </div>
-            <ProcessingOrderSelect
-              ref="processingOrderRef"
-              :stacking-group-id="draft.stackingGroupId"
-              :priority="draft.priority"
-              :current-name="draft.name"
-              @update:priority="draft.priority = $event"
-            />
-          </v-card>
+            <v-card border elevation="0" class="pa-5 mb-4">
+              <div class="d-flex align-center mb-4">
+                <span class="text-body-1 font-weight-bold">Processing order</span>
+                <HelpTooltip text="Controls which rule fires first when multiple rules apply to the same cart. Lower priority number = fires first." class="ml-1" />
+                <v-chip v-if="processingOrderRef?.count" size="x-small" variant="tonal" color="grey-darken-1" label class="ml-2">{{ processingOrderRef.count }} promotions</v-chip>
+              </div>
+              <ProcessingOrderSelect
+                ref="processingOrderRef"
+                :stacking-group-id="draft.stackingGroupId"
+                :priority="draft.priority"
+                :current-name="draft.name"
+                @update:priority="draft.priority = $event"
+              />
+            </v-card>
 
-          <v-card border elevation="0" class="pa-5 mb-4">
-            <div class="d-flex align-center mb-1">
-              <span class="text-body-1 font-weight-bold">Non-combinable rules</span>
-              <HelpTooltip text="Rules listed here cannot be applied together with this rule. If two matching rules conflict, only one will apply based on processing order." class="ml-1" />
-            </div>
-            <p class="text-caption text-medium-emphasis mb-4">
-              Rules and groups listed here cannot apply together with this rule in the same cart.
-            </p>
-            <NonCombinableRulesSection v-model="draft.nonCombinableRules" :stacking-group-id="draft.stackingGroupId" />
-          </v-card>
+            <v-card border elevation="0" class="pa-5 mb-4">
+              <div class="d-flex align-center mb-1">
+                <span class="text-body-1 font-weight-bold">Non-combinable rules</span>
+                <HelpTooltip text="Rules listed here cannot be applied together with this rule. If two matching rules conflict, only one will apply based on processing order." class="ml-1" />
+              </div>
+              <p class="text-caption text-medium-emphasis mb-4">
+                Rules and groups listed here cannot apply together with this rule in the same cart.
+              </p>
+              <NonCombinableRulesSection v-model="draft.nonCombinableRules" :stacking-group-id="draft.stackingGroupId" />
+            </v-card>
+          </template>
         </template>
 
       </v-col>
 
-      <v-col cols="12" md="4" class="d-none d-md-block">
+      <v-col v-if="!serbiaMode" cols="12" md="4" class="d-none d-md-block">
         <div class="preview-sticky">
           <v-card border elevation="0" class="pa-4">
             <div class="d-flex align-center mb-3">
@@ -858,7 +869,8 @@
           <v-btn color="success" class="flex-shrink-0" style="height: 48px" :loading="saving" @click="openSaveConfirm('template')">Save template</v-btn>
         </template>
         <template v-else>
-          <v-btn-group variant="outlined" divided class="flex-shrink-0" style="height: 48px; --v-btn-border-color: rgba(0,0,0,0.87)">
+          <v-btn v-if="serbiaMode" variant="outlined" class="flex-shrink-0" :loading="saving" style="height: 48px" @click="openSaveConfirm('draft')">Save as draft</v-btn>
+          <v-btn-group v-else variant="outlined" divided class="flex-shrink-0" style="height: 48px; --v-btn-border-color: rgba(0,0,0,0.87)">
             <v-btn :loading="saving" style="border-color: rgba(0,0,0,0.87)" @click="openSaveConfirm('draft')">Save as draft</v-btn>
             <v-menu location="top end">
               <template #activator="{ props: menuProps }">
@@ -892,6 +904,7 @@ import { ref, computed, watch, onMounted, onUnmounted, toRaw } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useDisplay } from 'vuetify'
 import { useNavigationGuard } from '../../composables/useNavigationGuard'
+import { useMaxik } from '../../composables/useMaxik'
 import LeaveDialog from '../_common/LeaveDialog.vue'
 import { usePromotionsStore } from '../../stores/promotions'
 import { useStackingGroupsStore } from '../../stores/stackingGroups'
@@ -922,8 +935,9 @@ import { useTagsStore } from '../../stores/tags'
 const { mobile } = useDisplay()
 const route = useRoute()
 const router = useRouter()
-const italyMode = computed(() => route.path.startsWith('/italy'))
-const basePath = computed(() => italyMode.value ? '/italy' : '')
+const italyMode = computed(() => route.path.startsWith('/italy') || route.path.startsWith('/serbia'))
+const serbiaMode = computed(() => route.path.startsWith('/serbia'))
+const basePath = computed(() => route.path.startsWith('/italy') ? '/italy' : route.path.startsWith('/serbia') ? '/serbia' : '')
 const store = usePromotionsStore()
 const sgStore = useStackingGroupsStore()
 const settingsStore = useSettingsStore()
@@ -985,6 +999,9 @@ function openOverflow(seg) {
 const titleActionsRef = ref(null)
 const processingOrderRef = ref(null)
 const stickyBarVisible = ref(false)
+const { stickyBarActive } = useMaxik()
+watch(stickyBarVisible, (v) => { stickyBarActive.value = v })
+onUnmounted(() => { stickyBarActive.value = false })
 let titleObserver = null
 const saveError = ref(null)
 
@@ -1209,12 +1226,17 @@ function pauseEndAllowedDates(d) {
 }
 
 
-const ruleTypeItems = [
+const ALL_RULE_TYPE_ITEMS = [
   { value: 'discount', title: 'Discount' },
   { value: 'step_discount', title: 'Step Discount' },
   { value: 'multi_buy', title: 'Multi-buy' },
   { value: 'gift', title: 'Gift' },
 ]
+const ruleTypeItems = computed(() =>
+  serbiaMode.value
+    ? ALL_RULE_TYPE_ITEMS.filter(t => t.value === 'discount' || t.value === draft.type)
+    : ALL_RULE_TYPE_ITEMS
+)
 
 // ── Multi-buy ─────────────────────────────────────────────────────────────────
 
@@ -1649,7 +1671,7 @@ function fmtDate(iso) {
 function validate() {
   const errors = {}
   if (!draft.name?.trim()) errors.name = 'Rule name is required'
-  if (!draft.channels?.length) errors.channels = 'At least one channel must be selected'
+  if (!serbiaMode.value && !draft.channels?.length) errors.channels = 'At least one channel must be selected'
   if (draft.type === 'discount' && !draft.value) errors.value = 'Discount value is required'
   validationErrors.value = errors
   const pErrors = validatePause()
@@ -1673,12 +1695,12 @@ async function _persistRule(statusOverride) {
       const snapshot = JSON.parse(JSON.stringify(toRaw(draft)))
       const INSTANCE_FIELDS = ['name', 'status', 'startDate', 'endDate', 'pauseScheduled', 'pauseStart', 'pauseEnd', 'processingOrder', 'nonCombinableRules']
       INSTANCE_FIELDS.forEach(f => delete snapshot[f])
-      await templatesStore.update(route.params.id, {
-        label: tplLabel.value,
-        description: tplDescription.value,
-        ruleType: draft.type,
-        ruleSnapshot: snapshot,
-      })
+      const tplPayload = { label: tplLabel.value, description: tplDescription.value, ruleType: draft.type, ruleSnapshot: snapshot }
+      if (route.params.id) {
+        await templatesStore.update(route.params.id, tplPayload)
+      } else {
+        await templatesStore.create(tplPayload)
+      }
       router.push(`${basePath.value}/templates`)
     } else {
       const payload = JSON.parse(JSON.stringify(toRaw(draft)))
@@ -1790,6 +1812,7 @@ onMounted(async () => {
     await store.fetchOne(route.params.id)
   } else if (!route.query.fromTemplate) {
     store.resetDraft()
+    if (serbiaMode.value) draft.channels = channelOptions.map(c => c.value)
   }
 })
 

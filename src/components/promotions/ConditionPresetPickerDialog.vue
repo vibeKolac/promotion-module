@@ -47,7 +47,7 @@
 
         <v-alert v-if="!filtered.length" color="grey" variant="tonal" density="compact">
           No presets found.
-          <router-link :to="`${italyMode ? '/italy' : ''}/templates-presets/condition-presets`" class="ml-1">Manage presets</router-link>
+          <router-link :to="`${basePath}/templates-presets/condition-presets`" class="ml-1">Manage presets</router-link>
         </v-alert>
 
         <div class="d-flex flex-column" style="gap: 12px">
@@ -93,7 +93,8 @@ defineProps({ modelValue: Boolean })
 const emit = defineEmits(['update:modelValue', 'apply'])
 
 const route = useRoute()
-const italyMode = computed(() => route.path.startsWith('/italy'))
+const italyMode = computed(() => route.path.startsWith('/italy') || route.path.startsWith('/serbia'))
+const basePath = computed(() => route.path.startsWith('/italy') ? '/italy' : route.path.startsWith('/serbia') ? '/serbia' : '')
 const store = useConditionPresetsStore()
 const search = ref('')
 const selected = ref(null)

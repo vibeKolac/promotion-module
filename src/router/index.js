@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import DefaultLayout from '../components/layout/DefaultLayout.vue'
 import ItalyLayout from '../components/layout/ItalyLayout.vue'
+import SerbiaLayout from '../components/layout/SerbiaLayout.vue'
 
 const promotionsCrumb = { title: 'Promotions', to: '/promotions' }
 const promotionsDisabled = { title: 'Promotions', disabled: true }
@@ -119,6 +120,7 @@ const exploringChildren = [
 const routes = [
   { path: '/templates', redirect: '/templates-presets/templates' },
   { path: '/italy/templates', redirect: '/italy/templates-presets/templates' },
+  { path: '/serbia/templates', redirect: '/serbia/templates-presets/templates' },
   {
     path: '/',
     component: DefaultLayout,
@@ -130,6 +132,12 @@ const routes = [
     component: ItalyLayout,
     redirect: '/italy/promotions',
     children: coreChildren('/italy'),
+  },
+  {
+    path: '/serbia',
+    component: SerbiaLayout,
+    redirect: '/serbia/promotions',
+    children: coreChildren('/serbia'),
   },
 ]
 

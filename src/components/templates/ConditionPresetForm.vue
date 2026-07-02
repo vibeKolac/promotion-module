@@ -103,7 +103,7 @@ function _describeLeaf(c) {
 
 const route = useRoute()
 const router = useRouter()
-const basePath = computed(() => route.path.startsWith('/italy') ? '/italy' : '')
+const basePath = computed(() => route.path.startsWith('/italy') ? '/italy' : route.path.startsWith('/serbia') ? '/serbia' : '')
 const store = useConditionPresetsStore()
 
 const isEdit = computed(() => !!route.params.id)

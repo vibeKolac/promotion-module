@@ -18,5 +18,6 @@ const config = computed(() => ({
   paused:    { color: 'warning',  variant: 'tonal',    label: 'Paused' },
   expired:   { color: 'default',  variant: 'outlined', label: 'Expired' },
   ended:     { color: 'default',  variant: 'outlined', label: 'Ended' },
+  archived:  { color: 'default',  variant: 'outlined', label: 'Archived' },
 }[props.status] ?? { color: 'default', variant: 'outlined', label: props.status }))
 </script>

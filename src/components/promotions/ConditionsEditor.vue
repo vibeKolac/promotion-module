@@ -215,7 +215,8 @@ import { getRecentConditionTypes, recordConditionTypes } from '../../utils/recen
 import { CONDITION_TYPES, CONDITION_GROUPS, TYPE_OPTIONS, getConditionTypeDef } from '../../utils/conditionTypes'
 
 const route = useRoute()
-const italyMode = computed(() => route.path.startsWith('/italy'))
+const italyMode = computed(() => route.path.startsWith('/italy') || route.path.startsWith('/serbia'))
+const serbiaMode = computed(() => route.path.startsWith('/serbia'))
 const settingsStore = useSettingsStore()
 const recentTypeValues = ref(getRecentConditionTypes())
 
@@ -237,6 +238,13 @@ const presetPickerOpen = ref(false)
 
 // ── Type helpers ──────────────────────────────────────────────────────────────
 const typeSelectItems = computed(() => {
+  if (serbiaMode.value) {
+    const thresholdGroup = CONDITION_GROUPS.find(g => g.label === 'Threshold')
+    return [
+      { type: 'subheader', title: thresholdGroup.label },
+      { title: 'Subtotal', value: 'subtotal' },
+    ]
+  }
   const recent = recentTypeValues.value
     .map(v => CONDITION_TYPES.find(t => t.value === v))
     .filter(Boolean)

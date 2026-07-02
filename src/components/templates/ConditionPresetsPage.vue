@@ -83,7 +83,7 @@ const store = useConditionPresetsStore()
 const { mobile } = useDisplay()
 const router = useRouter()
 const route = useRoute()
-const italyMode = computed(() => route.path.startsWith('/italy'))
+const italyMode = computed(() => route.path.startsWith('/italy') || route.path.startsWith('/serbia'))
 const search = ref('')
 const conditionFilter = ref([])
 

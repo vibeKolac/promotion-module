@@ -6,10 +6,11 @@
       <div class="dr-max-logo text-caption font-weight-bold rounded px-2 py-1">Dr.Max</div>
       <span class="text-body-2 font-weight-semibold">Eshop Admin</span>
       <v-chip v-if="italyMode" size="x-small" color="success" variant="tonal" label class="font-weight-bold">ITA</v-chip>
+      <v-chip v-if="serbiaMode" size="x-small" color="info" variant="tonal" label class="font-weight-bold">SRB</v-chip>
     </div>
     <v-spacer />
     <v-btn
-      v-if="!mobile && !italyMode"
+      v-if="!mobile && !italyMode && !serbiaMode"
       variant="text"
       size="small"
       class="text-caption text-medium-emphasis mr-2 text-none"
@@ -17,7 +18,7 @@
       @click="toggle"
     >Ask Maxík</v-btn>
     <v-btn
-      v-if="!mobile && !italyMode"
+      v-if="!mobile && !italyMode && !serbiaMode"
       variant="outlined"
       size="small"
       class="text-caption mr-2 text-none"
@@ -26,18 +27,25 @@
       to="/italy"
     >Test ITA</v-btn>
     <v-btn
-      v-if="!mobile && italyMode"
-      variant="text"
+      v-if="!mobile && !italyMode && !serbiaMode"
+      variant="outlined"
       size="small"
-      class="text-caption text-medium-emphasis mr-2 text-none"
-      prepend-icon="mdi-arrow-left"
-      to="/promotions"
-    >Main prototype</v-btn>
+      class="text-caption mr-2 text-none"
+      prepend-icon="mdi-flag-outline"
+      color="info"
+      to="/serbia"
+    >Test SRB</v-btn>
     <v-menu location="bottom end">
       <template #activator="{ props: menuProps }">
         <v-btn v-bind="menuProps" icon="mdi-account-circle" variant="text" class="mr-2" />
       </template>
       <v-list density="compact" min-width="240">
+        <v-list-item
+          v-if="italyMode || serbiaMode"
+          prepend-icon="mdi-arrow-left"
+          title="Main prototype"
+          to="/promotions"
+        />
         <v-list-item
           prepend-icon="mdi-presentation"
           title="Promotions analysis"
@@ -60,7 +68,10 @@
 <script setup>
 import { useDisplay } from 'vuetify'
 import { useMaxik } from '../../composables/useMaxik'
-defineProps({ italyMode: { type: Boolean, default: false } })
+defineProps({
+  italyMode: { type: Boolean, default: false },
+  serbiaMode: { type: Boolean, default: false },
+})
 defineEmits(['toggle-nav'])
 const { mobile } = useDisplay()
 const { toggle, isOpen } = useMaxik()

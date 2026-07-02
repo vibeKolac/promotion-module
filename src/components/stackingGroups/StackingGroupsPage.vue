@@ -369,7 +369,7 @@ const ruleCounts = computed(() => {
   const map = {}
   for (const group of sgStore.items) {
     const rules = promoStore.items.filter(r =>
-      r.status !== 'ended' && (
+      r.status !== 'ended' && r.status !== 'archived' && (
         group.isDefault
           ? r.stackingGroupId === group.id || r.stackingGroupId == null
           : r.stackingGroupId === group.id
@@ -395,7 +395,7 @@ function buildRulesForGroup(group) {
       const inGroup = group.isDefault
         ? r.stackingGroupId === group.id || r.stackingGroupId == null
         : r.stackingGroupId === group.id
-      return inGroup && r.status !== 'ended'
+      return inGroup && r.status !== 'ended' && r.status !== 'archived'
     })
     .sort((a, b) => (a.priority ?? 999) - (b.priority ?? 999))
 }
@@ -500,7 +500,7 @@ function getRuleGroup(rule) {
 
 const processingOrder = computed(() =>
   [...promoStore.items]
-    .filter(r => r.status !== 'ended')
+    .filter(r => r.status !== 'ended' && r.status !== 'archived')
     .sort((a, b) => {
       const ga = getRuleGroup(a)
       const gb = getRuleGroup(b)
