@@ -892,6 +892,7 @@ import { ref, computed, watch, onMounted, onUnmounted, toRaw } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useDisplay } from 'vuetify'
 import { useNavigationGuard } from '../../composables/useNavigationGuard'
+import { useMaxik } from '../../composables/useMaxik'
 import LeaveDialog from '../_common/LeaveDialog.vue'
 import { usePromotionsStore } from '../../stores/promotions'
 import { useStackingGroupsStore } from '../../stores/stackingGroups'
@@ -985,6 +986,9 @@ function openOverflow(seg) {
 const titleActionsRef = ref(null)
 const processingOrderRef = ref(null)
 const stickyBarVisible = ref(false)
+const { stickyBarActive } = useMaxik()
+watch(stickyBarVisible, (v) => { stickyBarActive.value = v })
+onUnmounted(() => { stickyBarActive.value = false })
 let titleObserver = null
 const saveError = ref(null)
 

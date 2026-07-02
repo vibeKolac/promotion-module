@@ -158,12 +158,13 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, watchEffect, onMounted } from 'vue'
+import { ref, computed, watch, watchEffect, onMounted, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
 import draggable from 'vuedraggable'
 import { useStackingGroupsStore } from '../../stores/stackingGroups'
 import { usePromotionsStore } from '../../stores/promotions'
 import { useNavigationGuard } from '../../composables/useNavigationGuard'
+import { useMaxik } from '../../composables/useMaxik'
 import StatusBadge from '../shared/StatusBadge.vue'
 import ContentHeader from '../_common/ContentHeader.vue'
 import Breadcrumbs from '../_common/Breadcrumbs.vue'
@@ -240,6 +241,9 @@ const isDirty = ref(false)
 const saving = ref(false)
 const savedSnack = ref(false)
 const errorSnack = ref(false)
+const { stickyBarActive } = useMaxik()
+watch(isDirty, (v) => { stickyBarActive.value = v })
+onUnmounted(() => { stickyBarActive.value = false })
 
 function onChange() {
   isDirty.value = true
