@@ -634,21 +634,26 @@ const duplicateSnack = ref(false)
 const bulkSnack = ref(false)
 const bulkSnackText = ref('')
 
+// Serbia only ever shows discount-type rules
+const scopedItems = computed(() =>
+  serbiaMode.value ? store.items.filter(r => r.type === 'discount') : store.items
+)
+
 // Tab computed lists
 const endedItems = computed(() =>
-  applyFiltersAll(store.items.filter(r => r.status === 'ended'))
+  applyFiltersAll(scopedItems.value.filter(r => r.status === 'ended'))
 )
 const activeItems = computed(() =>
-  applyFiltersAll(store.items.filter(r => r.status === 'active' || r.status === 'scheduled'))
+  applyFiltersAll(scopedItems.value.filter(r => r.status === 'active' || r.status === 'scheduled'))
 )
 const pausedItems = computed(() =>
-  applyFiltersAll(store.items.filter(r => r.status === 'paused'))
+  applyFiltersAll(scopedItems.value.filter(r => r.status === 'paused'))
 )
 const draftItems = computed(() =>
-  applyFiltersAll(store.items.filter(r => r.status === 'draft'))
+  applyFiltersAll(scopedItems.value.filter(r => r.status === 'draft'))
 )
 const archivedItems = computed(() =>
-  applyFiltersAll(store.items.filter(r => r.status === 'archived'))
+  applyFiltersAll(scopedItems.value.filter(r => r.status === 'archived'))
 )
 
 function applyStackingFilter(rules) {

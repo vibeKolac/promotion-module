@@ -211,7 +211,7 @@
             <v-col cols="12">
               <div class="d-flex align-center gap-1 mb-1">
                 <span class="text-caption font-weight-bold text-medium-emphasis">RULE TYPE</span>
-                <HelpTooltip text="Discount — fixed or % off cart/items. Step Discount — tiered discount that grows with spend. Multi-buy — buy X get Y free. Gift — give a free product when a threshold is met." />
+                <HelpTooltip :text="serbiaMode ? 'Discount — apply a fixed amount or percentage off the cart total.' : 'Discount — fixed or % off cart/items. Step Discount — tiered discount that grows with spend. Multi-buy — buy X get Y free. Gift — give a free product when a threshold is met.'" />
               </div>
               <SelectInput
                 v-model="draft.type"
@@ -229,7 +229,7 @@
           <div class="d-flex align-center mb-3">
             <v-icon color="orange-darken-2" size="18" class="mr-2">mdi-tag-outline</v-icon>
             <span class="text-body-1 font-weight-bold text-orange-darken-2">Discount Configuration</span>
-            <HelpTooltip text="Applies a fixed amount or percentage discount to the cart total or to each qualifying item. Use cart scope for basket-wide promotions, item scope for per-product discounts." class="ml-1" />
+            <HelpTooltip :text="serbiaMode ? 'Applies a fixed amount or percentage discount to the cart total.' : 'Applies a fixed amount or percentage discount to the cart total or to each qualifying item. Use cart scope for basket-wide promotions, item scope for per-product discounts.'" class="ml-1" />
           </div>
           <div v-if="!serbiaMode" class="mb-4">
             <div class="text-caption font-weight-bold text-medium-emphasis mb-2">RULE SCOPE</div>
@@ -546,7 +546,7 @@
           </template>
         </v-card>
 
-        <v-card border elevation="0" class="pa-5 mb-4 mt-6">
+        <v-card v-if="!serbiaMode" border elevation="0" class="pa-5 mb-4 mt-6">
           <div class="d-flex align-center mb-1">
             <div class="text-body-1 font-weight-bold">Usage limits</div>
             <HelpTooltip text="Cap how many times this rule can fire. Per-customer limit prevents one shopper from using the same discount repeatedly. Total cap protects budget across all customers." class="ml-1" />
@@ -596,7 +596,7 @@
         </v-card>
 
         <!-- ERP Voucher ID -->
-        <v-card border elevation="0" class="pa-5 mb-4">
+        <v-card border elevation="0" class="pa-5 mb-4" :class="{ 'mt-6': serbiaMode }">
           <div class="d-flex align-center mb-1">
             <v-icon size="18" class="mr-2 card-section-icon">mdi-link-variant</v-icon>
             <span class="text-body-1 font-weight-bold">ERP Link</span>
