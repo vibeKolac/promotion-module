@@ -49,7 +49,7 @@
     </div>
 
     <!-- Filter row -->
-    <div class="d-flex align-center flex-wrap filter-row">
+    <div v-if="!serbiaMode" class="d-flex align-center flex-wrap filter-row">
       <v-select
         v-model="stackingGroupFilter"
         :items="stackingGroupFilterItems"
@@ -137,7 +137,7 @@
 
     <!-- Bulk actions toolbar -->
     <v-card
-      v-if="selected.length"
+      v-if="selected.length && !serbiaMode"
       border
       elevation="0"
       class="pa-3 mb-3 bulk-toolbar"
@@ -209,7 +209,7 @@
         :items="tabItems"
         :loading="store.loading"
         item-value="id"
-        :show-select="activeTab !== 'archived'"
+        :show-select="activeTab !== 'archived' && !serbiaMode"
         hover
       >
         <template #item.name="{ item }">
@@ -834,8 +834,10 @@ const headers = computed(() => [
     { title: 'Type', key: 'type', width: '72px' },
     { title: 'Status', key: 'status' },
     { title: 'Created by', key: 'createdBy' },
-    { title: 'Action Labels', key: 'tags', sortable: false },
-    { title: 'Internal Tags', key: 'internalTags', sortable: false },
+    ...(serbiaMode.value ? [] : [
+      { title: 'Action Labels', key: 'tags', sortable: false },
+      { title: 'Internal Tags', key: 'internalTags', sortable: false },
+    ]),
     { title: 'Starts', key: 'startDate' },
     { title: 'Ends', key: 'endDate' },
   ]),

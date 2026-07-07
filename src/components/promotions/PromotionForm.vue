@@ -77,6 +77,7 @@
           />
 
           <v-autocomplete
+            v-if="!serbiaMode"
             :model-value="draft.internalTags"
             :items="internalTagsStore.items"
             :loading="internalTagsStore.loading || creatingInternalTag"
@@ -230,7 +231,7 @@
             <span class="text-body-1 font-weight-bold text-orange-darken-2">Discount Configuration</span>
             <HelpTooltip text="Applies a fixed amount or percentage discount to the cart total or to each qualifying item. Use cart scope for basket-wide promotions, item scope for per-product discounts." class="ml-1" />
           </div>
-          <div class="mb-4">
+          <div v-if="!serbiaMode" class="mb-4">
             <div class="text-caption font-weight-bold text-medium-emphasis mb-2">RULE SCOPE</div>
             <v-btn-toggle v-model="draft.scope" mandatory density="compact" variant="outlined" color="primary" class="mb-1">
               <v-btn value="cart" size="small" prepend-icon="mdi-cart-outline">Cart</v-btn>
@@ -262,7 +263,7 @@
             <span class="text-body-1 font-weight-bold text-green-darken-2">Step Discount Configuration</span>
             <HelpTooltip text="Tiered discount that increases with spend or quantity. Define multiple steps — each step unlocks a bigger discount when the threshold is reached." class="ml-1" />
           </div>
-          <div class="mb-4">
+          <div v-if="!serbiaMode" class="mb-4">
             <div class="text-caption font-weight-bold text-medium-emphasis mb-2">RULE SCOPE</div>
             <v-btn-toggle v-model="draft.scope" mandatory density="compact" variant="outlined" color="primary" class="mb-1">
               <v-btn value="cart" size="small" prepend-icon="mdi-cart-outline">Cart</v-btn>
@@ -383,7 +384,7 @@
             <span class="text-body-1 font-weight-bold text-purple-darken-2">Gift Configuration</span>
             <HelpTooltip text="Automatically adds a free gift product to the cart when a spend or quantity threshold is reached. The gift item is priced at the configured accounting price for reporting." class="ml-1" />
           </div>
-          <div class="mb-4">
+          <div v-if="!serbiaMode" class="mb-4">
             <div class="text-caption font-weight-bold text-medium-emphasis mb-2">RULE SCOPE</div>
             <v-btn-toggle v-model="draft.scope" mandatory density="compact" variant="outlined" color="primary" class="mb-1">
               <v-btn value="cart" size="small" prepend-icon="mdi-cart-outline">Cart</v-btn>
@@ -427,8 +428,8 @@
           <ConditionsEditor
             v-model="draft.conditions"
             :scope="draft.scope"
-            title="Targeting conditions"
-            help-text="Filter which products, customers, or cart state this rule applies to. All conditions in a group must match (AND). Groups are evaluated with OR between them."
+            :title="serbiaMode ? 'Conditions' : 'Targeting conditions'"
+            :help-text="serbiaMode ? 'Define the condition this rule applies to.' : 'Filter which products, customers, or cart state this rule applies to. All conditions in a group must match (AND). Groups are evaluated with OR between them.'"
             :show-preset="!serbiaMode"
           >
             <template #empty>No conditions set — this rule applies to all products.</template>
@@ -481,7 +482,7 @@
 
         <!-- Description and Action Labels -->
         <v-card border elevation="0" class="pa-6 mt-6">
-          <div class="text-body-1 font-weight-bold mb-4">Description and Action Labels</div>
+          <div class="text-body-1 font-weight-bold mb-4">{{ serbiaMode ? 'Description' : 'Description and Action Labels' }}</div>
           <div class="text-caption font-weight-bold text-medium-emphasis mb-3">CUSTOMER-FACING DESCRIPTION</div>
           <TextInput
             v-model="draft.promotionTitle"
@@ -511,36 +512,38 @@
             persistent-hint
             class="mb-6"
           />
-          <div class="text-caption font-weight-bold text-medium-emphasis mb-3">ACTION LABELS</div>
-          <v-autocomplete
-            :model-value="draft.tags"
-            :items="tagsStore.items"
-            :loading="tagsStore.loading || creatingTag"
-            item-title="name"
-            item-value="id"
-            multiple
-            chips
-            closable-chips
-            chip-color="grey-darken-1"
-            variant="outlined"
-            density="compact"
-            placeholder="Select existing or type a name to create new…"
-            hint="Select from existing labels or type a new name and pick 'Create' to add it"
-            persistent-hint
-            no-data-text="Type a name to create a new label"
-            v-model:search="newTagName"
-            @update:model-value="draft.tags = $event"
-          >
-            <template #prepend-item>
-              <v-list-item
-                v-if="newTagName.trim() && !tagExists"
-                prepend-icon="mdi-plus-circle-outline"
-                :title="`Create '${newTagName.trim()}'`"
-                color="primary"
-                @click="createTag"
-              />
-            </template>
-          </v-autocomplete>
+          <template v-if="!serbiaMode">
+            <div class="text-caption font-weight-bold text-medium-emphasis mb-3">ACTION LABELS</div>
+            <v-autocomplete
+              :model-value="draft.tags"
+              :items="tagsStore.items"
+              :loading="tagsStore.loading || creatingTag"
+              item-title="name"
+              item-value="id"
+              multiple
+              chips
+              closable-chips
+              chip-color="grey-darken-1"
+              variant="outlined"
+              density="compact"
+              placeholder="Select existing or type a name to create new…"
+              hint="Select from existing labels or type a new name and pick 'Create' to add it"
+              persistent-hint
+              no-data-text="Type a name to create a new label"
+              v-model:search="newTagName"
+              @update:model-value="draft.tags = $event"
+            >
+              <template #prepend-item>
+                <v-list-item
+                  v-if="newTagName.trim() && !tagExists"
+                  prepend-icon="mdi-plus-circle-outline"
+                  :title="`Create '${newTagName.trim()}'`"
+                  color="primary"
+                  @click="createTag"
+                />
+              </template>
+            </v-autocomplete>
+          </template>
         </v-card>
 
         <v-card border elevation="0" class="pa-5 mb-4 mt-6">

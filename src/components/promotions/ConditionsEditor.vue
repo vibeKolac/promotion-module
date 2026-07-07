@@ -15,7 +15,7 @@
           Select preset
         </v-btn>
       </div>
-      <div class="text-caption text-medium-emphasis mb-4">
+      <div v-if="!serbiaMode" class="text-caption text-medium-emphasis mb-4">
         Add conditions or groups. Click the AND / OR chip to switch the operator for the entire group.
       </div>
     </template>
@@ -183,7 +183,7 @@
     </v-alert>
 
     <!-- Actions -->
-    <div class="condition-actions">
+    <div v-if="!serbiaMode" class="condition-actions">
       <v-btn prepend-icon="mdi-plus" variant="outlined" size="default" @click="addConditionInline">
         Add condition
       </v-btn>
@@ -199,7 +199,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { v4 as uuid } from 'uuid'
 import HelpTooltip from '../_common/HelpTooltip.vue'
@@ -235,6 +235,11 @@ const emit = defineEmits(['update:modelValue'])
 // ── Dialog state ──────────────────────────────────────────────────────────────
 const csvImportOpen = ref(false)
 const presetPickerOpen = ref(false)
+
+// Serbia has no add/remove UI — keep exactly one condition row present at all times
+watch(() => props.modelValue.length, (len) => {
+  if (serbiaMode.value && len === 0) addConditionInline()
+}, { immediate: true })
 
 // ── Type helpers ──────────────────────────────────────────────────────────────
 const typeSelectItems = computed(() => {
