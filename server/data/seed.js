@@ -1,7 +1,7 @@
 // src/mock/seed.js — ES module mirror of server/data/seed.js
 // Kept in sync manually. Switch VITE_USE_MOCK to toggle between this and the real API.
 
-export const drMaxProducts = [
+const drMaxProducts = [
   { sku: '100200301', name: 'Dr.Max Vitamin C High Effect 1000mg 30 tablets',  stock: 100, image: 'https://www.drmax.cz/_i/473799544.webp?m2=%2Fmedia%2Fcatalog%2Fproduct%2Fa%2Ff%2Faf583d8b9ebe5_1216_vitamin_c_high_effect_30tbl_box_55x90x55_sk_3d_r_06.jpg&fit=contain&w=350&h=350&format=webp' },
   { sku: '100200302', name: 'Dr.Max Vitamin D3 2000 I.U. 60 capsules',         stock: 45,  image: 'https://www.drmax.cz/_i/345605783.webp?m2=%2Fmedia%2Fcatalog%2Fproduct%2F8%2F5%2F8595566426521_t911.jpg&fit=contain&w=350&h=350&format=webp' },
   { sku: '100200303', name: 'Dr.Max Magnesium Complex Active 60 tablets',       stock: 0,   image: 'https://www.drmax.cz/_i/-1371638637.webp?m2=%2Fmedia%2Fcatalog%2Fproduct%2F7%2F6%2F768e169158326_1711_magnesium_complex_active_60tbl_box_129x83x46_cz-sk-pl_2-09_3d_r.jpg&fit=contain&w=350&h=350&format=webp' },
@@ -14,21 +14,21 @@ export const drMaxProducts = [
   { sku: '100200310', name: 'Dr.Max Collagen Drink 30 sachets',                 stock: 33,  image: 'https://www.drmax.cz/_i/-1666376868.webp?w=130&h=130&m2=%2Fmedia%2Fcatalog%2Fproduct%2Fd%2Fr%2Fdr._max_collagen_drink_box_cz-sk-it-pl-ro-rs_3d.jpg&fit=contain&format=webp' },
 ]
 
-export const tags = [
+const tags = [
   { id: 'tag-1', name: '3+1' },
   { id: 'tag-2', name: '10% discount' },
   { id: 'tag-3', name: '1+1' },
   { id: 'tag-4', name: 'Black Friday' },
 ]
 
-export const internalTags = [
+const internalTags = [
   { id: 'itag-1', name: 'internal' },
   { id: 'itag-2', name: 'Q2-2026' },
   { id: 'itag-3', name: 'analyse' },
   { id: 'itag-4', name: 'external' },
 ]
 
-export const erpEntries = [
+const erpEntries = [
   { id: '7631', name: 'Skincare Summer Promo 2025' },
   { id: '7632', name: 'Flash Sale Q4 2025' },
   { id: '7633', name: 'Vichy Brand Discount' },
@@ -46,7 +46,7 @@ export const erpEntries = [
   { id: '7702', name: 'Autumn Health Week' },
 ]
 
-export const promotions = [
+const promotions = [
   {
     id: 'promo-1', name: '20% off Vichy over €50', type: 'discount',
     value: '20', valueUnit: '%', amountType: 'PERCENT', steps: [], priority: 4, status: 'active',
@@ -196,7 +196,7 @@ export const promotions = [
   },
 ]
 
-export const promotionOrders = {
+const promotionOrders = {
   'promo-1': [
     { orderType: 'order', orderIncrementId: 386239482, customerName: 'Munteanu Georgiana', orderCreatedDate: '2025-12-15 09:24:42', orderShipmentDate: '2026-04-02 06:30:47', orderCloseDate: '2026-04-03 13:22:17', rowTotalInclTax: 29.98, quantity: 1, discountAmount: 1.50, rowTotalInclTaxAfterDiscount: 28.48, orderGrandTotal: 388.74, voucherId: 7631, ruleUsage: 1, ruleDiscount: 1.5, ruleBaseDiscount: 1.5, ruleCouponCode: '', giftPdk: '', giftName: '', giftPrice: '' },
     { orderType: 'order', orderIncrementId: 386249212, customerName: 'Vatamanu Marinela', orderCreatedDate: '2025-12-15 09:24:42', orderShipmentDate: '2026-04-02 05:35:39', orderCloseDate: '2026-04-03 11:07:11', rowTotalInclTax: 29.98, quantity: 1, discountAmount: 1.50, rowTotalInclTaxAfterDiscount: 28.48, orderGrandTotal: 199.95, voucherId: 7631, ruleUsage: 1, ruleDiscount: 1.5, ruleBaseDiscount: 1.5, ruleCouponCode: '', giftPdk: '', giftName: '', giftPrice: '' },
@@ -226,13 +226,13 @@ export const promotionOrders = {
   ],
 }
 
-export const stackingGroups = [
+const stackingGroups = [
   { id: 'sg-1', name: 'Flash Sales', description: 'All flash sale promotions', color: '#EF4444', priority: 10, isDefault: false, createdAt: '2026-01-01T00:00:00Z', updatedAt: '2026-01-01T00:00:00Z' },
   { id: 'sg-2', name: 'Loyalty', description: 'Loyalty program discounts', color: '#10B981', priority: 20, isDefault: false, createdAt: '2026-01-01T00:00:00Z', updatedAt: '2026-01-01T00:00:00Z' },
   { id: 'sg-default', name: 'Unassigned', description: 'Rules with no priority group', color: '#6B7280', priority: 999, isDefault: true, createdAt: '2026-01-01T00:00:00Z', updatedAt: '2026-01-01T00:00:00Z' },
 ]
 
-export const templates = [
+const templates = [
   {
     id: 'tpl-flash-1', label: 'Weekend Flash Sale', category: 'flash', popularity: 'high',
     description: 'Time-limited weekend discount',
@@ -296,3 +296,5 @@ export const templates = [
     defaultConditions: [{ field: 'brands', mode: 'include', values: [] }],
   },
 ]
+
+module.exports = { drMaxProducts, tags, internalTags, erpEntries, promotions, promotionOrders, stackingGroups, templates }
