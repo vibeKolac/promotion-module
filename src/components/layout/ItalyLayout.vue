@@ -2,7 +2,6 @@
 <template>
   <AppTopBar italy-mode @toggle-nav="drawerOpen = !drawerOpen" />
   <AppSidebar v-model="drawerOpen" italy-mode />
-  <MaxikHelper />
   <v-main>
     <router-view />
   </v-main>
@@ -12,7 +11,6 @@
 import { ref, onMounted } from 'vue'
 import AppTopBar from './AppTopBar.vue'
 import AppSidebar from './AppSidebar.vue'
-import MaxikHelper from '../MaxikHelper.vue'
 import { useSettingsStore } from '../../stores/settings'
 
 const drawerOpen = ref(true)
