@@ -46,7 +46,7 @@ export function installMock() {
 
   mock.onPost('/api/promotions').reply(config => {
     const body = JSON.parse(config.data)
-    const item = { id: uuid(), ...body, createdAt: now(), updatedAt: now() }
+    const item = { ...body, id: uuid(), createdAt: now(), updatedAt: now() }
     db.promotions.push(item)
     return [201, item]
   })
@@ -71,7 +71,7 @@ export function installMock() {
 
   mock.onPost('/api/stacking-groups').reply(config => {
     const body = JSON.parse(config.data)
-    const item = { id: uuid(), ...body, createdAt: now(), updatedAt: now() }
+    const item = { ...body, id: uuid(), createdAt: now(), updatedAt: now() }
     db.stackingGroups.push(item)
     return [201, item]
   })
@@ -99,7 +99,7 @@ export function installMock() {
 
   mock.onPost('/api/templates').reply(config => {
     const body = JSON.parse(config.data)
-    const item = { id: uuid(), ...body }
+    const item = { ...body, id: uuid() }
     db.templates.push(item)
     return [201, item]
   })
@@ -124,7 +124,7 @@ export function installMock() {
 
   mock.onPost('/api/tags').reply(config => {
     const body = JSON.parse(config.data)
-    const item = { id: uuid(), ...body }
+    const item = { ...body, id: uuid() }
     db.tags.push(item)
     return [201, item]
   })
@@ -159,7 +159,7 @@ export function installMock() {
 
   mock.onPost('/api/internal-tags').reply(config => {
     const body = JSON.parse(config.data)
-    const item = { id: uuid(), ...body }
+    const item = { ...body, id: uuid() }
     db.internalTags.push(item)
     return [201, item]
   })

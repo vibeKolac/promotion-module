@@ -126,6 +126,7 @@ export const usePromotionsStore = defineStore('promotions', () => {
   }
 
   function resetDraft() {
+    delete formDraft.id
     Object.assign(formDraft, emptyDraft())
   }
 

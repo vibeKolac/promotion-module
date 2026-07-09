@@ -6,7 +6,7 @@ module.exports = (db) => {
   router.get('/', (req, res) => res.json(db.stackingGroups))
 
   router.post('/', (req, res) => {
-    const item = { id: uuid(), ...req.body, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }
+    const item = { ...req.body, id: uuid(), createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }
     db.stackingGroups.push(item)
     res.status(201).json(item)
   })

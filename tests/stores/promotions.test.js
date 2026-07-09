@@ -45,6 +45,32 @@ describe('promotions store', () => {
     expect(store.formDraft.name).toBe('Rule Two')
   })
 
+  it('resetDraft clears a stale id left over from a previous fetchOne', async () => {
+    const store = usePromotionsStore()
+    axios.get.mockResolvedValue({ data: { id: 'p2', name: 'Rule Two' } })
+    await store.fetchOne('p2')
+    expect(store.formDraft.id).toBe('p2')
+
+    store.resetDraft()
+
+    expect(store.formDraft.id).toBeUndefined()
+  })
+
+  it('create never sends a stale formDraft id from a prior edit', async () => {
+    const store = usePromotionsStore()
+    axios.get.mockResolvedValue({ data: { id: 'p2', name: 'Rule Two' } })
+    await store.fetchOne('p2')
+    store.resetDraft()
+    store.formDraft.name = 'Rule Three'
+
+    axios.post.mockImplementation((url, payload) => {
+      expect(payload.id).toBeUndefined()
+      return Promise.resolve({ data: { id: 'brand-new-id', ...payload } })
+    })
+    // mirrors how PromotionForm builds the create payload from formDraft
+    await store.create(JSON.parse(JSON.stringify(store.formDraft)))
+  })
+
   it('applyParsedRule merges parsed data into formDraft', () => {
     const store = usePromotionsStore()
     store.applyParsedRule({
