@@ -1,7 +1,7 @@
-<!-- src/components/layout/ItalyLayout.vue -->
+<!-- src/components/layout/UxTestLayout.vue -->
 <template>
-  <AppTopBar italy-mode @toggle-nav="drawerOpen = !drawerOpen" />
-  <AppSidebar v-model="drawerOpen" italy-mode />
+  <AppTopBar ux-test-mode @toggle-nav="drawerOpen = !drawerOpen" />
+  <AppSidebar v-model="drawerOpen" ux-test-mode />
   <v-main>
     <router-view />
   </v-main>

@@ -73,7 +73,8 @@ const store = useTemplatesStore()
 const promoStore = usePromotionsStore()
 const router = useRouter()
 const route = useRoute()
-const italyMode = computed(() => route.path.startsWith('/italy') || route.path.startsWith('/serbia'))
+const uxTestMode = computed(() => route.path.startsWith('/uxtest') || route.path.startsWith('/serbia'))
+const basePath = computed(() => route.path.startsWith('/uxtest') ? '/uxtest' : route.path.startsWith('/serbia') ? '/serbia' : '')
 const { mobile } = useDisplay()
 
 const search = ref('')
@@ -98,7 +99,7 @@ function clearFilters() {
 onMounted(() => store.fetchAll())
 
 const filtered = computed(() => {
-  const base = italyMode.value
+  const base = uxTestMode.value
     ? store.items.filter(t => store.sessionIds.has(t.id))
     : store.items
   return base
@@ -119,11 +120,11 @@ function applyTemplate(tpl) {
       name: tpl.label,
     })
   }
-  router.push({ path: '/promotions/new', query: { fromTemplate: '1' } })
+  router.push({ path: `${basePath.value}/promotions/new`, query: { fromTemplate: '1' } })
 }
 
 function openEdit(tpl) {
-  router.push(`/templates/${tpl.id}/edit`)
+  router.push(`${basePath.value}/templates/${tpl.id}/edit`)
 }
 
 const deleteDialogOpen = ref(false)

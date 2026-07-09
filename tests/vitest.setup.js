@@ -21,3 +21,12 @@ if (typeof window !== 'undefined' && !window.ResizeObserver) {
     disconnect() {}
   }
 }
+
+// Polyfill IntersectionObserver
+if (typeof window !== 'undefined' && !window.IntersectionObserver) {
+  window.IntersectionObserver = class {
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+  }
+}

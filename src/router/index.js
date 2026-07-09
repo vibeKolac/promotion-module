@@ -1,11 +1,11 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import DefaultLayout from '../components/layout/DefaultLayout.vue'
-import ItalyLayout from '../components/layout/ItalyLayout.vue'
+import UxTestLayout from '../components/layout/UxTestLayout.vue'
 import SerbiaLayout from '../components/layout/SerbiaLayout.vue'
 
-const promotionsCrumb = { title: 'Promotions', to: '/promotions' }
+const promotionsCrumb = (base) => ({ title: 'Promotions', to: `${base}/promotions` })
 const promotionsDisabled = { title: 'Promotions', disabled: true }
-const templatesCrumb = { title: 'Templates & Presets', to: '/templates-presets/templates' }
+const templatesCrumb = (base) => ({ title: 'Templates & Presets', to: `${base}/templates-presets/templates` })
 const reportingCrumb = { title: 'Reporting', to: '/promotions/reporting' }
 const settingsCrumb = { title: 'Settings', disabled: true }
 
@@ -17,12 +17,12 @@ const coreChildren = (base = '') => [
   },
   {
     path: 'promotions/new',
-    meta: { breadcrumbs: [promotionsCrumb] },
+    meta: { breadcrumbs: [promotionsCrumb(base)] },
     component: () => import('../components/promotions/PromotionForm.vue'),
   },
   {
     path: 'promotions/:id/edit',
-    meta: { breadcrumbs: [promotionsCrumb] },
+    meta: { breadcrumbs: [promotionsCrumb(base)] },
     component: () => import('../components/promotions/PromotionForm.vue'),
   },
   {
@@ -47,22 +47,22 @@ const coreChildren = (base = '') => [
   },
   {
     path: 'condition-presets/new',
-    meta: { breadcrumbs: [templatesCrumb] },
+    meta: { breadcrumbs: [templatesCrumb(base)] },
     component: () => import('../components/templates/ConditionPresetForm.vue'),
   },
   {
     path: 'condition-presets/:id/edit',
-    meta: { breadcrumbs: [templatesCrumb] },
+    meta: { breadcrumbs: [templatesCrumb(base)] },
     component: () => import('../components/templates/ConditionPresetForm.vue'),
   },
   {
     path: 'templates/new',
-    meta: { breadcrumbs: [templatesCrumb] },
+    meta: { breadcrumbs: [templatesCrumb(base)] },
     component: () => import('../components/promotions/PromotionForm.vue'),
   },
   {
     path: 'templates/:id/edit',
-    meta: { breadcrumbs: [templatesCrumb] },
+    meta: { breadcrumbs: [templatesCrumb(base)] },
     component: () => import('../components/promotions/PromotionForm.vue'),
   },
   {
@@ -78,7 +78,7 @@ const coreChildren = (base = '') => [
   {
     path: 'coupons',
     meta: { breadcrumbs: [promotionsDisabled, { title: 'Coupons', disabled: true }] },
-    ...(base === '/italy'
+    ...(base === '/uxtest'
       ? { component: { template: '<div/>', mounted() { window.location.replace('https://coms-cze-admin.dr-maxtest.global/login') } } }
       : { component: () => import('../components/coupons/CouponsPage.vue') }),
   },
@@ -92,7 +92,7 @@ const exploringChildren = [
   },
   {
     path: 'promotions/reporting/:id',
-    meta: { breadcrumbs: [promotionsCrumb, reportingCrumb] },
+    meta: { breadcrumbs: [promotionsCrumb(''), reportingCrumb] },
     component: () => import('../components/promotions/ReportingDetailPage.vue'),
   },
   {
@@ -119,7 +119,7 @@ const exploringChildren = [
 
 const routes = [
   { path: '/templates', redirect: '/templates-presets/templates' },
-  { path: '/italy/templates', redirect: '/italy/templates-presets/templates' },
+  { path: '/uxtest/templates', redirect: '/uxtest/templates-presets/templates' },
   { path: '/serbia/templates', redirect: '/serbia/templates-presets/templates' },
   {
     path: '/',
@@ -128,10 +128,10 @@ const routes = [
     children: [...coreChildren(''), ...exploringChildren],
   },
   {
-    path: '/italy',
-    component: ItalyLayout,
-    redirect: '/italy/promotions',
-    children: coreChildren('/italy'),
+    path: '/uxtest',
+    component: UxTestLayout,
+    redirect: '/uxtest/promotions',
+    children: coreChildren('/uxtest'),
   },
   {
     path: '/serbia',

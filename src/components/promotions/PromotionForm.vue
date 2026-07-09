@@ -126,7 +126,7 @@
           </v-row>
 
           <!-- Schedule pausing -->
-          <div v-if="!italyMode" class="mt-3">
+          <div v-if="!uxTestMode" class="mt-3">
             <v-checkbox
               v-model="draft.pauseScheduled"
               density="compact"
@@ -435,7 +435,7 @@
             <template #empty>No conditions set — this rule applies to all products.</template>
           </ConditionsEditor>
 
-          <ReachEstimateBar v-if="!italyMode" :conditions="draft.conditions" :scope="draft.scope" class="mt-3" />
+          <ReachEstimateBar v-if="!uxTestMode" :conditions="draft.conditions" :scope="draft.scope" class="mt-3" />
 
           <v-dialog v-model="overflowDialog" max-width="420">
             <v-card>
@@ -643,7 +643,7 @@
             <v-icon size="18" class="mr-2 card-section-icon">mdi-ticket-percent-outline</v-icon>
             <span class="text-body-1 font-weight-bold">Coupon</span>
             <HelpTooltip text="Attach a coupon code so customers must enter it at checkout to activate this promotion." class="ml-1" />
-            <v-chip v-if="!italyMode" size="x-small" color="warning" variant="tonal" label class="ml-2">Exploring</v-chip>
+            <v-chip v-if="!uxTestMode" size="x-small" color="warning" variant="tonal" label class="ml-2">Exploring</v-chip>
           </div>
           <p class="text-caption text-medium-emphasis mb-3">
             Require customers to enter a coupon code to unlock this promotion.
@@ -938,9 +938,9 @@ import { useTagsStore } from '../../stores/tags'
 const { mobile } = useDisplay()
 const route = useRoute()
 const router = useRouter()
-const italyMode = computed(() => route.path.startsWith('/italy') || route.path.startsWith('/serbia'))
+const uxTestMode = computed(() => route.path.startsWith('/uxtest') || route.path.startsWith('/serbia'))
 const serbiaMode = computed(() => route.path.startsWith('/serbia'))
-const basePath = computed(() => route.path.startsWith('/italy') ? '/italy' : route.path.startsWith('/serbia') ? '/serbia' : '')
+const basePath = computed(() => route.path.startsWith('/uxtest') ? '/uxtest' : route.path.startsWith('/serbia') ? '/serbia' : '')
 const store = usePromotionsStore()
 const sgStore = useStackingGroupsStore()
 const settingsStore = useSettingsStore()
@@ -1027,7 +1027,7 @@ const tplPickerTypeItems = [
 
 const filteredPickerTemplates = computed(() => {
   const q = tplPickerSearch.value.toLowerCase()
-  const base = italyMode.value
+  const base = uxTestMode.value
     ? templatesStore.items.filter(t => templatesStore.sessionIds.has(t.id))
     : templatesStore.items
   return base
@@ -1780,13 +1780,7 @@ async function doConfirmedSave() {
   else if (pendingSaveAction.value === 'template_from_rule') await openSaveAsTemplate()
 }
 
-onMounted(async () => {
-  titleObserver = new IntersectionObserver(
-    ([entry]) => { stickyBarVisible.value = !entry.isIntersecting },
-    { threshold: 0 }
-  )
-  if (titleActionsRef.value) titleObserver.observe(titleActionsRef.value)
-  await Promise.all([sgStore.fetchAll(), store.fetchAll(), erpEntriesStore.fetchAll(), internalTagsStore.fetchAll(), tagsStore.fetchAll()])
+async function loadFromRoute() {
   if (isTemplateEdit.value) {
     if (!route.params.id) {
       tplLabel.value = ''
@@ -1817,6 +1811,22 @@ onMounted(async () => {
     store.resetDraft()
     if (serbiaMode.value) draft.channels = channelOptions.map(c => c.value)
   }
+}
+
+// Vue Router reuses this component instance when navigating between two
+// routes that both resolve to PromotionForm (e.g. one rule's edit page to
+// another's) — onMounted alone won't fire again, so re-run the load whenever
+// the route we're editing actually changes.
+watch(() => route.fullPath, () => { loadFromRoute() })
+
+onMounted(async () => {
+  titleObserver = new IntersectionObserver(
+    ([entry]) => { stickyBarVisible.value = !entry.isIntersecting },
+    { threshold: 0 }
+  )
+  if (titleActionsRef.value) titleObserver.observe(titleActionsRef.value)
+  await Promise.all([sgStore.fetchAll(), store.fetchAll(), erpEntriesStore.fetchAll(), internalTagsStore.fetchAll(), tagsStore.fetchAll()])
+  await loadFromRoute()
 })
 
 onUnmounted(() => {

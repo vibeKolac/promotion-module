@@ -93,15 +93,15 @@ defineProps({ modelValue: Boolean })
 const emit = defineEmits(['update:modelValue', 'apply'])
 
 const route = useRoute()
-const italyMode = computed(() => route.path.startsWith('/italy') || route.path.startsWith('/serbia'))
-const basePath = computed(() => route.path.startsWith('/italy') ? '/italy' : route.path.startsWith('/serbia') ? '/serbia' : '')
+const uxTestMode = computed(() => route.path.startsWith('/uxtest') || route.path.startsWith('/serbia'))
+const basePath = computed(() => route.path.startsWith('/uxtest') ? '/uxtest' : route.path.startsWith('/serbia') ? '/serbia' : '')
 const store = useConditionPresetsStore()
 const search = ref('')
 const selected = ref(null)
 const applyMode = ref('replace')
 
 const filtered = computed(() => {
-  const base = italyMode.value
+  const base = uxTestMode.value
     ? store.items.filter(p => store.sessionIds.has(p.id))
     : store.items
   return base.filter(p =>

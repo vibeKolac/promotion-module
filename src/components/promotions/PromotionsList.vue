@@ -6,7 +6,7 @@
     <ContentHeader>
       <h1 class="text-h5 font-weight-bold">Promotion rules management</h1>
       <template #right>
-        <div v-if="!mobile && !italyMode" class="bulk-csv-wrapper">
+        <div v-if="!mobile && !uxTestMode" class="bulk-csv-wrapper">
           <v-chip
             size="x-small"
             color="warning"
@@ -173,7 +173,7 @@
           <v-btn v-if="activeTab === 'active'" size="small" variant="outlined" color="error" @click="bulkEnd">
             <v-icon size="16" class="mr-1">mdi-stop-circle-outline</v-icon>End
           </v-btn>
-          <v-btn v-if="!italyMode" size="small" variant="outlined" @click="bulkDuplicate">
+          <v-btn v-if="!uxTestMode" size="small" variant="outlined" @click="bulkDuplicate">
             <v-icon size="16" class="mr-1">mdi-content-copy</v-icon>Duplicate
           </v-btn>
           <v-btn v-if="activeTab === 'draft'" size="small" variant="outlined" color="error" @click="openBulkDelete">
@@ -216,7 +216,7 @@
           <div class="d-flex align-center gap-2">
             <RouterLink :to="`${basePath}/promotions/${item.id}/edit`" class="rule-name-link font-weight-medium">{{ item.name }}</RouterLink>
             <ConflictBadge
-              v-if="!italyMode && conflictsMap.get(item.id)?.length"
+              v-if="!uxTestMode && conflictsMap.get(item.id)?.length"
               :conflicts="conflictsMap.get(item.id)"
             />
           </div>
@@ -312,7 +312,7 @@
             </template>
             <v-list density="compact" min-width="180">
               <v-list-item v-if="item.status !== 'ended'" prepend-icon="mdi-pencil" title="Edit" :to="`${basePath}/promotions/${item.id}/edit`" />
-              <v-list-item v-if="!italyMode" prepend-icon="mdi-content-copy" title="Duplicate" @click="duplicateRule(item.id)" />
+              <v-list-item v-if="!uxTestMode" prepend-icon="mdi-content-copy" title="Duplicate" @click="duplicateRule(item.id)" />
               <template v-if="item.status !== 'ended'">
                 <v-list-item
                   v-if="!serbiaMode && (item.status === 'active' || item.status === 'scheduled')"
@@ -391,7 +391,7 @@
         The selected {{ selected.length }} rule{{ selected.length > 1 ? 's' : '' }} will move to the Archived tab and be hidden from all other views. This can't be undone here.
       </template>
     </ConfirmModal>
-    <CsvImportDialog v-if="!italyMode" v-model="csvImportOpen" @import="onCSVImport" />
+    <CsvImportDialog v-if="!uxTestMode" v-model="csvImportOpen" @import="onCSVImport" />
 
     <!-- New rule dialog -->
     <v-dialog v-model="newRuleDialogOpen" max-width="560" scrollable>
@@ -513,9 +513,9 @@ import CsvImportDialog from './CsvImportDialog.vue'
 import { downloadCSV, exportRulesToCSV } from '../../utils/csvRuleImportExport'
 const router = useRouter()
 const route = useRoute()
-const italyMode = computed(() => route.path.startsWith('/italy') || route.path.startsWith('/serbia'))
+const uxTestMode = computed(() => route.path.startsWith('/uxtest') || route.path.startsWith('/serbia'))
 const serbiaMode = computed(() => route.path.startsWith('/serbia'))
-const basePath = computed(() => route.path.startsWith('/italy') ? '/italy' : route.path.startsWith('/serbia') ? '/serbia' : '')
+const basePath = computed(() => route.path.startsWith('/uxtest') ? '/uxtest' : route.path.startsWith('/serbia') ? '/serbia' : '')
 const store = usePromotionsStore()
 const templatesStore = useTemplatesStore()
 
@@ -555,7 +555,7 @@ function openNewRule() {
 
 const filteredPickerTemplates = computed(() => {
   const q = tplPickerSearch.value.toLowerCase()
-  const base = italyMode.value
+  const base = uxTestMode.value
     ? templatesStore.items.filter(t => templatesStore.sessionIds.has(t.id))
     : templatesStore.items
   return base

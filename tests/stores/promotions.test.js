@@ -26,6 +26,25 @@ describe('promotions store', () => {
     expect(store.items.find(i => i.id === '1')).toBeUndefined()
   })
 
+  it('fetchOne discards a stale response that resolves after a newer request', async () => {
+    const store = usePromotionsStore()
+    let resolveFirst
+    axios.get.mockImplementation((url) => {
+      if (url.endsWith('/p1')) return new Promise((resolve) => { resolveFirst = resolve })
+      if (url.endsWith('/p2')) return Promise.resolve({ data: { id: 'p2', name: 'Rule Two' } })
+      throw new Error(`unexpected url ${url}`)
+    })
+
+    const firstFetch = store.fetchOne('p1')
+    await store.fetchOne('p2')
+    expect(store.formDraft.name).toBe('Rule Two')
+
+    // p1's request finally resolves after p2 already won — must not clobber it
+    resolveFirst({ data: { id: 'p1', name: 'Rule One' } })
+    await firstFetch
+    expect(store.formDraft.name).toBe('Rule Two')
+  })
+
   it('applyParsedRule merges parsed data into formDraft', () => {
     const store = usePromotionsStore()
     store.applyParsedRule({

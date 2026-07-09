@@ -120,7 +120,7 @@
                     <span class="text-caption text-medium-emphasis rule-col-priority">
                       {{ rule.priority }}
                     </span>
-                    <RouterLink :to="`/promotions/${rule.id}/edit`" class="rule-name-link font-weight-medium text-body-2 flex-grow-1">{{ rule.name }}</RouterLink>
+                    <RouterLink :to="`${basePath}/promotions/${rule.id}/edit`" class="rule-name-link font-weight-medium text-body-2 flex-grow-1">{{ rule.name }}</RouterLink>
                     <div class="rule-type-col">
                       <v-tooltip :text="ruleTypeLabel(rule.type)" location="top">
                         <template #activator="{ props }">
@@ -147,7 +147,7 @@
                             icon="mdi-open-in-new"
                             variant="text"
                             size="small"
-                            :to="`/promotions/${rule.id}/edit`"
+                            :to="`${basePath}/promotions/${rule.id}/edit`"
                           />
                         </template>
                       </v-tooltip>
@@ -263,7 +263,7 @@
             </template>
 
             <template #item.name="{ item }">
-              <RouterLink :to="`/promotions/${item.id}/edit`" class="rule-name-link font-weight-medium">{{ item.name }}</RouterLink>
+              <RouterLink :to="`${basePath}/promotions/${item.id}/edit`" class="rule-name-link font-weight-medium">{{ item.name }}</RouterLink>
             </template>
 
             <template #item.type="{ item }">
@@ -298,7 +298,7 @@
                     icon="mdi-open-in-new"
                     variant="text"
                     size="small"
-                    :to="`/promotions/${item.id}/edit`"
+                    :to="`${basePath}/promotions/${item.id}/edit`"
                   />
                 </template>
               </v-tooltip>
@@ -335,6 +335,7 @@
 
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
 import draggable from 'vuedraggable'
 import { useStackingGroupsStore } from '../../stores/stackingGroups'
 import { usePromotionsStore } from '../../stores/promotions'
@@ -350,6 +351,8 @@ import LeaveDialog from '../_common/LeaveDialog.vue'
 
 const sgStore = useStackingGroupsStore()
 const promoStore = usePromotionsStore()
+const route = useRoute()
+const basePath = computed(() => route.path.startsWith('/uxtest') ? '/uxtest' : route.path.startsWith('/serbia') ? '/serbia' : '')
 
 // ── View toggle ───────────────────────────────────────────────────────────────
 const view = ref('groups')

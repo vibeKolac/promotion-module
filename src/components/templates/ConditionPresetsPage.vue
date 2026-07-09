@@ -83,7 +83,8 @@ const store = useConditionPresetsStore()
 const { mobile } = useDisplay()
 const router = useRouter()
 const route = useRoute()
-const italyMode = computed(() => route.path.startsWith('/italy') || route.path.startsWith('/serbia'))
+const uxTestMode = computed(() => route.path.startsWith('/uxtest') || route.path.startsWith('/serbia'))
+const basePath = computed(() => route.path.startsWith('/uxtest') ? '/uxtest' : route.path.startsWith('/serbia') ? '/serbia' : '')
 const search = ref('')
 const conditionFilter = ref([])
 
@@ -129,7 +130,7 @@ function presetConditionFields(preset) {
 }
 
 const filtered = computed(() => {
-  const base = italyMode.value
+  const base = uxTestMode.value
     ? store.items.filter(p => store.sessionIds.has(p.id))
     : store.items
   return base
@@ -165,7 +166,7 @@ function conditionLabel(cond) {
 }
 
 function openEdit(preset) {
-  router.push(`/condition-presets/${preset.id}/edit`)
+  router.push(`${basePath.value}/condition-presets/${preset.id}/edit`)
 }
 
 // ── Delete ────────────────────────────────────────────────────────────────────

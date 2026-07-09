@@ -10,7 +10,10 @@ const vuetify = createVuetify({ components, directives })
 
 const router = createRouter({
   history: createMemoryHistory(),
-  routes: [{ path: '/:pathMatch(.*)*', component: { template: '<div />' } }],
+  routes: [
+    { path: '/promotions/:id/edit', component: PromotionForm },
+    { path: '/:pathMatch(.*)*', component: { template: '<div />' } },
+  ],
 })
 
 const mountForm = () =>
@@ -72,5 +75,17 @@ describe('PromotionForm', () => {
   it('shows exclusive toggle', () => {
     const w = mountForm()
     expect(w.text()).toContain('Exclusive rule')
+  })
+
+  it('re-fetches when route id changes without an unmount', async () => {
+    await router.push('/promotions/p1/edit')
+    const w = mountForm()
+    const store = w.vm.store
+    store.fetchOne.mockClear()
+
+    await router.push('/promotions/p2/edit')
+    await w.vm.$nextTick()
+
+    expect(store.fetchOne).toHaveBeenCalledWith('p2')
   })
 })

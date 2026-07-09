@@ -105,7 +105,7 @@
         </template>
 
         <!-- Prioritization & combinability -->
-        <template v-if="!italyMode">
+        <template v-if="!uxTestMode">
           <div class="text-overline text-medium-emphasis mb-3">Prioritization &amp; combinability</div>
           <v-card border elevation="0" class="pa-5 mb-6">
             <div class="text-body-1 font-weight-bold mb-1">Rule prioritization mode</div>
@@ -233,7 +233,7 @@ import Breadcrumbs from '../_common/Breadcrumbs.vue'
 import ConditionValuePicker from '../promotions/ConditionValuePicker.vue'
 
 const route = useRoute()
-const italyMode = computed(() => route.path.startsWith('/italy') || route.path.startsWith('/serbia'))
+const uxTestMode = computed(() => route.path.startsWith('/uxtest') || route.path.startsWith('/serbia'))
 const serbiaMode = computed(() => route.path.startsWith('/serbia'))
 const store = useSettingsStore()
 

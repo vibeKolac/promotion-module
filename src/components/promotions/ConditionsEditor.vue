@@ -7,7 +7,7 @@
         <span class="text-body-1 font-weight-bold">{{ title }}</span>
         <HelpTooltip v-if="helpText" :text="helpText" class="ml-1" />
         <v-spacer />
-        <v-btn v-if="!italyMode" prepend-icon="mdi-upload" variant="text" size="small" @click="csvImportOpen = true">
+        <v-btn v-if="!uxTestMode" prepend-icon="mdi-upload" variant="text" size="small" @click="csvImportOpen = true">
           Import CSV
           <v-chip size="x-small" color="warning" variant="tonal" label class="ml-2">Exploring</v-chip>
         </v-btn>
@@ -215,7 +215,7 @@ import { getRecentConditionTypes, recordConditionTypes } from '../../utils/recen
 import { CONDITION_TYPES, CONDITION_GROUPS, TYPE_OPTIONS, getConditionTypeDef } from '../../utils/conditionTypes'
 
 const route = useRoute()
-const italyMode = computed(() => route.path.startsWith('/italy') || route.path.startsWith('/serbia'))
+const uxTestMode = computed(() => route.path.startsWith('/uxtest') || route.path.startsWith('/serbia'))
 const serbiaMode = computed(() => route.path.startsWith('/serbia'))
 const settingsStore = useSettingsStore()
 const recentTypeValues = ref(getRecentConditionTypes())

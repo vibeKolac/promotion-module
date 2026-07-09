@@ -15,7 +15,7 @@
         </span>
       </template>
       <template #right>
-        <v-btn variant="outlined" to="/stacking-groups">Back to groups</v-btn>
+        <v-btn variant="outlined" :to="`${basePath}/stacking-groups`">Back to groups</v-btn>
       </template>
     </ContentHeader>
 
@@ -102,7 +102,7 @@
                     icon="mdi-open-in-new"
                     variant="text"
                     size="small"
-                    :to="`/promotions/${rule.id}/edit`"
+                    :to="`${basePath}/promotions/${rule.id}/edit`"
                     class="ml-1"
                   />
                 </template>
@@ -174,6 +174,7 @@ import LeaveDialog from '../_common/LeaveDialog.vue'
 const route = useRoute()
 const sgStore = useStackingGroupsStore()
 const promoStore = usePromotionsStore()
+const basePath = computed(() => route.path.startsWith('/uxtest') ? '/uxtest' : route.path.startsWith('/serbia') ? '/serbia' : '')
 
 // ── Group ─────────────────────────────────────────────────────────────────────
 const group = computed(() => sgStore.items.find(g => g.id === route.params.id))

@@ -32,8 +32,8 @@ import Breadcrumbs from '../_common/Breadcrumbs.vue'
 const router = useRouter()
 const route = useRoute()
 
-const italyMode = computed(() => route.path.startsWith('/italy') || route.path.startsWith('/serbia'))
-const basePath = computed(() => route.path.startsWith('/italy') ? '/italy' : route.path.startsWith('/serbia') ? '/serbia' : '')
+const uxTestMode = computed(() => route.path.startsWith('/uxtest') || route.path.startsWith('/serbia'))
+const basePath = computed(() => route.path.startsWith('/uxtest') ? '/uxtest' : route.path.startsWith('/serbia') ? '/serbia' : '')
 
 const activeTab = computed(() => {
   if (route.path.endsWith('/condition-presets')) return 'condition-presets'

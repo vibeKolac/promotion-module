@@ -41,6 +41,7 @@ export const usePromotionsStore = defineStore('promotions', () => {
   const loading = ref(false)
   const error = ref(null)
   const formDraft = reactive(emptyDraft())
+  let activeFetchId = null
 
   async function fetchAll(filters = {}) {
     loading.value = true
@@ -55,7 +56,9 @@ export const usePromotionsStore = defineStore('promotions', () => {
   }
 
   async function fetchOne(id) {
+    activeFetchId = id
     const { data } = await axios.get(`/api/promotions/${id}`)
+    if (activeFetchId !== id) return // a newer fetchOne superseded this one — discard
     Object.assign(formDraft, emptyDraft(), data)
   }
 
