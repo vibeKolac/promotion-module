@@ -196,6 +196,22 @@ export const promotions = [
   },
 ]
 
+// Serbia MVP only supports subtotal-based cart discounts (see ConditionsEditor's
+// serbiaMode type list). The demo rules above carry richer brand/category/customer
+// conditions for the full admin prototype — override them here so opening one of
+// these rules on /serbia shows a condition type the Serbia editor actually offers.
+export const serbiaConditionOverrides = {
+  'promo-1':  [{ id: 'c1-rs',  field: 'subtotal', mode: 'include', values: ['50'], operator: '>=' }],
+  'promo-2':  [{ id: 'c3-rs',  field: 'subtotal', mode: 'include', values: ['30'], operator: '>=' }],
+  'promo-5':  [{ id: 'c6-rs',  field: 'subtotal', mode: 'include', values: ['40'], operator: '>=' }],
+  'promo-6':  [{ id: 'c8-rs',  field: 'subtotal', mode: 'include', values: ['25'], operator: '>=' }],
+  'promo-7':  [{ id: 'c7-rs',  field: 'subtotal', mode: 'include', values: ['35'], operator: '>=' }],
+  'promo-9':  [{ id: 'c10-rs', field: 'subtotal', mode: 'include', values: ['20'], operator: '>=' }],
+  'promo-10': [{ id: 'c11-rs', field: 'subtotal', mode: 'include', values: ['45'], operator: '>=' }],
+  'promo-11': [{ id: 'c14-rs', field: 'subtotal', mode: 'include', values: ['60'], operator: '>=' }],
+  'promo-12': [{ id: 'c15-rs', field: 'subtotal', mode: 'include', values: ['55'], operator: '>=' }],
+}
+
 export const promotionOrders = {
   'promo-1': [
     { orderType: 'order', orderIncrementId: 386239482, customerName: 'Munteanu Georgiana', orderCreatedDate: '2025-12-15 09:24:42', orderShipmentDate: '2026-04-02 06:30:47', orderCloseDate: '2026-04-03 13:22:17', rowTotalInclTax: 29.98, quantity: 1, discountAmount: 1.50, rowTotalInclTaxAfterDiscount: 28.48, orderGrandTotal: 388.74, voucherId: 7631, ruleUsage: 1, ruleDiscount: 1.5, ruleBaseDiscount: 1.5, ruleCouponCode: '', giftPdk: '', giftName: '', giftPrice: '' },

@@ -865,7 +865,7 @@
 
     <!-- Sticky bottom bar — visible once title buttons scroll out of view -->
     <Transition name="slide-up">
-      <div v-if="stickyBarVisible" class="sticky-save-bar">
+      <div v-if="stickyBarVisible && !serbiaMode" class="sticky-save-bar">
       <div class="sticky-save-bar__inner">
         <v-btn variant="outlined" class="flex-shrink-0" style="height: 48px" @click="openDiscardDialog">Discard</v-btn>
         <template v-if="isTemplateEdit">
@@ -913,6 +913,7 @@ import { usePromotionsStore } from '../../stores/promotions'
 import { useStackingGroupsStore } from '../../stores/stackingGroups'
 import { useSettingsStore } from '../../stores/settings'
 import { validateConditions } from '../../utils/conditionValidator'
+import { serbiaConditionOverrides } from '../../mock/seed'
 import { detectGiftConflicts } from '../../utils/giftConflictDetector'
 import ConditionsEditor from './ConditionsEditor.vue'
 import { v4 as uuid } from 'uuid'
@@ -1403,8 +1404,6 @@ function _describeLeafSegments(c, scope) {
       return wrap(inc ? 'customer is in group ' : 'customer is NOT in group ', 'Customer groups')
     case 'coupon_code':
       return vals[0] ? wrap('coupon code is ', 'Coupon codes') : null
-    case 'exclude_on_sale':
-      return vals[0] === 'true' ? [{ type: 'text', text: 'on-sale products are excluded' }] : null
     case 'pim_status':
       return wrap(inc ? 'PIM status is ' : 'PIM status is NOT ', 'PIM statuses')
     case 'attribute_set':
@@ -1496,8 +1495,6 @@ function _describeLeaf(c, scope) {
       return inc ? `customer is in group ${_fmtList(vals)}` : `customer is NOT in group ${_fmtList(vals)}`
     case 'coupon_code':
       return vals[0] ? `coupon code is ${_fmtList(vals)}` : null
-    case 'exclude_on_sale':
-      return vals[0] === 'true' ? 'on-sale products are excluded' : null
     case 'pim_status':
       return inc ? `PIM status is ${_fmtList(vals)}` : `PIM status is NOT ${_fmtList(vals)}`
     case 'attribute_set':
@@ -1807,6 +1804,9 @@ async function loadFromRoute() {
     }
   } else if (isEdit.value) {
     await store.fetchOne(route.params.id)
+    if (serbiaMode.value && serbiaConditionOverrides[route.params.id]) {
+      draft.conditions = serbiaConditionOverrides[route.params.id].map(c => ({ ...c }))
+    }
   } else if (!route.query.fromTemplate) {
     store.resetDraft()
     if (serbiaMode.value) draft.channels = channelOptions.map(c => c.value)

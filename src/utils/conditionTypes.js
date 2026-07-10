@@ -12,7 +12,6 @@ export const CONDITION_TYPES = [
   { value: 'weight',          title: 'Weight',          supportsMode: false, quantifiable: true  },
   { value: 'customer_group',  title: 'Customer group',  supportsMode: true,  quantifiable: false },
   { value: 'coupon_code',     title: 'Coupon code',     supportsMode: false, quantifiable: false },
-  { value: 'exclude_on_sale', title: 'Exclude on sale', supportsMode: false, quantifiable: false, boolean: true },
   { value: 'attribute_set',   title: 'Attribute set',   supportsMode: true,  quantifiable: false },
   { value: 'warehouse_type',  title: 'Warehouse type',  supportsMode: true,  quantifiable: false },
   { value: 'seller',          title: 'Seller',          supportsMode: true,  quantifiable: false },
@@ -20,7 +19,7 @@ export const CONDITION_TYPES = [
 
 export const CONDITION_GROUPS = [
   { label: 'Threshold',         fields: ['subtotal', 'quantity', 'weight'] },
-  { label: 'Product & Catalog', fields: ['categories', 'brands', 'skus', 'product_lines', 'exclude_on_sale'] },
+  { label: 'Product & Catalog', fields: ['categories', 'brands', 'skus', 'product_lines'] },
   { label: 'Customer',          fields: ['customer_group', 'coupon_code'] },
   { label: 'Advanced',          fields: ['attribute_set', 'warehouse_type', 'seller'] },
 ]

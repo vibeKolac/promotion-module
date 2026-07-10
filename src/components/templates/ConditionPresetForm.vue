@@ -115,7 +115,6 @@ function _describeLeaf(c) {
     case 'weight': return vals[0] ? `weight ${_opLabel(c.operator)} ${vals[0]} g` : null
     case 'customer_group': return inc ? `customer in group ${_fmtList(vals)}` : `customer NOT in group ${_fmtList(vals)}`
     case 'coupon_code': return vals[0] ? `coupon is ${_fmtList(vals)}` : null
-    case 'exclude_on_sale': return vals[0] === 'true' ? 'on-sale products excluded' : null
     case 'attribute_set': return inc ? `attribute set is ${_fmtList(vals)}` : `attribute set is NOT ${_fmtList(vals)}`
     case 'seller': return inc ? `seller is ${_fmtList(vals)}` : `seller is NOT ${_fmtList(vals)}`
     case 'warehouse_type': return inc ? `warehouse type is ${_fmtList(vals)}` : `warehouse type is NOT ${_fmtList(vals)}`
