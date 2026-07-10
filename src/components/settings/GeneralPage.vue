@@ -4,7 +4,7 @@
     <Breadcrumbs />
 
     <ContentHeader>
-      <h1 class="text-h5 font-weight-bold">General</h1>
+      <h1 class="text-h5 font-weight-bold">{{ serbiaMode ? 'Global' : 'General' }}</h1>
       <template #right>
         <v-btn color="success" style="height: 48px" :loading="saving" @click="save">Save</v-btn>
       </template>

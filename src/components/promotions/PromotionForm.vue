@@ -371,7 +371,7 @@
             <span class="text-caption text-medium-emphasis">Free item accounting price</span>
             <v-chip size="small" color="primary" variant="tonal">€{{ settingsStore.multiBuyFreePrice }}</v-chip>
             <a class="section-link ml-1" @click="openLeaveDialog(`${basePath}/settings/accounting`)">
-              Configure in General Section
+              Configure in {{ serbiaMode ? 'Global' : 'General' }} Section
               <v-icon size="14" class="ml-1">mdi-open-in-new</v-icon>
             </a>
           </div>
@@ -414,7 +414,7 @@
             <span class="text-caption text-medium-emphasis">Gift item accounting price</span>
             <v-chip size="small" color="purple" variant="tonal">€{{ settingsStore.giftFreePrice }}</v-chip>
             <a class="section-link ml-1" @click="openLeaveDialog(`${basePath}/settings/accounting`)">
-              Configure in General Section
+              Configure in {{ serbiaMode ? 'Global' : 'General' }} Section
               <v-icon size="14" class="ml-1">mdi-open-in-new</v-icon>
             </a>
           </div>

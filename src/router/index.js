@@ -67,7 +67,7 @@ const coreChildren = (base = '') => [
   },
   {
     path: 'settings/general',
-    meta: { breadcrumbs: [settingsCrumb, { title: 'General', disabled: true }] },
+    meta: { breadcrumbs: [settingsCrumb, { title: base === '/serbia' ? 'Global' : 'General', disabled: true }] },
     component: () => import('../components/settings/GeneralPage.vue'),
   },
   {

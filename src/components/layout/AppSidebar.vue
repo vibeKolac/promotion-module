@@ -112,6 +112,6 @@ const exploringNavItems = [
 ]
 
 const settingsItems = computed(() => [
-  { to: `${basePath.value}/settings/general`, icon: 'mdi-cog-outline', title: 'General' },
+  { to: `${basePath.value}/settings/general`, icon: 'mdi-cog-outline', title: props.serbiaMode ? 'Global' : 'General' },
 ])
 </script>
