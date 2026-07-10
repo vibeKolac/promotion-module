@@ -44,7 +44,7 @@
         <v-tab v-if="!serbiaMode" value="paused">Paused <v-chip size="x-small" class="ml-1">{{ pausedItems.length }}</v-chip></v-tab>
         <v-tab value="draft">Draft <v-chip size="x-small" class="ml-1">{{ draftItems.length }}</v-chip></v-tab>
         <v-tab value="ended">Ended <v-chip size="x-small" class="ml-1">{{ endedItems.length }}</v-chip></v-tab>
-        <v-tab v-if="!serbiaMode" value="archived">Archived <v-chip size="x-small" class="ml-1">{{ archivedItems.length }}</v-chip></v-tab>
+        <v-tab v-if="!uxTestMode" value="archived">Archived <v-chip size="x-small" class="ml-1">{{ archivedItems.length }}</v-chip></v-tab>
       </v-tabs>
     </div>
 
@@ -603,7 +603,9 @@ const conflictsMap = computed(() => detectConflicts(store.items))
 const search = ref('')
 const VALID_TABS = ['active', 'paused', 'draft', 'ended', 'archived']
 const activeTab = ref(
-  VALID_TABS.includes(route.query.tab) && !(route.path.startsWith('/serbia') && ['paused', 'archived'].includes(route.query.tab))
+  VALID_TABS.includes(route.query.tab) &&
+  !(route.path.startsWith('/serbia') && route.query.tab === 'paused') &&
+  !(uxTestMode.value && route.query.tab === 'archived')
     ? route.query.tab
     : 'active'
 )

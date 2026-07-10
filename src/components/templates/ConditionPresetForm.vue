@@ -8,7 +8,7 @@
       <v-spacer class="d-none d-sm-flex" />
       <div class="action-btn-row">
         <v-btn variant="outlined" style="height: 48px" @click="discard">Discard</v-btn>
-        <v-btn color="success" style="height: 48px" :loading="saving" @click="save">{{ isEdit ? 'Save' : 'Create' }}</v-btn>
+        <v-btn color="success" style="height: 48px" :loading="saving" @click="openSaveConfirm">{{ isEdit ? 'Save' : 'Create' }}</v-btn>
       </div>
     </div>
 
@@ -58,6 +58,25 @@
         </div>
       </v-col>
     </v-row>
+
+    <!-- Leave section dialog -->
+    <LeaveDialog
+      v-model="leaveDialogOpen"
+      :saving="saving"
+      @cancel="cancelLeave"
+      @leave="leaveWithoutSaving"
+      @save-and-leave="saveAndLeave"
+    />
+
+    <!-- Save confirm dialog -->
+    <DialogCard v-model="saveConfirmOpen" max-width="400">
+      <template #title>{{ saveConfirmTitle }}</template>
+      <p class="text-body-2 text-medium-emphasis">{{ saveConfirmBody }}</p>
+      <template #actions>
+        <v-btn variant="text" @click="saveConfirmOpen = false">Cancel</v-btn>
+        <v-btn color="success" :loading="saving" @click="doConfirmedSave">Confirm</v-btn>
+      </template>
+    </DialogCard>
   </v-container>
 </template>
 
@@ -65,8 +84,11 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useConditionPresetsStore } from '../../stores/conditionPresets'
+import { useNavigationGuard } from '../../composables/useNavigationGuard'
 import ConditionsEditor from '../promotions/ConditionsEditor.vue'
 import Breadcrumbs from '../_common/Breadcrumbs.vue'
+import LeaveDialog from '../_common/LeaveDialog.vue'
+import DialogCard from '../_common/DialogCard.vue'
 
 function _opLabel(op) {
   return { '>=': '≥', '>': '>', '<=': '≤', '<': '<', '=': '=' }[op] ?? op
@@ -153,12 +175,9 @@ onMounted(async () => {
   }
 })
 
-async function save() {
-  nameError.value = ''
-  if (!form.value.name.trim()) {
-    nameError.value = 'Name is required'
-    return
-  }
+const presetPersisted = ref(false)
+
+async function persistPreset() {
   saving.value = true
   try {
     if (isEdit.value) {
@@ -166,14 +185,47 @@ async function save() {
     } else {
       await store.create({ ...form.value })
     }
+    presetPersisted.value = true
     router.push(`${basePath.value}/templates-presets/condition-presets`)
+    return true
   } finally {
     saving.value = false
   }
 }
 
+// ── Save confirm ──────────────────────────────────────────────────────────────
+const saveConfirmOpen = ref(false)
+const saveConfirmTitle = computed(() => isEdit.value ? 'Save changes?' : 'Create preset?')
+const saveConfirmBody = computed(() => isEdit.value
+  ? 'The preset changes will be saved.'
+  : 'A new condition preset will be created.')
+
+function openSaveConfirm() {
+  nameError.value = ''
+  if (!form.value.name.trim()) {
+    nameError.value = 'Name is required'
+    return
+  }
+  saveConfirmOpen.value = true
+}
+
+async function doConfirmedSave() {
+  saveConfirmOpen.value = false
+  await persistPreset()
+}
+
+// ── Navigation guard ──────────────────────────────────────────────────────────
+const { leaveDialogOpen, openLeaveDialog, cancelLeave, leaveWithoutSaving, saveAndLeave } =
+  useNavigationGuard({
+    dirty: computed(() => !presetPersisted.value),
+    onSaveAndLeave: async () => {
+      if (!form.value.name.trim()) return false
+      return await persistPreset()
+    },
+  })
+
 function discard() {
-  router.push(`${basePath.value}/templates-presets/condition-presets`)
+  openLeaveDialog(`${basePath.value}/templates-presets/condition-presets`)
 }
 </script>
 
