@@ -182,7 +182,7 @@
           </v-alert>
         </v-card>
 
-        <v-card border elevation="0" class="pa-5">
+        <v-card v-if="!serbiaMode" border elevation="0" class="pa-5">
           <div class="text-body-1 font-weight-bold mb-1">Free product prices</div>
           <p class="text-caption text-medium-emphasis mb-5">
             Nominal accounting prices assigned to free items. Each rule type can have a

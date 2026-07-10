@@ -1712,9 +1712,7 @@ async function _persistRule(statusOverride) {
         await store.create(payload)
       }
       rulePersisted.value = true
-      if (payload.status === 'draft') router.push(`${basePath.value}/promotions?tab=draft`)
-      else if (payload.status === 'active' || payload.status === 'scheduled') router.push(`${basePath.value}/promotions?tab=active`)
-      else router.push(`${basePath.value}/promotions`)
+      router.push(`${basePath.value}/promotions?tab=${tabForStatus(payload.status)}`)
     }
   } catch (e) {
     saveError.value = e?.response?.data?.error ?? e?.message ?? 'Failed to save'
@@ -1738,8 +1736,19 @@ const { leaveDialogOpen, openLeaveDialog, cancelLeave, leaveWithoutSaving, saveA
     },
   })
 
+function tabForStatus(status) {
+  if (status === 'active' || status === 'scheduled') return 'active'
+  if (status === 'paused') return 'paused'
+  if (status === 'ended') return 'ended'
+  if (status === 'archived') return 'archived'
+  return 'draft'
+}
+
 function openDiscardDialog() {
-  openLeaveDialog(isTemplateEdit.value ? `${basePath.value}/templates` : `${basePath.value}/promotions`)
+  const target = isTemplateEdit.value
+    ? `${basePath.value}/templates`
+    : `${basePath.value}/promotions${isEdit.value ? `?tab=${tabForStatus(draft.status)}` : ''}`
+  openLeaveDialog(target)
 }
 
 // ── Save confirm ──────────────────────────────────────────────────────────────
