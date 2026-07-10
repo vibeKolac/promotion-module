@@ -327,7 +327,7 @@
                   @click="resumeRule(item.id)"
                 />
                 <v-list-item
-                  v-else-if="item.status === 'draft'"
+                  v-else-if="!serbiaMode && item.status === 'draft'"
                   prepend-icon="mdi-lightning-bolt-outline"
                   title="Activate"
                   :disabled="!item.startDate || !item.endDate"
