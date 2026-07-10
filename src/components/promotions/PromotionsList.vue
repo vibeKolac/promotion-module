@@ -170,7 +170,7 @@
               <v-icon size="16" class="mr-1">mdi-pause</v-icon>Pause
             </v-btn>
           </template>
-          <v-btn v-if="activeTab === 'active'" size="small" variant="outlined" color="error" @click="bulkEnd">
+          <v-btn v-if="activeTab === 'active'" size="small" variant="outlined" color="error" @click="openBulkEnd">
             <v-icon size="16" class="mr-1">mdi-stop-circle-outline</v-icon>End
           </v-btn>
           <v-btn v-if="!uxTestMode" size="small" variant="outlined" @click="bulkDuplicate">
@@ -337,7 +337,7 @@
                   v-if="item.status === 'active' || item.status === 'scheduled'"
                   prepend-icon="mdi-stop-circle-outline"
                   title="End"
-                  @click="endRule(item.id)"
+                  @click="openEnd(item)"
                 />
                 <template v-if="item.status === 'draft'">
                   <v-divider />
@@ -389,6 +389,18 @@
       <template #header>Archive {{ selected.length }} rule{{ selected.length > 1 ? 's' : '' }}?</template>
       <template #body>
         The selected {{ selected.length }} rule{{ selected.length > 1 ? 's' : '' }} will move to the Archived tab and be hidden from all other views. This can't be undone here.
+      </template>
+    </ConfirmModal>
+    <ConfirmModal ref="endModal" confirm-text="End" confirm-color="error" :loading="ending">
+      <template #header>End promotion rule?</template>
+      <template #body>
+        This action cannot be undone. <strong>{{ endingItem?.name }}</strong>'s end date will be automatically changed to today.
+      </template>
+    </ConfirmModal>
+    <ConfirmModal ref="bulkEndModal" confirm-text="End" confirm-color="error" :loading="store.loading">
+      <template #header>End {{ selected.length }} rule{{ selected.length > 1 ? 's' : '' }}?</template>
+      <template #body>
+        This action cannot be undone. The end date of the selected {{ selected.length }} rule{{ selected.length > 1 ? 's' : '' }} will be automatically changed to today.
       </template>
     </ConfirmModal>
     <CsvImportDialog v-if="!uxTestMode" v-model="csvImportOpen" @import="onCSVImport" />
@@ -625,6 +637,10 @@ const archiveModal = ref(null)
 const bulkArchiveModal = ref(null)
 const archivingItem = ref(null)
 const archiving = ref(false)
+const endModal = ref(null)
+const bulkEndModal = ref(null)
+const endingItem = ref(null)
+const ending = ref(false)
 const selected = ref([])
 
 watch(activeTab, () => {
@@ -871,8 +887,15 @@ async function openDelete(item) {
   deletingItem.value = null
 }
 
-async function endRule(id) {
-  await store.updateStatus(id, 'ended')
+async function openEnd(item) {
+  endingItem.value = item
+  const confirmed = await endModal.value.open()
+  if (!confirmed) { endingItem.value = null; return }
+  ending.value = true
+  const today = new Date().toISOString().split('T')[0]
+  await store.updateStatus(item.id, 'ended', { endDate: today })
+  ending.value = false
+  endingItem.value = null
 }
 async function openArchive(item) {
   archivingItem.value = item
@@ -944,9 +967,12 @@ async function openBulkDelete() {
   bulkSnack.value = true
 }
 
-async function bulkEnd() {
+async function openBulkEnd() {
+  const confirmed = await bulkEndModal.value.open()
+  if (!confirmed) return
   const count = selected.value.length
-  await store.bulkUpdateStatus(selected.value, 'ended')
+  const today = new Date().toISOString().split('T')[0]
+  await store.bulkUpdateStatus(selected.value, 'ended', { endDate: today })
   bulkSnackText.value = `${count} rule${count > 1 ? 's' : ''} ended`
   selected.value = []
   activeTab.value = 'ended'

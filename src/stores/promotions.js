@@ -86,13 +86,13 @@ export const usePromotionsStore = defineStore('promotions', () => {
     items.value = items.value.filter(i => i.id !== id)
   }
 
-  async function updateStatus(id, status) {
+  async function updateStatus(id, status, extraFields = {}) {
     const item = items.value.find(i => i.id === id)
     if (!item) return
     loading.value = true
     error.value = null
     try {
-      const { data } = await axios.put(`/api/promotions/${id}`, { ...item, status })
+      const { data } = await axios.put(`/api/promotions/${id}`, { ...item, status, ...extraFields })
       Object.assign(item, data)
       return data
     } catch (err) {
@@ -152,14 +152,14 @@ export const usePromotionsStore = defineStore('promotions', () => {
     }
   }
 
-  async function bulkUpdateStatus(ids, status) {
+  async function bulkUpdateStatus(ids, status, extraFields = {}) {
     loading.value = true
     error.value = null
     try {
       for (const id of ids) {
         const item = items.value.find(i => i.id === id)
         if (!item) continue
-        const { data } = await axios.put(`/api/promotions/${id}`, { ...item, status })
+        const { data } = await axios.put(`/api/promotions/${id}`, { ...item, status, ...extraFields })
         Object.assign(item, data)
       }
     } catch (err) {
