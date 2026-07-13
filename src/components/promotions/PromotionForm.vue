@@ -1701,6 +1701,7 @@ async function _persistRule(statusOverride) {
       } else {
         await templatesStore.create(tplPayload)
       }
+      rulePersisted.value = true
       router.push(`${basePath.value}/templates`)
     } else {
       const payload = JSON.parse(JSON.stringify(toRaw(draft)))
