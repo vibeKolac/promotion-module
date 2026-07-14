@@ -112,14 +112,14 @@
             <v-col cols="6">
               <DatePicker
                 v-model="draft.startDate"
-                label="Start date"
+                label="Start date *"
                 :min="todayIso"
               />
             </v-col>
             <v-col cols="6">
               <DatePicker
                 v-model="draft.endDate"
-                label="End date"
+                label="End date *"
                 :min="todayIso"
               />
             </v-col>
@@ -182,7 +182,7 @@
           <!-- Channels -->
           <div v-if="!serbiaMode" class="mt-4">
             <div class="d-flex align-center gap-1 mb-2">
-              <span class="text-caption font-weight-bold text-medium-emphasis">SALES CHANNELS</span>
+              <span class="text-caption font-weight-bold text-medium-emphasis">SALES CHANNELS *</span>
               <HelpTooltip text="Choose which sales channels this promotion applies to. At least one channel must be selected." />
             </div>
             <v-checkbox
