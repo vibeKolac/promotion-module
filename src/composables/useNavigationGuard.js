@@ -1,7 +1,7 @@
 import { ref } from 'vue'
 import { onBeforeRouteLeave, useRouter } from 'vue-router'
 
-export function useNavigationGuard({ onSaveAndLeave, dirty } = {}) {
+export function useNavigationGuard({ dirty } = {}) {
   const router = useRouter()
   const leaveDialogOpen = ref(false)
   const pendingNavTarget = ref(null)
@@ -33,15 +33,5 @@ export function useNavigationGuard({ onSaveAndLeave, dirty } = {}) {
     router.push(pendingNavTarget.value)
   }
 
-  async function saveAndLeave() {
-    if (onSaveAndLeave) {
-      const ok = await onSaveAndLeave()
-      if (!ok) return
-    }
-    bypassGuard.value = true
-    leaveDialogOpen.value = false
-    router.push(pendingNavTarget.value)
-  }
-
-  return { leaveDialogOpen, pendingNavTarget, openLeaveDialog, cancelLeave, leaveWithoutSaving, saveAndLeave }
+  return { leaveDialogOpen, pendingNavTarget, openLeaveDialog, cancelLeave, leaveWithoutSaving }
 }

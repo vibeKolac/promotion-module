@@ -62,10 +62,8 @@
     <!-- Leave section dialog -->
     <LeaveDialog
       v-model="leaveDialogOpen"
-      :saving="saving"
       @cancel="cancelLeave"
       @leave="leaveWithoutSaving"
-      @save-and-leave="saveAndLeave"
     />
 
     <!-- Save confirm dialog -->
@@ -214,13 +212,9 @@ async function doConfirmedSave() {
 }
 
 // ── Navigation guard ──────────────────────────────────────────────────────────
-const { leaveDialogOpen, openLeaveDialog, cancelLeave, leaveWithoutSaving, saveAndLeave } =
+const { leaveDialogOpen, openLeaveDialog, cancelLeave, leaveWithoutSaving } =
   useNavigationGuard({
     dirty: computed(() => !presetPersisted.value),
-    onSaveAndLeave: async () => {
-      if (!form.value.name.trim()) return false
-      return await persistPreset()
-    },
   })
 
 function discard() {

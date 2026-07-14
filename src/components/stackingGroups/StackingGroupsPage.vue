@@ -326,7 +326,6 @@
 
     <LeaveDialog
       v-model="leaveDialogOpen"
-      :show-save="false"
       @cancel="cancelLeave"
       @leave="leaveWithoutSaving"
     />

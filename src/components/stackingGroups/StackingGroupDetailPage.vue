@@ -146,10 +146,8 @@
 
     <LeaveDialog
       v-model="leaveDialogOpen"
-      :saving="saving"
       @cancel="cancelLeave"
       @leave="leaveWithoutSaving"
-      @save-and-leave="saveAndLeave"
     />
 
     <v-snackbar v-model="savedSnack" color="success" timeout="2000">Order saved</v-snackbar>
@@ -273,9 +271,8 @@ async function save() {
 }
 
 // ── Navigation guard ──────────────────────────────────────────────────────────
-const { leaveDialogOpen, cancelLeave, leaveWithoutSaving, saveAndLeave } = useNavigationGuard({
+const { leaveDialogOpen, cancelLeave, leaveWithoutSaving } = useNavigationGuard({
   dirty: isDirty,
-  onSaveAndLeave: save,
 })
 </script>
 

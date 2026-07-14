@@ -847,10 +847,8 @@
     <!-- Leave section dialog -->
     <LeaveDialog
       v-model="leaveDialogOpen"
-      :saving="saving"
       @cancel="cancelLeave"
       @leave="leaveWithoutSaving"
-      @save-and-leave="saveAndLeave"
     />
 
     <!-- Save confirm dialog -->
@@ -1728,13 +1726,9 @@ async function saveAndActivate() {
   await _persistRule(isFutureDate(draft.startDate) ? 'scheduled' : 'active')
 }
 
-const { leaveDialogOpen, openLeaveDialog, cancelLeave, leaveWithoutSaving, saveAndLeave } =
+const { leaveDialogOpen, openLeaveDialog, cancelLeave, leaveWithoutSaving } =
   useNavigationGuard({
     dirty: computed(() => !rulePersisted.value),
-    onSaveAndLeave: async () => {
-      await _persistRule('draft')
-      return !saveError.value
-    },
   })
 
 function tabForStatus(status) {
