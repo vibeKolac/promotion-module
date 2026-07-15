@@ -599,13 +599,20 @@
         <v-card border elevation="0" class="pa-5 mb-4" :class="{ 'mt-6': serbiaMode }">
           <div class="d-flex align-center mb-1">
             <v-icon size="18" class="mr-2 card-section-icon">mdi-link-variant</v-icon>
-            <span class="text-body-1 font-weight-bold">ERP Link</span>
-            <HelpTooltip text="Link this rule to an ERP voucher entry for accounting reconciliation and reporting." class="ml-1" />
+            <span class="text-body-1 font-weight-bold">{{ serbiaMode ? 'ERP Promotion ID' : 'ERP Link' }}</span>
+            <HelpTooltip :text="serbiaMode ? 'Enter the ERP promotion ID to link this rule for accounting reconciliation and reporting.' : 'Link this rule to an ERP voucher entry for accounting reconciliation and reporting.'" class="ml-1" />
           </div>
           <p class="text-caption text-medium-emphasis mb-3">
-            Connect this rule to an ERP voucher entry for accounting reconciliation.
+            {{ serbiaMode ? 'Connect this rule to an ERP promotion ID for accounting reconciliation.' : 'Connect this rule to an ERP voucher entry for accounting reconciliation.' }}
           </p>
+          <TextInput
+            v-if="serbiaMode"
+            v-model="draft.erpId"
+            label="ERP promotion ID"
+            placeholder="e.g. 7631"
+          />
           <v-autocomplete
+            v-else
             v-model="draft.erpId"
             :items="erpEntriesStore.items"
             :loading="erpEntriesStore.loading"
