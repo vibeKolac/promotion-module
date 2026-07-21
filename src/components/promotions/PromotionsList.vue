@@ -291,6 +291,11 @@
           </div>
         </template>
 
+        <template #item.couponId="{ item }">
+          <v-chip v-if="item.couponId" size="small" variant="tonal" label class="erp-chip">{{ item.couponId }}</v-chip>
+          <span v-else class="text-caption text-medium-emphasis">—</span>
+        </template>
+
         <template #item.startDate="{ item }">
           <span class="text-caption" :class="item.startDate ? '' : 'text-medium-emphasis'">{{ item.startDate ? formatDate(item.startDate) : '—' }}</span>
         </template>
@@ -857,7 +862,9 @@ const headers = computed(() => [
     { title: 'Type', key: 'type', width: '72px' },
     { title: 'Status', key: 'status' },
     { title: 'Created by', key: 'createdBy' },
-    ...(serbiaMode.value ? [] : [
+    ...(serbiaMode.value ? [
+      { title: 'Coupon code', key: 'couponId' },
+    ] : [
       { title: 'Action Labels', key: 'tags', sortable: false },
       { title: 'Internal Tags', key: 'internalTags', sortable: false },
     ]),

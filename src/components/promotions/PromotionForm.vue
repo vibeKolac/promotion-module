@@ -649,18 +649,20 @@
           <div class="d-flex align-center mb-1">
             <v-icon size="18" class="mr-2 card-section-icon">mdi-ticket-percent-outline</v-icon>
             <span class="text-body-1 font-weight-bold">Coupon</span>
-            <HelpTooltip text="Attach a coupon code so customers must enter it at checkout to activate this promotion." class="ml-1" />
+            <HelpTooltip :text="serbiaMode ? 'Every Serbia promotion rule requires a coupon code customers must enter at checkout to activate it.' : 'Attach a coupon code so customers must enter it at checkout to activate this promotion.'" class="ml-1" />
             <v-chip v-if="!uxTestMode" size="x-small" color="warning" variant="tonal" label class="ml-2">Exploring</v-chip>
           </div>
           <p class="text-caption text-medium-emphasis mb-3">
-            Require customers to enter a coupon code to unlock this promotion.
+            {{ serbiaMode ? 'Customers must enter this coupon code at checkout to unlock the promotion.' : 'Require customers to enter a coupon code to unlock this promotion.' }}
           </p>
 
           <TextInput
             v-if="serbiaMode"
             v-model="draft.couponId"
-            label="Coupon code"
+            label="Coupon code *"
             placeholder="e.g. SUMMER20"
+            :error-messages="validationErrors.couponId ? [validationErrors.couponId] : []"
+            @blur="validateCouponLive"
           />
           <template v-else>
             <div class="d-flex align-center mb-2" style="gap: 8px">
@@ -1673,11 +1675,47 @@ function fmtDate(iso) {
   return `${d}/${m}/${y}`
 }
 
-function validate() {
+function isCouponCodeTaken(code) {
+  const normalized = code.trim().toUpperCase()
+  return store.items.some(r =>
+    r.id !== route.params.id &&
+    ['active', 'scheduled'].includes(r.status) &&
+    r.couponId?.trim().toUpperCase() === normalized
+  )
+}
+
+// Live feedback as the admin leaves the coupon field — always checks against
+// the current active/scheduled list, regardless of which save action they end
+// up choosing. The authoritative, action-aware check runs in validate().
+function validateCouponLive() {
+  if (!serbiaMode.value) return
+  const couponCode = draft.couponId?.trim()
+  const { couponId: _drop, ...rest } = validationErrors.value
+  if (!couponCode) {
+    validationErrors.value = { ...rest, couponId: 'Coupon code is required' }
+  } else if (isCouponCodeTaken(couponCode)) {
+    validationErrors.value = { ...rest, couponId: 'This coupon code is already used by another active or scheduled promotion rule' }
+  } else {
+    validationErrors.value = rest
+  }
+}
+
+function validate(targetStatus) {
   const errors = {}
   if (!draft.name?.trim()) errors.name = 'Rule name is required'
   if (!serbiaMode.value && !draft.channels?.length) errors.channels = 'At least one channel must be selected'
   if (draft.type === 'discount' && !draft.value) errors.value = 'Discount value is required'
+  if (serbiaMode.value) {
+    const couponCode = draft.couponId?.trim()
+    if (!couponCode) {
+      errors.couponId = 'Coupon code is required'
+    } else if (targetStatus !== 'draft' && isCouponCodeTaken(couponCode)) {
+      // Duplicate-code uniqueness is only enforced once the rule is actually
+      // going live (activate/schedule) — a draft can hold a code that collides
+      // with another active/scheduled rule since it isn't applied at checkout yet.
+      errors.couponId = 'This coupon code is already used by another active or scheduled promotion rule'
+    }
+  }
   validationErrors.value = errors
   const pErrors = validatePause()
   pauseErrors.value = pErrors
@@ -1689,7 +1727,7 @@ const dynamicActivateLabel = computed(() =>
 )
 
 async function _persistRule(statusOverride) {
-  if (!validate()) {
+  if (!validate(statusOverride)) {
     saveError.value = 'Please fix the highlighted errors before saving.'
     return
   }
