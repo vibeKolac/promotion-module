@@ -211,7 +211,7 @@ export const promotions = [
 // these rules on /serbia shows a condition type the Serbia editor actually offers.
 export const serbiaConditionOverrides = {
   'promo-1':  [{ id: 'c1-rs',  field: 'subtotal', mode: 'include', values: ['50'], operator: '>=' }],
-  'promo-2':  [{ id: 'c3-rs',  field: 'subtotal', mode: 'include', values: ['30'], operator: '>=' }],
+  'promo-2':  [{ id: 'c3-rs',  field: 'subtotal', mode: 'include', values: ['50'], operator: '>=' }],
   'promo-5':  [{ id: 'c6-rs',  field: 'subtotal', mode: 'include', values: ['40'], operator: '>=' }],
   'promo-6':  [{ id: 'c8-rs',  field: 'subtotal', mode: 'include', values: ['25'], operator: '>=' }],
   'promo-7':  [{ id: 'c7-rs',  field: 'subtotal', mode: 'include', values: ['35'], operator: '>=' }],

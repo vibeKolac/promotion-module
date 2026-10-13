@@ -219,6 +219,10 @@
               v-if="!uxTestMode && conflictsMap.get(item.id)?.length"
               :conflicts="conflictsMap.get(item.id)"
             />
+            <ConflictBadge
+              v-if="serbiaMode && rsConflictsMap.get(item.id)?.length"
+              :conflicts="rsConflictsMap.get(item.id)"
+            />
           </div>
         </template>
 
@@ -525,6 +529,8 @@ import ContentHeader from '../_common/ContentHeader.vue'
 import Breadcrumbs from '../_common/Breadcrumbs.vue'
 import TextInput from '../_common/TextInput.vue'
 import { detectConflicts } from '../../utils/ruleConflictDetector'
+import { findCollisions, withConditionOverrides } from '../../utils/promotionCollisions'
+import { serbiaConditionOverrides } from '../../mock/seed'
 import ConflictBadge from './ConflictBadge.vue'
 import CsvImportDialog from './CsvImportDialog.vue'
 import { downloadCSV, exportRulesToCSV } from '../../utils/csvRuleImportExport'
@@ -616,6 +622,17 @@ const internalTagsStore = useInternalTagsStore()
 const { mobile } = useDisplay()
 
 const conflictsMap = computed(() => detectConflicts(store.items))
+
+const rsConflictsMap = computed(() => {
+  const map = new Map()
+  const rules = withConditionOverrides(store.items, serbiaConditionOverrides)
+  rules.forEach((rule) => {
+    if (!['active', 'scheduled'].includes(rule.status)) return
+    const collisions = findCollisions(rule, rules, rule.id)
+    if (collisions.length) map.set(rule.id, [{ message: `Conflicts with: ${collisions.map((c) => c.rule.name).join(', ')}` }])
+  })
+  return map
+})
 
 const search = ref('')
 const VALID_TABS = ['active', 'paused', 'draft', 'ended', 'archived']

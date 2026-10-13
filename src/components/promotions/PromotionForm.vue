@@ -731,6 +731,12 @@
 
       </v-col>
 
+      <v-col v-if="serbiaMode" cols="12" md="4" class="order-first order-md-last">
+        <div class="preview-sticky-md">
+          <RuleLivePreview :draft="draft" :rules="rsRules" :exclude-id="route.params.id" :base-path="basePath" />
+        </div>
+      </v-col>
+
       <v-col v-if="!serbiaMode" cols="12" md="4" class="d-none d-md-block">
         <div class="preview-sticky">
           <v-card border elevation="0" class="pa-4">
@@ -928,6 +934,8 @@ import ReachEstimateBar from './ReachEstimateBar.vue'
 import StepDiscountEditor from './StepDiscountEditor.vue'
 import GiftItemsSection from './GiftItemsSection.vue'
 import ConflictWarningBanner from './ConflictWarningBanner.vue'
+import RuleLivePreview from './RuleLivePreview.vue'
+import { withConditionOverrides } from '../../utils/promotionCollisions'
 import StackingGroupSelect from './StackingGroupSelect.vue'
 import ProcessingOrderSelect from './ProcessingOrderSelect.vue'
 import NonCombinableRulesSection from './NonCombinableRulesSection.vue'
@@ -950,6 +958,7 @@ const uxTestMode = computed(() => route.path.startsWith('/uxtest') || route.path
 const serbiaMode = computed(() => route.path.startsWith('/serbia'))
 const basePath = computed(() => route.path.startsWith('/uxtest') ? '/uxtest' : route.path.startsWith('/serbia') ? '/serbia' : '')
 const store = usePromotionsStore()
+const rsRules = computed(() => withConditionOverrides(store.items, serbiaConditionOverrides))
 const sgStore = useStackingGroupsStore()
 const settingsStore = useSettingsStore()
 const templatesStore = useTemplatesStore()
@@ -1893,6 +1902,13 @@ defineExpose({ store })
 .preview-sticky {
   position: sticky;
   top: 68px;
+}
+
+@media (min-width: 960px) {
+  .preview-sticky-md {
+    position: sticky;
+    top: 68px;
+  }
 }
 
 .tpl-picker-card {
