@@ -36,10 +36,8 @@ describe('findCollisions', () => {
     expect(result[0].reasons).toEqual(['condition'])
   })
 
-  it('flags a rule that only shares the discount', () => {
-    const result = findCollisions(candidate({ conditions: subtotal('<', 100) }), [rule('a')])
-
-    expect(result[0].reasons).toEqual(['benefit'])
+  it('does not flag a rule that only shares the discount', () => {
+    expect(findCollisions(candidate({ conditions: subtotal('<', 100) }), [rule('a')])).toEqual([])
   })
 
   it('lists both reasons when condition and discount are equal', () => {
@@ -99,32 +97,36 @@ describe('findCollisions for other conditions and types', () => {
     expect(findCollisions(candidate({ conditions: brand(), value: '1' }), [rule('a', { conditions: brand(), value: '2' })])).toEqual([])
   })
 
-  it('flags step discounts with identical steps only', () => {
-    const base = { type: 'step_discount', stepType: 'SPENT', amountType: 'PERCENT', conditions: [] }
+  it('marks identical steps as the same benefit and different steps as condition only', () => {
+    const base = { type: 'step_discount', stepType: 'SPENT', amountType: 'PERCENT' }
     const a = rule('a', { ...base, steps: steps([50, '5'], [100, '10']) })
 
-    expect(findCollisions(candidate({ ...base, steps: steps([100, '10'], [50, '5']) }), [a])[0].reasons).toEqual(['benefit'])
-    expect(findCollisions(candidate({ ...base, steps: steps([50, '5'], [100, '15']) }), [a])).toEqual([])
+    expect(findCollisions(candidate({ ...base, steps: steps([100, '10'], [50, '5']) }), [a])[0].reasons).toEqual(['condition', 'benefit'])
+    expect(findCollisions(candidate({ ...base, steps: steps([50, '5'], [100, '15']) }), [a])[0].reasons).toEqual(['condition'])
   })
 
-  it('flags multi-buy rules with the same buy and free quantities', () => {
-    const multi = (buy, free) => ({ type: 'multi_buy', multiBuyQty: buy, multiFreeQty: free, conditions: [] })
+  it('marks the same buy and free quantities as the same benefit', () => {
+    const multi = (buy, free) => ({ type: 'multi_buy', multiBuyQty: buy, multiFreeQty: free })
 
-    expect(findCollisions(candidate(multi(3, 1)), [rule('a', multi(3, 1))])[0].reasons).toEqual(['benefit'])
-    expect(findCollisions(candidate(multi(3, 1)), [rule('b', multi(2, 1))])).toEqual([])
+    expect(findCollisions(candidate(multi(3, 1)), [rule('a', multi(3, 1))])[0].reasons).toEqual(['condition', 'benefit'])
+    expect(findCollisions(candidate(multi(3, 1)), [rule('b', multi(2, 1))])[0].reasons).toEqual(['condition'])
   })
 
-  it('flags gift rules offering the same gifts', () => {
-    const gift = (sku) => ({ type: 'gift', gifts: [{ sku, quantity: 1 }], conditions: [] })
+  it('marks the same gifts as the same benefit', () => {
+    const gift = (sku) => ({ type: 'gift', gifts: [{ sku, quantity: 1 }] })
 
-    expect(findCollisions(candidate(gift('X')), [rule('a', gift('X'))])[0].reasons).toEqual(['benefit'])
-    expect(findCollisions(candidate(gift('X')), [rule('b', gift('Y'))])).toEqual([])
+    expect(findCollisions(candidate(gift('X')), [rule('a', gift('X'))])[0].reasons).toEqual(['condition', 'benefit'])
+    expect(findCollisions(candidate(gift('X')), [rule('b', gift('Y'))])[0].reasons).toEqual(['condition'])
   })
 
-  it('never matches benefits of different types', () => {
-    const multi = rule('a', { type: 'multi_buy', multiBuyQty: 1, multiFreeQty: 1, conditions: [] })
+  it('never matches benefits of different types, only the condition', () => {
+    const multi = rule('a', { type: 'multi_buy', multiBuyQty: 1, multiFreeQty: 1 })
 
-    expect(findCollisions(candidate({ conditions: [] }), [multi])).toEqual([])
+    expect(findCollisions(candidate(), [multi])[0].reasons).toEqual(['condition'])
+  })
+
+  it('needs the same condition even when the discount matches', () => {
+    expect(findCollisions(candidate({ conditions: brand('Vichy') }), [rule('a', { conditions: brand('Mustela') })])).toEqual([])
   })
 })
 
@@ -144,14 +146,13 @@ describe('benefit and condition labels', () => {
 })
 
 describe('groupCollisions', () => {
-  it('groups rules by what they share, both first', () => {
+  it('groups rules by how much they share, both first', () => {
     const groups = groupCollisions([
       { rule: rule('a'), reasons: ['condition'] },
-      { rule: rule('b'), reasons: ['benefit'] },
       { rule: rule('c'), reasons: ['condition', 'benefit'] },
     ])
 
-    expect(groups.map((g) => g.key)).toEqual(['both', 'condition', 'benefit'])
+    expect(groups.map((g) => g.key)).toEqual(['both', 'condition'])
     expect(groups[0].rules.map((r) => r.id)).toEqual(['c'])
   })
 })

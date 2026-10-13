@@ -27,8 +27,7 @@ const props = defineProps({
 
 function heading(key) {
   if (key === 'both') return `Same period, ${props.condition} and ${props.benefit}:`
-  if (key === 'condition') return `Same period and ${props.condition}:`
-  return `Same period and ${props.benefit}:`
+  return `Same period and ${props.condition}:`
 }
 </script>
 

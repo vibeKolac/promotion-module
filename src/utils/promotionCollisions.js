@@ -120,26 +120,24 @@ export function findCollisions(candidate, rules, excludeId) {
     if (rule.id === excludeId || !LIVE_STATUSES.includes(rule.status)) return []
     if (!periodsOverlap(candidate, rule)) return []
 
-    const otherCondition = conditionKey(rule.conditions)
-    const otherBenefit = benefitOf(rule)
-    const reasons = []
+    if (!condition || condition !== conditionKey(rule.conditions)) return []
 
-    if (condition && condition === otherCondition) reasons.push('condition')
-    if (benefit && benefit.key === otherBenefit?.key) reasons.push('benefit')
+    const reasons = ['condition']
+    if (benefit && benefit.key === benefitOf(rule)?.key) reasons.push('benefit')
 
-    return reasons.length ? [{ rule, reasons }] : []
+    return [{ rule, reasons }]
   })
 }
 
 export function groupCollisions(collisions) {
-  const groups = { both: [], condition: [], benefit: [] }
+  const groups = { both: [], condition: [] }
 
   collisions.forEach(({ rule, reasons }) => {
     const key = reasons.length === 2 ? 'both' : reasons[0]
     groups[key].push(rule)
   })
 
-  return ['both', 'condition', 'benefit'].filter((key) => groups[key].length).map((key) => ({ key, rules: groups[key] }))
+  return ['both', 'condition'].filter((key) => groups[key].length).map((key) => ({ key, rules: groups[key] }))
 }
 
 export function withConditionOverrides(rules, overrides = {}) {
