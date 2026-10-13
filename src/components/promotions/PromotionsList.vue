@@ -220,8 +220,8 @@
               :conflicts="conflictsMap.get(item.id)"
             />
             <ConflictBadge
-              v-if="serbiaMode && rsConflictsMap.get(item.id)?.length"
-              :conflicts="rsConflictsMap.get(item.id)"
+              v-if="collisionsMap.get(item.id)?.length"
+              :conflicts="collisionsMap.get(item.id)"
             />
           </div>
         </template>
@@ -623,9 +623,9 @@ const { mobile } = useDisplay()
 
 const conflictsMap = computed(() => detectConflicts(store.items))
 
-const rsConflictsMap = computed(() => {
+const collisionsMap = computed(() => {
   const map = new Map()
-  const rules = withConditionOverrides(store.items, serbiaConditionOverrides)
+  const rules = serbiaMode.value ? withConditionOverrides(store.items, serbiaConditionOverrides) : store.items
   rules.forEach((rule) => {
     if (!['active', 'scheduled'].includes(rule.status)) return
     const collisions = findCollisions(rule, rules, rule.id)

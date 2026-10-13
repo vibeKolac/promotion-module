@@ -1,5 +1,8 @@
 import {
+  benefitOf,
+  conditionKey,
   conditionLabel,
+  conditionSummary,
   discountLabel,
   discountOf,
   findCollisions,
@@ -36,11 +39,11 @@ describe('findCollisions', () => {
   it('flags a rule that only shares the discount', () => {
     const result = findCollisions(candidate({ conditions: subtotal('<', 100) }), [rule('a')])
 
-    expect(result[0].reasons).toEqual(['discount'])
+    expect(result[0].reasons).toEqual(['benefit'])
   })
 
   it('lists both reasons when condition and discount are equal', () => {
-    expect(findCollisions(candidate(), [rule('a')])[0].reasons).toEqual(['condition', 'discount'])
+    expect(findCollisions(candidate(), [rule('a')])[0].reasons).toEqual(['condition', 'benefit'])
   })
 
   it('ignores draft, paused and ended rules', () => {
@@ -73,15 +76,82 @@ describe('findCollisions', () => {
   })
 })
 
+describe('findCollisions for other conditions and types', () => {
+  const brand = (...values) => [{ field: 'brands', mode: 'include', values }]
+  const steps = (...pairs) => pairs.map(([threshold, value]) => ({ threshold, value, amountType: 'PERCENT' }))
+
+  it('flags identical non-subtotal conditions regardless of value order', () => {
+    const a = rule('a', { conditions: brand('Vichy', 'Eucerin'), value: '5' })
+
+    expect(findCollisions(candidate({ conditions: brand('Eucerin', 'Vichy') }), [a])[0].reasons).toEqual(['condition'])
+    expect(findCollisions(candidate({ conditions: brand('Vichy') }), [a])).toEqual([])
+  })
+
+  it('compares every condition and nested groups', () => {
+    const group = (...values) => [{ type: 'group', logicalOp: 'OR', conditions: brand(...values) }]
+    const both = [...subtotal('>=', 500), ...brand('Vichy')]
+
+    expect(findCollisions(candidate({ conditions: both, value: '1' }), [rule('a', { conditions: brand('Vichy'), value: '2' })])).toEqual([])
+    expect(findCollisions(candidate({ conditions: group('A'), value: '1' }), [rule('b', { conditions: group('A'), value: '2' })])).toHaveLength(1)
+  })
+
+  it('ignores conditions with no values filled in', () => {
+    expect(findCollisions(candidate({ conditions: brand(), value: '1' }), [rule('a', { conditions: brand(), value: '2' })])).toEqual([])
+  })
+
+  it('flags step discounts with identical steps only', () => {
+    const base = { type: 'step_discount', stepType: 'SPENT', amountType: 'PERCENT', conditions: [] }
+    const a = rule('a', { ...base, steps: steps([50, '5'], [100, '10']) })
+
+    expect(findCollisions(candidate({ ...base, steps: steps([100, '10'], [50, '5']) }), [a])[0].reasons).toEqual(['benefit'])
+    expect(findCollisions(candidate({ ...base, steps: steps([50, '5'], [100, '15']) }), [a])).toEqual([])
+  })
+
+  it('flags multi-buy rules with the same buy and free quantities', () => {
+    const multi = (buy, free) => ({ type: 'multi_buy', multiBuyQty: buy, multiFreeQty: free, conditions: [] })
+
+    expect(findCollisions(candidate(multi(3, 1)), [rule('a', multi(3, 1))])[0].reasons).toEqual(['benefit'])
+    expect(findCollisions(candidate(multi(3, 1)), [rule('b', multi(2, 1))])).toEqual([])
+  })
+
+  it('flags gift rules offering the same gifts', () => {
+    const gift = (sku) => ({ type: 'gift', gifts: [{ sku, quantity: 1 }], conditions: [] })
+
+    expect(findCollisions(candidate(gift('X')), [rule('a', gift('X'))])[0].reasons).toEqual(['benefit'])
+    expect(findCollisions(candidate(gift('X')), [rule('b', gift('Y'))])).toEqual([])
+  })
+
+  it('never matches benefits of different types', () => {
+    const multi = rule('a', { type: 'multi_buy', multiBuyQty: 1, multiFreeQty: 1, conditions: [] })
+
+    expect(findCollisions(candidate({ conditions: [] }), [multi])).toEqual([])
+  })
+})
+
+describe('benefit and condition labels', () => {
+  it('describes each rule type', () => {
+    expect(benefitOf(rule('a')).label).toBe('10% off')
+    expect(benefitOf({ type: 'multi_buy', multiBuyQty: 3, multiFreeQty: 1 }).label).toBe('buy 3 get 1 free')
+    expect(benefitOf({ type: 'gift', gifts: [{ sku: 'X', quantity: 2 }] }).label).toContain('X ×2')
+    expect(benefitOf({ type: 'gift', gifts: [] })).toBeNull()
+  })
+
+  it('summarises conditions and has none when empty', () => {
+    expect(conditionSummary([...subtotal('>=', 50), { field: 'brands', mode: 'include', values: ['Vichy'] }])).toBe('subtotal ≥ 50, brands: Vichy')
+    expect(conditionKey([])).toBeNull()
+    expect(conditionSummary([])).toBeNull()
+  })
+})
+
 describe('groupCollisions', () => {
   it('groups rules by what they share, both first', () => {
     const groups = groupCollisions([
       { rule: rule('a'), reasons: ['condition'] },
-      { rule: rule('b'), reasons: ['discount'] },
-      { rule: rule('c'), reasons: ['condition', 'discount'] },
+      { rule: rule('b'), reasons: ['benefit'] },
+      { rule: rule('c'), reasons: ['condition', 'benefit'] },
     ])
 
-    expect(groups.map((g) => g.key)).toEqual(['both', 'condition', 'discount'])
+    expect(groups.map((g) => g.key)).toEqual(['both', 'condition', 'benefit'])
     expect(groups[0].rules.map((r) => r.id)).toEqual(['c'])
   })
 })

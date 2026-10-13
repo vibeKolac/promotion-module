@@ -21,14 +21,14 @@
 const props = defineProps({
   groups: { type: Array, required: true },
   condition: { type: String, default: null },
-  discount: { type: String, default: null },
+  benefit: { type: String, default: null },
   basePath: { type: String, default: '' },
 })
 
 function heading(key) {
-  if (key === 'both') return `Same period, subtotal ${props.condition} and ${props.discount} off:`
-  if (key === 'condition') return `Same period and subtotal ${props.condition}:`
-  return `Same period and ${props.discount} off:`
+  if (key === 'both') return `Same period, ${props.condition} and ${props.benefit}:`
+  if (key === 'condition') return `Same period and ${props.condition}:`
+  return `Same period and ${props.benefit}:`
 }
 </script>
 

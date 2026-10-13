@@ -733,7 +733,7 @@
 
       <v-col v-if="serbiaMode" cols="12" md="4" class="order-first order-md-last">
         <div class="preview-sticky-md">
-          <RuleLivePreview :draft="draft" :rules="rsRules" :exclude-id="route.params.id" :base-path="basePath" />
+          <RuleLivePreview :draft="draft" :rules="collisionRules" :exclude-id="route.params.id" :base-path="basePath" />
         </div>
       </v-col>
 
@@ -761,6 +761,7 @@
               </template>
               <span v-else class="text-medium-emphasis">Start filling in the rule — a description will appear here as you configure it.</span>
             </v-alert>
+            <RuleCollisionAlert :draft="draft" :rules="collisionRules" :exclude-id="route.params.id" :base-path="basePath" />
           </v-card>
         </div>
       </v-col>
@@ -935,6 +936,7 @@ import StepDiscountEditor from './StepDiscountEditor.vue'
 import GiftItemsSection from './GiftItemsSection.vue'
 import ConflictWarningBanner from './ConflictWarningBanner.vue'
 import RuleLivePreview from './RuleLivePreview.vue'
+import RuleCollisionAlert from './RuleCollisionAlert.vue'
 import { withConditionOverrides } from '../../utils/promotionCollisions'
 import StackingGroupSelect from './StackingGroupSelect.vue'
 import ProcessingOrderSelect from './ProcessingOrderSelect.vue'
@@ -958,7 +960,9 @@ const uxTestMode = computed(() => route.path.startsWith('/uxtest') || route.path
 const serbiaMode = computed(() => route.path.startsWith('/serbia'))
 const basePath = computed(() => route.path.startsWith('/uxtest') ? '/uxtest' : route.path.startsWith('/serbia') ? '/serbia' : '')
 const store = usePromotionsStore()
-const rsRules = computed(() => withConditionOverrides(store.items, serbiaConditionOverrides))
+const collisionRules = computed(() =>
+  serbiaMode.value ? withConditionOverrides(store.items, serbiaConditionOverrides) : store.items,
+)
 const sgStore = useStackingGroupsStore()
 const settingsStore = useSettingsStore()
 const templatesStore = useTemplatesStore()

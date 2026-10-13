@@ -19,13 +19,7 @@
       </template>
     </p>
 
-    <CollisionAlert
-      v-if="groups.length"
-      :groups="groups"
-      :condition="conditionText"
-      :discount="discountText"
-      :base-path="basePath"
-    />
+    <RuleCollisionAlert :draft="draft" :rules="rules" :exclude-id="excludeId" :base-path="basePath" />
   </v-card>
 </template>
 
@@ -35,11 +29,9 @@ import {
   conditionLabel,
   discountLabel,
   discountOf,
-  findCollisions,
-  groupCollisions,
   subtotalCondition,
 } from '../../utils/promotionCollisions'
-import CollisionAlert from './CollisionAlert.vue'
+import RuleCollisionAlert from './RuleCollisionAlert.vue'
 
 const props = defineProps({
   draft: { type: Object, required: true },
@@ -112,6 +104,4 @@ const sentences = computed(() => {
 
   return list
 })
-
-const groups = computed(() => groupCollisions(findCollisions(props.draft, props.rules, props.excludeId)))
 </script>
