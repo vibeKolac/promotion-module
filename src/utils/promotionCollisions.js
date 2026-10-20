@@ -106,7 +106,9 @@ export function benefitOf(rule) {
     if (!gifts.length) return null
     const sorted = gifts.map((g) => `${g.sku} ×${g.quantity ?? 1}`).sort()
 
-    return { key: `gift:${sorted.join(',')}`, label: `the same gift (${sorted.join(', ')})` }
+    const mode = rule.giftSelectionMode === 'OR' ? 'OR' : 'AND'
+
+    return { key: `gift:${mode}:${sorted.join(',')}`, label: `the same gift (${sorted.join(mode === 'OR' ? ' or ' : ', ')})` }
   }
 
   return null

@@ -8,7 +8,7 @@
     class="mt-3"
     icon="mdi-alert"
   >
-    <div v-for="c in conflicts" :key="c.giftSku">{{ c.message }}</div>
+    <div v-for="(c, i) in conflicts" :key="i">{{ c.message }}</div>
   </v-alert>
 </template>
 

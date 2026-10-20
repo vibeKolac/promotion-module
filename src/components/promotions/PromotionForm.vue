@@ -419,6 +419,16 @@
             </a>
           </div>
           <v-divider class="my-4" />
+          <div class="mb-4">
+            <div class="text-caption font-weight-bold text-medium-emphasis mb-2">GIFT SELECTION</div>
+            <v-btn-toggle v-model="draft.giftSelectionMode" mandatory density="compact" variant="outlined" color="primary" class="mb-1">
+              <v-btn value="AND" size="small" prepend-icon="mdi-gift-open-outline">All gifts (AND)</v-btn>
+              <v-btn value="OR" size="small" prepend-icon="mdi-gesture-tap">Customer picks one (OR)</v-btn>
+            </v-btn-toggle>
+            <div class="text-caption text-medium-emphasis mt-1">
+              {{ draft.giftSelectionMode === 'OR' ? 'Customer chooses one of the gift items below in the cart.' : 'Every gift item below is added to the cart.' }}
+            </div>
+          </div>
           <GiftItemsSection v-model="draft.gifts" />
           <ConflictWarningBanner :conflicts="giftConflicts" />
         </v-card>
@@ -1356,7 +1366,14 @@ const breadcrumbs = computed(() => [{
 const conditionValidation = computed(() => validateConditions(draft.conditions))
 
 
-const giftConflicts = computed(() => detectGiftConflicts(draft.gifts, draft.conditions))
+const giftConflicts = computed(() => detectGiftConflicts(draft.gifts, draft.conditions, draft.giftSelectionMode))
+
+function giftGrantText(draft) {
+  const count = draft.gifts?.filter(g => g.sku)?.length ?? 0
+  if (!count) return 'gift items configured separately'
+  if (draft.giftSelectionMode === 'OR') return `customer can choose 1 of ${count} gift item${count !== 1 ? 's' : ''}`
+  return `${count} gift item${count !== 1 ? 's' : ''} will be given`
+}
 
 // ── Conditions plain-English description ──────────────────────────────────────
 
@@ -1580,10 +1597,8 @@ const ruleDescription = computed(() => {
   } else if (draft.type === 'gift') {
     if (draft.giftStepValue) {
       const trigger = draft.giftStepType === 'SPENT' ? `€${draft.giftStepValue} spent` : `${draft.giftStepValue} items purchased`
-      const giftCount = draft.gifts?.filter(g => g.sku)?.length ?? 0
-      const giftStr = giftCount ? `${giftCount} gift item${giftCount !== 1 ? 's' : ''} will be given` : 'gift items configured separately'
       const limit = draft.giftMaxSteps ? `, repeats up to ${draft.giftMaxSteps} time(s)` : ''
-      sentences.push(`When ${trigger} is reached, ${giftStr}${limit}.`)
+      sentences.push(`When ${trigger} is reached, ${giftGrantText(draft)}${limit}.`)
     }
   }
 
@@ -1640,10 +1655,8 @@ const ruleDescriptionSegments = computed(() => {
   } else if (draft.type === 'gift') {
     if (draft.giftStepValue) {
       const trigger = draft.giftStepType === 'SPENT' ? `€${draft.giftStepValue} spent` : `${draft.giftStepValue} items purchased`
-      const giftCount = draft.gifts?.filter(g => g.sku)?.length ?? 0
-      const giftStr = giftCount ? `${giftCount} gift item${giftCount !== 1 ? 's' : ''} will be given` : 'gift items configured separately'
       const limit = draft.giftMaxSteps ? `, repeats up to ${draft.giftMaxSteps} time(s)` : ''
-      segs.push({ type: 'text', text: `When ${trigger} is reached, ${giftStr}${limit}. ` })
+      segs.push({ type: 'text', text: `When ${trigger} is reached, ${giftGrantText(draft)}${limit}. ` })
     }
   }
 

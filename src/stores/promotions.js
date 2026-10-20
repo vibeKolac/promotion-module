@@ -23,7 +23,7 @@ const emptyDraft = () => ({
   stepValue: '',
   stepMaxSteps: '',
   stepApplyTo: 'cheapest',
-  giftStepType: 'SPENT', giftStepValue: '', giftMaxSteps: '',
+  giftStepType: 'SPENT', giftStepValue: '', giftMaxSteps: '', giftSelectionMode: 'AND',
   channels: [],
   multiBuyQty: '', multiFreeQty: '',
   multiSelectionMode: 'CHEAPEST', multiMaxSteps: '',
