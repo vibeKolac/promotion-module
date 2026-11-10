@@ -17,7 +17,7 @@
       </div>
     </template>
 
-    <div v-if="!serbiaMode && showCombine" class="d-flex align-center justify-end mb-6" style="gap: 12px">
+    <div v-if="!serbiaMode && showCombine && modelValue.length > 1" class="d-flex align-center justify-end mb-6" style="gap: 12px">
       <span class="text-body-1 text-medium-emphasis">Combine with</span>
       <v-btn-toggle
         :model-value="currentGroupOp()"

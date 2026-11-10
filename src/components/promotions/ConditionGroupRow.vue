@@ -4,8 +4,9 @@
     <div class="d-flex align-center flex-wrap mb-4" style="gap: 12px">
       <span class="text-h6 font-weight-bold text-medium-emphasis text-uppercase">Group {{ index }}</span>
       <v-spacer />
-      <span class="text-body-1 text-medium-emphasis">Combine with</span>
+      <span v-if="group.conditions.length > 1" class="text-body-1 text-medium-emphasis">Combine with</span>
       <v-btn-toggle
+        v-if="group.conditions.length > 1"
         :model-value="groupOp"
         mandatory
         density="comfortable"
