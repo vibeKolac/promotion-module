@@ -11,35 +11,43 @@
           Import CSV
           <v-chip size="x-small" color="warning" variant="tonal" label class="ml-2">Exploring</v-chip>
         </v-btn>
-        <v-btn v-if="showPreset" prepend-icon="mdi-filter-variant" variant="text" size="small" @click="presetPickerOpen = true">
-          Select preset
-        </v-btn>
       </div>
-      <div v-if="!serbiaMode" class="text-caption text-medium-emphasis mb-4">
-        Add conditions or groups. Click the AND / OR chip to switch the operator for the entire group.
+      <div v-if="!serbiaMode" class="text-body-2 text-medium-emphasis mb-4">
+        Add conditions or groups. Click the chips between rows to switch between AND and OR.
       </div>
     </template>
+
+    <div v-if="!serbiaMode && showCombine" class="d-flex align-center justify-end mb-6" style="gap: 12px">
+      <span class="text-body-1 text-medium-emphasis">Combine with</span>
+      <v-btn-toggle
+        :model-value="currentGroupOp()"
+        mandatory
+        density="comfortable"
+        variant="outlined"
+        divided
+        @update:model-value="setGroupOp"
+      >
+        <v-btn value="AND" size="small">AND</v-btn>
+        <v-btn value="OR" size="small">OR</v-btn>
+      </v-btn-toggle>
+    </div>
 
     <!-- Conditions list -->
     <div v-if="modelValue.length" class="mb-4">
       <template v-for="(cond, idx) in modelValue" :key="cond.id">
 
         <!-- AND / OR toggle between rows -->
-        <div v-if="idx > 0" class="d-flex justify-center my-3">
-          <v-chip
-            size="default"
-            variant="outlined"
-            class="logic-op-chip"
-            @click="toggleOp(idx)"
-          >
-            {{ cond.logicalOp === 'OR' ? 'OR' : 'AND' }}
-          </v-chip>
+        <div v-if="idx > 0" class="logic-divider my-3" @click="toggleOp(idx)">
+          <v-divider />
+          <span class="logic-op-text">{{ cond.logicalOp === 'OR' ? 'OR' : 'AND' }}</span>
+          <v-divider />
         </div>
 
         <!-- Group row (unchanged) -->
         <ConditionGroupRow
           v-if="cond.type === 'group'"
           :group="cond"
+          :index="groupNumber(idx)"
           :scope="scope"
           @update:group="onGroupUpdate(idx, $event)"
           @remove="remove(idx)"
@@ -47,75 +55,62 @@
 
         <!-- Leaf condition: inline row -->
         <div v-else>
-          <!-- Column labels -->
-          <div class="condition-cols mb-1">
-            <span class="text-caption text-medium-emphasis">Condition Type</span>
-            <span class="text-caption text-medium-emphasis">Operator</span>
-            <span class="text-caption text-medium-emphasis">Value</span>
-            <span />
-          </div>
-          <!-- Inputs -->
-          <div class="condition-cols">
-            <!-- Type -->
+          <div class="condition-cols" :class="{ 'condition-cols--empty': !cond.field }">
             <v-autocomplete
               :model-value="cond.field"
               :items="typeSelectItems"
+              label="Condition Type"
               variant="outlined"
-              density="compact"
+              density="comfortable"
               hide-details
-              placeholder="Select type"
               auto-select-first
               @update:model-value="onFieldChange(idx, $event)"
             />
-            <!-- Operator -->
-            <v-select
-              :model-value="getUiOperator(cond)"
-              :items="getOperatorItems(cond)"
-              variant="outlined"
-              density="compact"
-              hide-details
-              :disabled="!cond.field"
-              @update:model-value="onOperatorChange(idx, $event)"
-            />
-            <!-- Value — quantifiable: number input -->
-            <v-text-field
-              v-if="isQuantifiable(cond)"
-              :model-value="cond.values?.[0] ?? ''"
-              variant="outlined"
-              density="compact"
-              hide-details
-              type="number"
-              placeholder="Enter value"
-              :suffix="getValueSuffix(cond)"
-              @update:model-value="onValueChange(idx, $event)"
-            />
-            <!-- Value — SKU: product autocomplete with paste + warnings -->
-            <SkuValuePicker
-              v-else-if="isSkuField(cond)"
-              :model-value="cond.values ?? []"
-              @update:model-value="onValueChange(idx, $event)"
-            />
-            <!-- Value — list type: shared picker with "Not allowed" support -->
-            <ConditionValuePicker
-              v-else-if="hasOptions(cond)"
-              :field="cond.field"
-              :model-value="cond.values ?? []"
-              :disabled="!cond.field"
-              @update:model-value="onValueChange(idx, $event)"
-            />
-            <!-- Value — free text -->
-            <v-text-field
-              v-else-if="cond.field && !isBoolean(cond)"
-              :model-value="cond.values?.[0] ?? ''"
-              variant="outlined"
-              density="compact"
-              hide-details
-              placeholder="Enter value"
-              @update:model-value="onValueChange(idx, $event)"
-            />
-            <!-- Value — boolean: handled by operator -->
-            <span v-else />
-            <!-- Delete -->
+            <template v-if="cond.field">
+              <v-select
+                :model-value="getUiOperator(cond)"
+                :items="getOperatorItems(cond)"
+                label="Operator"
+                variant="outlined"
+                density="comfortable"
+                hide-details
+                @update:model-value="onOperatorChange(idx, $event)"
+              />
+              <v-text-field
+                v-if="isQuantifiable(cond)"
+                :model-value="cond.values?.[0] ?? ''"
+                label="Value"
+                variant="outlined"
+                density="comfortable"
+                hide-details
+                type="number"
+                :suffix="getValueSuffix(cond)"
+                @update:model-value="onValueChange(idx, $event)"
+              />
+              <SkuValuePicker
+                v-else-if="isSkuField(cond)"
+                :model-value="cond.values ?? []"
+                @update:model-value="onValueChange(idx, $event)"
+              />
+              <ConditionValuePicker
+                v-else-if="hasOptions(cond)"
+                :field="cond.field"
+                :model-value="cond.values ?? []"
+                label="Value"
+                density="comfortable"
+                @update:model-value="onValueChange(idx, $event)"
+              />
+              <v-text-field
+                v-else-if="!isBoolean(cond)"
+                :model-value="cond.values?.[0] ?? ''"
+                label="Value"
+                variant="outlined"
+                density="comfortable"
+                hide-details
+                @update:model-value="onValueChange(idx, $event)"
+              />
+              <span v-else />
+            </template>
             <v-btn
               icon="mdi-delete-outline"
               variant="text"
@@ -184,11 +179,14 @@
 
     <!-- Actions -->
     <div v-if="!serbiaMode" class="condition-actions">
-      <v-btn prepend-icon="mdi-plus" variant="outlined" size="default" @click="addConditionInline">
-        Add condition
+      <v-btn prepend-icon="mdi-plus" variant="outlined" @click="addConditionInline">
+        {{ allowGroups ? 'Add' : 'Add condition' }}
       </v-btn>
-      <v-btn v-if="allowGroups" prepend-icon="mdi-table-plus" variant="outlined" size="default" @click="openAddGroup">
+      <v-btn v-if="allowGroups" prepend-icon="mdi-table-plus" variant="outlined" @click="openAddGroup">
         Add group
+      </v-btn>
+      <v-btn v-if="showPreset" prepend-icon="mdi-filter-variant" variant="outlined" @click="presetPickerOpen = true">
+        Add from preset
       </v-btn>
     </div>
 
@@ -229,8 +227,10 @@ const props = defineProps({
   allowGroups: { type: Boolean, default: true },
   title:       { type: String,  default: 'Condition Builder' },
   helpText:    { type: String,  default: null },
+  showCombine: { type: Boolean, default: true },
 })
 const emit = defineEmits(['update:modelValue'])
+const combineOp = ref('AND')
 
 // ── Dialog state ──────────────────────────────────────────────────────────────
 const csvImportOpen = ref(false)
@@ -332,8 +332,14 @@ function removeSkusFromConditions(skusToRemove) {
   ))
 }
 
+function groupNumber(idx) {
+  return props.modelValue.slice(0, idx + 1).filter(c => c.type === 'group').length
+}
+
+defineExpose({ currentGroupOp, setGroupOp })
+
 function currentGroupOp() {
-  return props.modelValue.find(c => c.logicalOp)?.logicalOp ?? 'AND'
+  return props.modelValue.find(c => c.logicalOp)?.logicalOp ?? combineOp.value
 }
 
 function withDefaultOp(conditions, isFirst) {
@@ -377,11 +383,15 @@ function remove(idx) {
   emit_(next)
 }
 
-function toggleOp(idx) {
-  const nextOp = (props.modelValue[idx]?.logicalOp ?? 'AND') === 'OR' ? 'AND' : 'OR'
+function setGroupOp(op) {
+  combineOp.value = op
   emit_(props.modelValue.map((c, i) =>
-    i === 0 ? c : { ...c, logicalOp: nextOp }
+    i === 0 ? c : { ...c, logicalOp: op }
   ))
+}
+
+function toggleOp(idx) {
+  setGroupOp((props.modelValue[idx]?.logicalOp ?? 'AND') === 'OR' ? 'AND' : 'OR')
 }
 
 function onGroupUpdate(idx, updatedGroup) {
@@ -448,6 +458,20 @@ function onPresetApply({ conditions, mode }) {
 </script>
 
 <style scoped>
+.logic-divider {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.logic-op-text {
+  font-weight: 700;
+  font-size: 1.125rem;
+  color: rgba(var(--v-theme-on-surface), 0.5);
+}
+
 .condition-actions {
   display: flex;
   align-items: center;
@@ -458,8 +482,12 @@ function onPresetApply({ conditions, mode }) {
 .condition-cols {
   display: grid;
   grid-template-columns: minmax(130px, 1.2fr) minmax(100px, 0.8fr) minmax(160px, 2fr) 36px;
-  gap: 8px;
+  gap: 12px;
   align-items: center;
+}
+
+.condition-cols--empty {
+  grid-template-columns: minmax(0, 50%) 36px;
 }
 
 </style>

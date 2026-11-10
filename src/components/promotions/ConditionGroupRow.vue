@@ -1,41 +1,50 @@
 <!-- src/components/promotions/ConditionGroupRow.vue -->
 <template>
-  <div class="condition-group rounded border">
-    <div class="group-header d-flex align-center px-3 py-2">
-      <v-icon size="16" color="primary" class="mr-1">mdi-layers-outline</v-icon>
-      <span class="text-caption font-weight-bold text-primary text-uppercase">Condition group</span>
+  <div class="condition-group rounded-lg border pa-5">
+    <div class="d-flex align-center flex-wrap mb-4" style="gap: 12px">
+      <span class="text-h6 font-weight-bold text-medium-emphasis text-uppercase">Group {{ index }}</span>
       <v-spacer />
-      <v-btn
-        icon="mdi-delete-outline"
-        size="x-small"
-        variant="text"
-        color="error"
+      <span class="text-body-1 text-medium-emphasis">Combine with</span>
+      <v-btn-toggle
+        :model-value="groupOp"
+        mandatory
         density="comfortable"
-        title="Remove group"
-        @click="$emit('remove')"
-      />
+        variant="outlined"
+        divided
+        @update:model-value="editorRef?.setGroupOp($event)"
+      >
+        <v-btn value="AND" size="small">AND</v-btn>
+        <v-btn value="OR" size="small">OR</v-btn>
+      </v-btn-toggle>
+      <v-btn prepend-icon="mdi-delete-outline" variant="text" color="error" @click="$emit('remove')">
+        Remove group
+      </v-btn>
     </div>
 
-    <div class="group-body pa-3">
-      <ConditionsEditor
-        v-model="conditions"
-        :allow-groups="false"
-        :show-preset="false"
-        :show-header="false"
-      />
-    </div>
+    <ConditionsEditor
+      ref="editorRef"
+      v-model="conditions"
+      :allow-groups="false"
+      :show-preset="false"
+      :show-header="false"
+      :show-combine="false"
+    />
   </div>
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import ConditionsEditor from './ConditionsEditor.vue'
 
 const props = defineProps({
   group: { type: Object, required: true },
   scope: { type: String, default: 'cart' },
+  index: { type: Number, default: 1 },
 })
 const emit = defineEmits(['update:group', 'remove'])
+
+const editorRef = ref(null)
+const groupOp = computed(() => props.group.conditions.find(c => c.logicalOp)?.logicalOp ?? 'AND')
 
 const conditions = computed({
   get: () => props.group.conditions,
@@ -45,14 +54,7 @@ const conditions = computed({
 
 <style scoped>
 .condition-group {
-  border-color: rgba(var(--v-theme-primary), 0.3) !important;
   flex: 1;
   min-width: 0;
-}
-
-.group-header {
-  background: rgba(var(--v-theme-primary), 0.06);
-  border-bottom: 1px solid rgba(var(--v-theme-primary), 0.15);
-  border-radius: 4px 4px 0 0;
 }
 </style>

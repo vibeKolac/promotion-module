@@ -10,15 +10,6 @@ input[type=number] {
   -moz-appearance: textfield;
 }
 
-/* AND / OR toggle chip between condition rows */
-.logic-op-chip {
-  cursor: pointer;
-  font-weight: 600;
-  min-width: 52px;
-  justify-content: center;
-  user-select: none;
-}
-
 /* Sticky save bar fixed to the bottom of the viewport */
 .sticky-save-bar {
   position: fixed;
