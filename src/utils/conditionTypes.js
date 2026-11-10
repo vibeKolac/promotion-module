@@ -55,6 +55,26 @@ export const TYPE_OPTIONS = {
   seller: ['Dr. Max CZ', 'Dr. Max SK', 'Dr. Max PL', 'Dr. Max RO', 'Dr. Max IT', 'Third-party Seller'],
 }
 
+export const FIXED_AMOUNT_CONDITION_TYPES = ['subtotal']
+
+export function findDisallowedConditions(conditions, allowed) {
+  const found = []
+  for (const c of conditions ?? []) {
+    if (c.type === 'group') found.push(...findDisallowedConditions(c.conditions, allowed))
+    else if (c.field && !allowed.includes(c.field)) found.push(c.field)
+  }
+  return found
+}
+
+export function stripDisallowedConditions(conditions, allowed) {
+  const kept = (conditions ?? [])
+    .map(c => c.type === 'group'
+      ? { ...c, conditions: stripDisallowedConditions(c.conditions, allowed) }
+      : c)
+    .filter(c => c.type === 'group' ? c.conditions.length > 0 : !c.field || allowed.includes(c.field))
+  return kept.map((c, i) => (i === 0 && c.logicalOp ? { ...c, logicalOp: undefined } : c))
+}
+
 /** Lookup a type definition by field value. */
 export function getConditionTypeDef(field) {
   return CONDITION_TYPES.find(t => t.value === field) ?? null

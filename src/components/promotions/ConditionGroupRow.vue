@@ -29,6 +29,7 @@
       :show-preset="false"
       :show-header="false"
       :show-combine="false"
+      :allowed-types="allowedTypes"
     />
   </div>
 </template>
@@ -41,6 +42,7 @@ const props = defineProps({
   group: { type: Object, required: true },
   scope: { type: String, default: 'cart' },
   index: { type: Number, default: 1 },
+  allowedTypes: { type: Array, default: null },
 })
 const emit = defineEmits(['update:group', 'remove'])
 

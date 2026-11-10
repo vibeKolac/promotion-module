@@ -48,6 +48,7 @@
           v-if="cond.type === 'group'"
           :group="cond"
           :index="groupNumber(idx)"
+          :allowed-types="allowedTypes"
           :scope="scope"
           @update:group="onGroupUpdate(idx, $event)"
           @remove="remove(idx)"
@@ -210,7 +211,7 @@ import { downloadConditionsTemplate } from '../../utils/csvRuleImportExport'
 import { validateSkus } from '../../utils/skuValidation'
 import { useSettingsStore } from '../../stores/settings'
 import { getRecentConditionTypes, recordConditionTypes } from '../../utils/recentConditionTypes'
-import { CONDITION_TYPES, CONDITION_GROUPS, TYPE_OPTIONS, getConditionTypeDef } from '../../utils/conditionTypes'
+import { CONDITION_TYPES, CONDITION_GROUPS, TYPE_OPTIONS, getConditionTypeDef, stripDisallowedConditions } from '../../utils/conditionTypes'
 
 const route = useRoute()
 const uxTestMode = computed(() => route.path.startsWith('/uxtest') || route.path.startsWith('/serbia'))
@@ -228,6 +229,7 @@ const props = defineProps({
   title:       { type: String,  default: 'Condition Builder' },
   helpText:    { type: String,  default: null },
   showCombine: { type: Boolean, default: true },
+  allowedTypes: { type: Array, default: null },
 })
 const emit = defineEmits(['update:modelValue'])
 const combineOp = ref('AND')
@@ -250,19 +252,22 @@ const typeSelectItems = computed(() => {
       { title: 'Subtotal', value: 'subtotal' },
     ]
   }
+  const isAllowed = v => !props.allowedTypes || props.allowedTypes.includes(v)
   const recent = recentTypeValues.value
     .map(v => CONDITION_TYPES.find(t => t.value === v))
-    .filter(Boolean)
+    .filter(t => t && isAllowed(t.value))
   const recentSet = new Set(recent.map(t => t.value))
-  const grouped = CONDITION_GROUPS.flatMap(g => [
-    { type: 'subheader', title: g.label },
-    ...g.fields
-      .filter(f => !recentSet.has(f))
-      .map(f => {
+  const grouped = CONDITION_GROUPS.flatMap(g => {
+    const fields = g.fields.filter(f => !recentSet.has(f) && isAllowed(f))
+    if (!fields.length) return []
+    return [
+      { type: 'subheader', title: g.label },
+      ...fields.map(f => {
         const t = CONDITION_TYPES.find(ct => ct.value === f)
         return { title: t.title, value: t.value }
       }),
-  ])
+    ]
+  })
   if (!recent.length) return grouped
   return [
     { type: 'subheader', title: 'Recently used' },
@@ -442,11 +447,13 @@ function onValueChange(idx, val) {
 // ── CSV / preset ──────────────────────────────────────────────────────────────
 function onCsvImport(conditions) {
   const isFirst = props.modelValue.length === 0
-  const stamped = withDefaultOp(conditions.map(c => ({ ...c, id: uuid() })), isFirst)
+  const allowedConditions = props.allowedTypes ? stripDisallowedConditions(conditions, props.allowedTypes) : conditions
+  const stamped = withDefaultOp(allowedConditions.map(c => ({ ...c, id: uuid() })), isFirst)
   emit_([...props.modelValue, ...stamped])
 }
 
-function onPresetApply({ conditions, mode }) {
+function onPresetApply({ conditions: presetConditions, mode }) {
+  const conditions = props.allowedTypes ? stripDisallowedConditions(presetConditions, props.allowedTypes) : presetConditions
   const stamped = withDefaultOp(conditions, mode === 'replace')
   if (mode === 'replace') {
     emit_(stamped)

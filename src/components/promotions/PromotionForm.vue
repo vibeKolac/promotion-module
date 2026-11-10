@@ -214,8 +214,9 @@
                 <HelpTooltip :text="serbiaMode ? 'Discount — apply a fixed amount or percentage off the cart total.' : 'Discount — fixed or % off cart/items. Step Discount — tiered discount that grows with spend. Multi-buy — buy X get Y free. Gift — give a free product when a threshold is met.'" />
               </div>
               <SelectInput
-                v-model="draft.type"
+                :model-value="draft.type"
                 :data="ruleTypeItems"
+                @update:model-value="onRuleTypeChange"
                 label="Rule type *"
                 hide-details="auto"
               />
@@ -251,7 +252,13 @@
               />
             </v-col>
             <v-col cols="4">
-              <SelectInput v-model="draft.amountType" :data="amountTypeItems" label="Amount type" hide-details="auto" />
+              <SelectInput
+                :model-value="draft.amountType"
+                :data="amountTypeItems"
+                label="Amount type"
+                hide-details="auto"
+                @update:model-value="onAmountTypeChange"
+              />
             </v-col>
           </v-row>
         </v-card>
@@ -441,6 +448,7 @@
             :title="serbiaMode ? 'Conditions' : 'Targeting conditions'"
             :help-text="serbiaMode ? 'Define the condition this rule applies to.' : 'Filter which products, customers, or cart state this rule applies to. All conditions in a group must match (AND). Groups are evaluated with OR between them.'"
             :show-preset="!serbiaMode"
+            :allowed-types="conditionAllowedTypes"
           >
             <template #empty>No conditions set — this rule applies to all products.</template>
           </ConditionsEditor>
@@ -870,6 +878,14 @@
       Template "{{ templateLabel }}" created successfully.
     </v-snackbar>
 
+    <ConfirmModal ref="fixedAmountConfirm" confirm-text="Switch and remove conditions" confirm-color="warning">
+      <template #header>Switch to fixed amount?</template>
+      <template #body="{ item }">
+        Fixed amount discounts currently support only the Subtotal condition. These conditions will be removed:
+        <strong>{{ item?.labels.join(', ') }}</strong>.
+      </template>
+    </ConfirmModal>
+
     <!-- Leave section dialog -->
     <LeaveDialog
       v-model="leaveDialogOpen"
@@ -933,6 +949,8 @@ import { useDisplay } from 'vuetify'
 import { useNavigationGuard } from '../../composables/useNavigationGuard'
 import { useMaxik } from '../../composables/useMaxik'
 import LeaveDialog from '../_common/LeaveDialog.vue'
+import ConfirmModal from '../_common/ConfirmModal.vue'
+import { FIXED_AMOUNT_CONDITION_TYPES, FIELD_LABELS, findDisallowedConditions, stripDisallowedConditions } from '../../utils/conditionTypes'
 import { usePromotionsStore } from '../../stores/promotions'
 import { useStackingGroupsStore } from '../../stores/stackingGroups'
 import { useSettingsStore } from '../../stores/settings'
@@ -1196,6 +1214,31 @@ function validatePause() {
     errors.pauseEnd = 'Rule end date must be set before scheduling a pause'
   }
   return errors
+}
+
+const fixedAmountConfirm = ref(null)
+
+const conditionAllowedTypes = computed(() =>
+  draft.type === 'discount' && draft.amountType === 'FIXED' ? FIXED_AMOUNT_CONDITION_TYPES : null
+)
+
+async function confirmFixedAmountSwitch() {
+  const disallowed = findDisallowedConditions(draft.conditions, FIXED_AMOUNT_CONDITION_TYPES)
+  if (!disallowed.length) return true
+  const labels = [...new Set(disallowed)].map(f => FIELD_LABELS[f] ?? f)
+  if (!(await fixedAmountConfirm.value.open({ labels }))) return false
+  draft.conditions = stripDisallowedConditions(draft.conditions, FIXED_AMOUNT_CONDITION_TYPES)
+  return true
+}
+
+async function onAmountTypeChange(value) {
+  if (value === 'FIXED' && draft.type === 'discount' && !(await confirmFixedAmountSwitch())) return
+  draft.amountType = value
+}
+
+async function onRuleTypeChange(value) {
+  if (value === 'discount' && draft.amountType === 'FIXED' && !(await confirmFixedAmountSwitch())) return
+  draft.type = value
 }
 
 watch(() => draft.type, (type) => {
