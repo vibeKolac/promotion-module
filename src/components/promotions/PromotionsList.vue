@@ -30,23 +30,22 @@
       </template>
     </ContentHeader>
 
-    <!-- Search + status tabs (search aligns to tabs width) -->
-    <div :class="mobile ? '' : 'd-inline-flex flex-column'" class="mb-2">
-      <TextInput
-        v-model="search"
-        prepend-inner-icon="mdi-magnify"
-        placeholder="Search in all columns"
-        hide-details
-        class="mb-4"
-      />
-      <v-tabs v-model="activeTab" color="primary" density="compact">
-        <v-tab value="active">Active <v-chip size="x-small" class="ml-1">{{ activeItems.length }}</v-chip></v-tab>
-        <v-tab v-if="!serbiaMode" value="paused">Paused <v-chip size="x-small" class="ml-1">{{ pausedItems.length }}</v-chip></v-tab>
-        <v-tab value="draft">Draft <v-chip size="x-small" class="ml-1">{{ draftItems.length }}</v-chip></v-tab>
-        <v-tab value="ended">Ended <v-chip size="x-small" class="ml-1">{{ endedItems.length }}</v-chip></v-tab>
-        <v-tab v-if="!uxTestMode" value="archived">Archived <v-chip size="x-small" class="ml-1">{{ archivedItems.length }}</v-chip></v-tab>
+    <TextInput
+      v-model="search"
+      prepend-inner-icon="mdi-magnify"
+      placeholder="Search in all columns"
+      hide-details
+      class="list-search mb-6"
+    />
+
+    <v-card border elevation="0" class="list-card pa-4 pa-sm-6">
+      <v-tabs v-model="activeTab" color="primary" density="comfortable" hide-slider class="status-tabs mb-4">
+        <v-tab value="active">Active <v-chip size="x-small" class="ml-2 tab-count">{{ activeItems.length }}</v-chip></v-tab>
+        <v-tab v-if="!serbiaMode" value="paused">Paused <v-chip size="x-small" class="ml-2 tab-count">{{ pausedItems.length }}</v-chip></v-tab>
+        <v-tab value="draft">Draft <v-chip size="x-small" class="ml-2 tab-count">{{ draftItems.length }}</v-chip></v-tab>
+        <v-tab value="ended">Ended <v-chip size="x-small" class="ml-2 tab-count">{{ endedItems.length }}</v-chip></v-tab>
+        <v-tab v-if="!uxTestMode" value="archived">Archived <v-chip size="x-small" class="ml-2 tab-count">{{ archivedItems.length }}</v-chip></v-tab>
       </v-tabs>
-    </div>
 
     <!-- Filter row -->
     <div v-if="!serbiaMode" class="d-flex align-center flex-wrap filter-row">
@@ -202,7 +201,7 @@
     </v-alert>
 
     <!-- Shared table for all tabs -->
-    <v-card border elevation="0">
+    <div>
       <v-data-table
         v-model="selected"
         :headers="headers"
@@ -211,6 +210,7 @@
         item-value="id"
         :show-select="activeTab !== 'archived' && !serbiaMode"
         hover
+        class="rules-table"
       >
         <template #item.name="{ item }">
           <div class="d-flex align-center gap-2">
@@ -243,7 +243,7 @@
         </template>
 
         <template #item.status="{ item }">
-          <StatusBadge :status="item.status" />
+          <StatusBadge :status="item.status" class="status-pill" />
         </template>
 
         <template #item.performance="{ item }">
@@ -309,6 +309,15 @@
         </template>
 
         <template #item.actions="{ item }">
+          <div class="d-flex align-center justify-end">
+          <v-btn
+            v-if="item.status !== 'archived' && item.status !== 'ended'"
+            icon="mdi-pencil"
+            variant="text"
+            size="small"
+            color="medium-emphasis"
+            :to="`${basePath}/promotions/${item.id}/edit`"
+          />
           <v-menu v-if="item.status !== 'archived'">
             <template #activator="{ props: menuProps }">
               <v-btn
@@ -368,12 +377,14 @@
               </template>
             </v-list>
           </v-menu>
+          </div>
         </template>
 
         <template #no-data>
           <div class="text-center pa-8 text-medium-emphasis">No promotion rules found</div>
         </template>
       </v-data-table>
+    </div>
     </v-card>
 
     <ConfirmModal ref="deleteModal" confirm-text="Delete" confirm-color="error" :loading="deleting">
@@ -1078,9 +1089,52 @@ async function openBulkArchive() {
 }
 
 
+.list-search {
+  max-width: 780px;
+}
+
+.list-card {
+  border-radius: 8px;
+}
+
+.status-tabs {
+  width: fit-content;
+  max-width: 100%;
+  background: rgba(var(--v-theme-on-surface), 0.04);
+}
+.status-tabs :deep(.v-tab) {
+  min-width: 96px;
+  padding: 0 24px;
+  height: 48px;
+}
+.status-tabs :deep(.v-tab--selected) {
+  background: rgba(var(--v-theme-primary), 0.12);
+}
+.tab-count {
+  min-width: 24px;
+  justify-content: center;
+  border-radius: 12px;
+}
+
 .filter-row {
   gap: 16px;
-  padding: 20px 0;
+  padding: 8px 0 20px;
+}
+
+.rules-table :deep(th) {
+  font-weight: 600 !important;
+  font-size: 1rem !important;
+  color: rgba(var(--v-theme-on-surface), 0.87) !important;
+  height: 56px !important;
+  white-space: nowrap;
+}
+.rules-table :deep(td) {
+  font-size: 1rem;
+  height: 64px !important;
+}
+.status-pill {
+  border-radius: 16px !important;
+  padding: 0 14px;
 }
 
 .bulk-toolbar {
