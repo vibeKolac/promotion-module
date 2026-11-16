@@ -51,55 +51,42 @@
         <v-card border elevation="0" class="pa-5 mb-6">
           <div class="text-body-1 font-weight-bold mb-1">Products not eligible for promotions</div>
           <p class="text-caption text-medium-emphasis mb-4">
-            Items matching any of these values are globally excluded. They will appear with a
+            Anything listed below is excluded from every promotion. Search to add or remove;
+            excluded items are marked in the search results and listed underneath. They show as
             <v-chip size="x-small" color="error" variant="tonal" label class="mx-1">Not allowed</v-chip>
-            badge when selecting conditions or gift products in a rule.
+            when selecting conditions or gift products in a rule.
           </p>
 
-          <ConditionValuePicker
+          <ExcludedItemsField
             v-model="form.excludedCategories"
-            field="categories"
+            :items="categoryItems"
             label="Categories"
-            chips
-            closable-chips
-            class="mb-4"
+            noun="categories"
+            class="mb-6"
           />
 
-          <ConditionValuePicker
+          <ExcludedItemsField
             v-model="form.excludedBrands"
-            field="brands"
+            :items="brandItems"
             label="Brands"
-            chips
-            closable-chips
-            class="mb-4"
+            noun="brands"
+            class="mb-6"
           />
 
-          <v-autocomplete
-            v-model="form.excludedSkus"
-            :items="drMaxProducts"
-            item-value="sku"
-            :item-title="p => `${p.name} (${p.sku})`"
-            label="Product SKUs"
-            placeholder="Search by name or SKU…"
-            variant="outlined"
-            density="compact"
-            multiple
-            chips
-            closable-chips
-            hide-details
-            class="mb-4"
-          >
-            <template #chip="{ item, props: chipProps }">
-              <v-chip v-bind="chipProps" size="small" label>{{ item.raw.sku }}</v-chip>
-            </template>
-          </v-autocomplete>
-
-          <ConditionValuePicker
+          <ExcludedItemsField
             v-model="form.excludedProductLines"
-            field="product_lines"
+            :items="productLineItems"
             label="Product lines"
-            chips
-            closable-chips
+            noun="product lines"
+            class="mb-6"
+          />
+
+          <ExcludedItemsField
+            v-model="form.excludedSkus"
+            :items="skuItems"
+            label="Product SKUs"
+            noun="SKUs"
+            placeholder="Search by name or SKU…"
           />
         </v-card>
         </template>
@@ -230,12 +217,19 @@ import { useSettingsStore } from '../../stores/settings'
 import { drMaxProducts } from '../../mock/seed.js'
 import ContentHeader from '../_common/ContentHeader.vue'
 import Breadcrumbs from '../_common/Breadcrumbs.vue'
-import ConditionValuePicker from '../promotions/ConditionValuePicker.vue'
+import ExcludedItemsField from './ExcludedItemsField.vue'
+import { TYPE_OPTIONS } from '../../utils/conditionTypes'
 
 const route = useRoute()
 const uxTestMode = computed(() => route.path.startsWith('/uxtest') || route.path.startsWith('/serbia'))
 const serbiaMode = computed(() => route.path.startsWith('/serbia'))
 const store = useSettingsStore()
+
+const toItems = list => list.map(v => ({ value: v, title: v }))
+const categoryItems = toItems(TYPE_OPTIONS.categories ?? [])
+const brandItems = toItems(TYPE_OPTIONS.brands ?? [])
+const productLineItems = toItems(TYPE_OPTIONS.product_lines ?? [])
+const skuItems = drMaxProducts.map(p => ({ value: p.sku, title: p.name, subtitle: p.sku }))
 
 const form = reactive({
   giftOosMulti: store.giftOosMulti,
