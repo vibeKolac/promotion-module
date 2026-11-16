@@ -51,7 +51,7 @@
         <v-card border elevation="0" class="pa-5 mb-6">
           <div class="text-body-1 font-weight-bold mb-1">Products not eligible for promotions</div>
           <p class="text-caption text-medium-emphasis mb-4">
-            Anything listed below is excluded from every promotion. Use Manage to see every item with
+            Anything listed below is excluded from every promotion. Use Configure to see every item with
             its status, search, select several at once or paste a list of SKUs. Excluded items show as
             <v-chip size="x-small" color="error" variant="tonal" label class="mx-1">Not allowed</v-chip>
             when selecting conditions or gift products in a rule.
@@ -62,7 +62,7 @@
             :items="categoryItems"
             label="Categories"
             noun="categories"
-            class="mb-6"
+            class="mb-3"
           />
 
           <ExcludedItemsField
@@ -70,7 +70,7 @@
             :items="brandItems"
             label="Brands"
             noun="brands"
-            class="mb-6"
+            class="mb-3"
           />
 
           <ExcludedItemsField
@@ -78,7 +78,7 @@
             :items="productLineItems"
             label="Product lines"
             noun="product lines"
-            class="mb-6"
+            class="mb-3"
           />
 
           <ExcludedItemsField

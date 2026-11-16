@@ -1,40 +1,22 @@
 <template>
   <div>
-    <div class="d-flex align-center">
-      <span class="text-body-2 font-weight-medium">{{ label }}</span>
-      <v-chip
-        size="x-small"
-        label
-        class="ml-2"
-        :color="modelValue.length ? 'error' : undefined"
-        :variant="modelValue.length ? 'tonal' : 'outlined'"
-      >
-        {{ modelValue.length }} excluded
-      </v-chip>
+    <div class="field-row d-flex align-center pa-4">
+      <div>
+        <div class="text-body-1 font-weight-medium">{{ label }}</div>
+        <div class="text-body-2 text-medium-emphasis">
+          {{ modelValue.length ? `${modelValue.length} excluded` : 'None excluded' }}
+        </div>
+      </div>
       <v-spacer />
-      <v-btn size="large" color="success" @click="openDialog">Manage</v-btn>
-    </div>
-
-    <div class="mt-2 d-flex flex-wrap ga-1">
-      <span v-if="!modelValue.length" class="text-caption text-medium-emphasis">
-        Nothing excluded. All {{ noun }} are eligible.
-      </span>
-      <template v-else>
-        <v-chip v-for="row in previewRows" :key="row.value" size="small" label>{{ row.subtitle ?? row.title }}</v-chip>
-        <v-chip v-if="modelValue.length > previewLimit" size="small" label variant="text" class="clickable-link" @click="openDialog">
-          +{{ modelValue.length - previewLimit }} more
-        </v-chip>
-      </template>
+      <v-btn variant="outlined" color="success" prepend-icon="mdi-tune-variant" @click="openDialog">
+        Configure
+      </v-btn>
     </div>
 
     <v-dialog v-model="dialog" max-width="900" scrollable>
       <v-card>
         <v-card-title class="d-flex align-center pt-4">
-          Manage excluded {{ noun }}
-          <v-spacer />
-          <v-chip size="small" label variant="tonal">
-            {{ draft.size }} of {{ items.length }} excluded
-          </v-chip>
+          Configure excluded {{ noun }}
         </v-card-title>
 
         <v-card-text class="pt-2">
@@ -65,10 +47,10 @@
                 hide-details
               />
               <div class="d-flex align-center ga-2 mt-2">
-                <v-btn size="small" color="error" variant="tonal" :disabled="!pasteText.trim()" @click="applyPaste(true)">
+                <v-btn size="small" color="success" :disabled="!pasteText.trim()" @click="applyPaste(true)">
                   Exclude pasted
                 </v-btn>
-                <v-btn size="small" color="info" variant="tonal" :disabled="!pasteText.trim()" @click="applyPaste(false)">
+                <v-btn size="small" color="black" variant="text" :disabled="!pasteText.trim()" @click="applyPaste(false)">
                   Remove pasted
                 </v-btn>
               </div>
@@ -84,8 +66,8 @@
           <div v-if="selected.length" class="d-flex align-center ga-2 mb-2 pa-2 bg-grey-lighten-4 rounded">
             <span class="text-body-2">{{ selected.length }} selected</span>
             <v-spacer />
-            <v-btn size="small" color="error" variant="tonal" @click="applySelected(true)">Exclude selected</v-btn>
-            <v-btn size="small" color="info" variant="tonal" @click="applySelected(false)">Remove selected</v-btn>
+            <v-btn size="small" color="success" @click="applySelected(true)">Exclude selected</v-btn>
+            <v-btn size="small" color="black" variant="text" @click="applySelected(false)">Remove selected</v-btn>
           </div>
 
           <div class="border rounded pa-3">
@@ -118,7 +100,7 @@
 
         <v-card-actions>
           <v-spacer />
-          <v-btn variant="text" color="info" @click="dialog = false">Cancel</v-btn>
+          <v-btn variant="text" color="black" @click="dialog = false">Cancel</v-btn>
           <v-btn color="success" prepend-icon="mdi-check" @click="apply">Apply</v-btn>
         </v-card-actions>
       </v-card>
@@ -135,7 +117,6 @@ const props = defineProps({
   label: { type: String, required: true },
   noun: { type: String, required: true },
   bulk: { type: Boolean, default: false },
-  previewLimit: { type: Number, default: 8 },
 })
 const emit = defineEmits(['update:modelValue'])
 
@@ -159,11 +140,6 @@ const headers = computed(() => [
   ...(hasSubtitle.value ? [{ title: 'SKU', key: 'subtitle' }] : []),
   { title: 'Status', key: 'status', sortable: false, width: 120 },
 ])
-
-const previewRows = computed(() => {
-  const byValue = new Map(props.items.map(i => [i.value, i]))
-  return props.modelValue.slice(0, props.previewLimit).map(v => byValue.get(v) ?? { value: v, title: v })
-})
 
 const tableItems = computed(() => {
   const rows = props.items.map(i => ({ ...i, excluded: draft.value.has(i.value) }))
@@ -225,6 +201,10 @@ function apply() {
 </script>
 
 <style scoped>
+.field-row {
+  border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
+  border-radius: 8px;
+}
 .excluded-tabs :deep(.v-tab) {
   border-radius: 2px;
   margin-right: 8px;
