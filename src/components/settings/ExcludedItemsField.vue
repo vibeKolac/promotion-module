@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div class="field-row d-flex align-center pa-4">
+    <div class="field-row d-flex align-center ga-3 pa-4">
       <div>
         <div class="text-body-1 font-weight-medium">{{ label }}</div>
         <div class="text-body-2 text-medium-emphasis">
@@ -8,19 +8,19 @@
         </div>
       </div>
       <v-spacer />
-      <v-btn variant="outlined" color="success" prepend-icon="mdi-tune-variant" @click="openDialog">
+      <v-btn variant="outlined" color="success" prepend-icon="mdi-tune-variant" class="flex-shrink-0" @click="openDialog">
         Configure
       </v-btn>
     </div>
 
-    <v-dialog v-model="dialog" max-width="900" scrollable>
+    <v-dialog v-model="dialog" max-width="900" scrollable :fullscreen="mobile">
       <v-card>
         <v-card-title class="d-flex align-center pt-4">
           Configure excluded {{ noun }}
         </v-card-title>
 
         <v-card-text class="pt-2">
-          <div class="d-flex align-center ga-3 mb-4">
+          <div class="d-flex flex-wrap align-center ga-3 mb-4">
             <v-text-field
               v-model="search"
               :placeholder="`Search in all columns`"
@@ -29,6 +29,7 @@
               density="comfortable"
               hide-details
               clearable
+              class="search-field"
             />
             <v-btn v-if="bulk" variant="text" color="primary" prepend-icon="mdi-content-paste" class="flex-shrink-0" @click="pasteOpen = !pasteOpen">
               Paste list
@@ -78,11 +79,11 @@
                   {{ pasteCheck.fresh.length }} new SKU{{ pasteCheck.fresh.length === 1 ? '' : 's' }} ready to exclude
                 </div>
               </template>
-              <div class="d-flex align-center ga-2 mt-2">
-                <v-btn size="large" color="success" :disabled="!pasteCheck.fresh.length" @click="applyPaste(true)">
+              <div class="d-flex flex-wrap align-center ga-2 mt-2">
+                <v-btn size="large" color="success" :block="mobile" :disabled="!pasteCheck.fresh.length" @click="applyPaste(true)">
                   Exclude pasted
                 </v-btn>
-                <v-btn size="large" color="black" variant="text" :disabled="!pasteCheck.alreadyExcluded.length" @click="applyPaste(false)">
+                <v-btn size="large" color="black" variant="text" :block="mobile" :disabled="!pasteCheck.alreadyExcluded.length" @click="applyPaste(false)">
                   Remove pasted
                 </v-btn>
               </div>
@@ -92,14 +93,14 @@
             </div>
           </v-expand-transition>
 
-          <div v-if="selected.length" class="d-flex align-center ga-2 mb-2 pa-2 bg-grey-lighten-4 rounded">
-            <v-btn size="large" color="success" @click="applySelected(true)">Exclude selected</v-btn>
-            <v-btn size="large" color="black" variant="text" @click="applySelected(false)">Remove selected</v-btn>
-            <span class="text-body-2 ml-2">{{ selected.length }} selected</span>
+          <div v-if="selected.length" class="d-flex flex-wrap align-center ga-2 mb-2 pa-2 bg-grey-lighten-4 rounded">
+            <v-btn size="large" color="success" :block="mobile" @click="applySelected(true)">Exclude selected</v-btn>
+            <v-btn size="large" color="black" variant="text" :block="mobile" @click="applySelected(false)">Remove selected</v-btn>
+            <span class="text-body-2" :class="mobile ? 'mx-auto' : 'ml-2'">{{ selected.length }} selected</span>
           </div>
 
-          <div class="border rounded pa-3">
-          <v-tabs v-model="statusFilter" hide-slider density="comfortable" class="excluded-tabs mb-2">
+          <div class="border rounded" :class="mobile ? 'pa-1' : 'pa-3'">
+          <v-tabs v-model="statusFilter" hide-slider show-arrows :grow="mobile" density="comfortable" class="excluded-tabs mb-2">
             <v-tab v-for="t in tabs" :key="t.value" :value="t.value" :ripple="false">
               {{ t.title }}
               <span class="tab-count ml-2">{{ t.count }}</span>
@@ -138,6 +139,7 @@
 
 <script setup>
 import { computed, ref } from 'vue'
+import { useDisplay } from 'vuetify'
 
 const props = defineProps({
   modelValue: { type: Array, default: () => [] },
@@ -148,13 +150,14 @@ const props = defineProps({
 })
 const emit = defineEmits(['update:modelValue'])
 
+const { mobile } = useDisplay()
 const dialog = ref(false)
 const search = ref('')
 const statusFilter = ref('all')
 const tabs = computed(() => [
+  { value: 'all', title: 'All', count: props.items.length },
   { value: 'eligible', title: 'Eligible', count: props.items.length - draft.value.size },
   { value: 'excluded', title: 'Excluded', count: draft.value.size },
-  { value: 'all', title: 'All', count: props.items.length },
 ])
 const selected = ref([])
 const draft = ref(new Set())
@@ -279,6 +282,10 @@ function apply() {
 .excluded-tabs :deep(.v-tab--selected) {
   background: rgba(var(--v-theme-primary), 0.12);
   color: rgb(var(--v-theme-primary));
+}
+.search-field {
+  flex: 1 1 220px;
+  min-width: 0;
 }
 .paste-chips {
   max-height: 96px;
