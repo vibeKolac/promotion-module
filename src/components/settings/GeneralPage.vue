@@ -51,8 +51,8 @@
         <v-card border elevation="0" class="pa-5 mb-6">
           <div class="text-body-1 font-weight-bold mb-1">Products not eligible for promotions</div>
           <p class="text-caption text-medium-emphasis mb-4">
-            Anything listed below is excluded from every promotion. Search to add or remove;
-            excluded items are marked in the search results and listed underneath. They show as
+            Anything listed below is excluded from every promotion. Use Manage to see every item with
+            its status, search, select several at once or paste a list of SKUs. Excluded items show as
             <v-chip size="x-small" color="error" variant="tonal" label class="mx-1">Not allowed</v-chip>
             when selecting conditions or gift products in a rule.
           </p>
@@ -86,7 +86,7 @@
             :items="skuItems"
             label="Product SKUs"
             noun="SKUs"
-            placeholder="Search by name or SKU…"
+            bulk
           />
         </v-card>
         </template>
