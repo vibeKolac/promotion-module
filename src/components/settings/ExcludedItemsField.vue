@@ -93,10 +93,9 @@
           </v-expand-transition>
 
           <div v-if="selected.length" class="d-flex align-center ga-2 mb-2 pa-2 bg-grey-lighten-4 rounded">
-            <span class="text-body-2">{{ selected.length }} selected</span>
-            <v-spacer />
-            <v-btn size="small" color="success" @click="applySelected(true)">Exclude selected</v-btn>
-            <v-btn size="small" color="black" variant="text" @click="applySelected(false)">Remove selected</v-btn>
+            <v-btn size="large" color="success" @click="applySelected(true)">Exclude selected</v-btn>
+            <v-btn size="large" color="black" variant="text" @click="applySelected(false)">Remove selected</v-btn>
+            <span class="text-body-2 ml-2">{{ selected.length }} selected</span>
           </div>
 
           <div class="border rounded pa-3">
