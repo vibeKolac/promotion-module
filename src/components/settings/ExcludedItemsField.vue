@@ -12,9 +12,7 @@
         {{ modelValue.length }} excluded
       </v-chip>
       <v-spacer />
-      <v-btn size="small" variant="outlined" color="primary" prepend-icon="mdi-format-list-checks" @click="openDialog">
-        Manage
-      </v-btn>
+      <v-btn size="large" color="success" @click="openDialog">Manage</v-btn>
     </div>
 
     <div class="mt-2 d-flex flex-wrap ga-1">
@@ -34,30 +32,23 @@
         <v-card-title class="d-flex align-center pt-4">
           Manage excluded {{ noun }}
           <v-spacer />
-          <v-chip size="small" label :color="draft.size ? 'error' : undefined" variant="tonal">
+          <v-chip size="small" label variant="tonal">
             {{ draft.size }} of {{ items.length }} excluded
           </v-chip>
         </v-card-title>
 
         <v-card-text class="pt-2">
-          <div class="d-flex flex-wrap align-center ga-3 mb-3">
+          <div class="d-flex align-center ga-3 mb-4">
             <v-text-field
               v-model="search"
-              :placeholder="`Search ${noun}`"
+              :placeholder="`Search in all columns`"
               prepend-inner-icon="mdi-magnify"
               variant="outlined"
-              density="compact"
+              density="comfortable"
               hide-details
               clearable
-              class="input-search"
             />
-            <v-btn-toggle v-model="statusFilter" mandatory density="compact" variant="outlined" divided color="primary">
-              <v-btn value="all">All</v-btn>
-              <v-btn value="excluded">Excluded ({{ draft.size }})</v-btn>
-              <v-btn value="eligible">Eligible ({{ items.length - draft.size }})</v-btn>
-            </v-btn-toggle>
-            <v-spacer />
-            <v-btn v-if="bulk" variant="text" color="primary" prepend-icon="mdi-content-paste" @click="pasteOpen = !pasteOpen">
+            <v-btn v-if="bulk" variant="text" color="primary" prepend-icon="mdi-content-paste" class="flex-shrink-0" @click="pasteOpen = !pasteOpen">
               Paste list
             </v-btn>
           </div>
@@ -97,6 +88,14 @@
             <v-btn size="small" color="info" variant="tonal" @click="applySelected(false)">Remove selected</v-btn>
           </div>
 
+          <div class="border rounded pa-3">
+          <v-tabs v-model="statusFilter" hide-slider density="comfortable" class="excluded-tabs mb-2">
+            <v-tab v-for="t in tabs" :key="t.value" :value="t.value" :ripple="false">
+              {{ t.title }}
+              <span class="tab-count ml-2">{{ t.count }}</span>
+            </v-tab>
+          </v-tabs>
+
           <v-data-table
             v-model="selected"
             :headers="headers"
@@ -108,13 +107,13 @@
             :items-per-page="25"
             :items-per-page-options="[25, 50, 100]"
             no-data-text="No matches"
-            class="border rounded"
           >
             <template #[`item.status`]="{ item }">
-              <v-chip v-if="item.excluded" size="x-small" color="error" variant="tonal" label>Excluded</v-chip>
-              <span v-else class="text-caption text-medium-emphasis">Eligible</span>
+              <v-chip v-if="item.excluded" size="small" color="grey" variant="tonal">Excluded</v-chip>
+              <v-chip v-else size="small" color="success" variant="tonal">Eligible</v-chip>
             </template>
           </v-data-table>
+          </div>
         </v-card-text>
 
         <v-card-actions>
@@ -143,6 +142,11 @@ const emit = defineEmits(['update:modelValue'])
 const dialog = ref(false)
 const search = ref('')
 const statusFilter = ref('all')
+const tabs = computed(() => [
+  { value: 'eligible', title: 'Eligible', count: props.items.length - draft.value.size },
+  { value: 'excluded', title: 'Excluded', count: draft.value.size },
+  { value: 'all', title: 'All', count: props.items.length },
+])
 const selected = ref([])
 const draft = ref(new Set())
 const pasteOpen = ref(false)
@@ -219,3 +223,24 @@ function apply() {
   dialog.value = false
 }
 </script>
+
+<style scoped>
+.excluded-tabs :deep(.v-tab) {
+  border-radius: 2px;
+  margin-right: 8px;
+}
+.excluded-tabs :deep(.v-tab--selected) {
+  background: rgba(var(--v-theme-primary), 0.12);
+  color: rgb(var(--v-theme-primary));
+}
+.tab-count {
+  display: inline-block;
+  min-width: 22px;
+  padding: 1px 7px;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.08);
+  color: rgba(0, 0, 0, 0.87);
+  font-size: 0.75rem;
+  text-align: center;
+}
+</style>
