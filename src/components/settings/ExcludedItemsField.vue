@@ -46,19 +46,48 @@
                 auto-grow
                 hide-details
               />
+              <template v-if="pasteCheck.total">
+                <v-alert
+                  v-for="g in pasteGroups"
+                  :key="g.key"
+                  :type="g.type"
+                  variant="tonal"
+                  density="compact"
+                  class="mt-2 text-caption"
+                >
+                  <div class="d-flex align-center">
+                    <strong>{{ g.values.length }} {{ g.title }}</strong>
+                    <v-spacer />
+                    <v-btn size="x-small" variant="text" color="black" @click="dropFromPaste(g.values)">
+                      Remove from list
+                    </v-btn>
+                  </div>
+                  <div class="d-flex flex-wrap ga-1 mt-1 paste-chips">
+                    <v-chip
+                      v-for="v in g.values"
+                      :key="v"
+                      size="x-small"
+                      closable
+                      @click:close="dropFromPaste([v])"
+                    >
+                      {{ v }}
+                    </v-chip>
+                  </div>
+                </v-alert>
+                <div class="text-caption text-medium-emphasis mt-2">
+                  {{ pasteCheck.fresh.length }} new SKU{{ pasteCheck.fresh.length === 1 ? '' : 's' }} ready to exclude
+                </div>
+              </template>
               <div class="d-flex align-center ga-2 mt-2">
-                <v-btn size="small" color="success" :disabled="!pasteText.trim()" @click="applyPaste(true)">
+                <v-btn size="large" color="success" :disabled="!pasteCheck.fresh.length" @click="applyPaste(true)">
                   Exclude pasted
                 </v-btn>
-                <v-btn size="small" color="black" variant="text" :disabled="!pasteText.trim()" @click="applyPaste(false)">
+                <v-btn size="large" color="black" variant="text" :disabled="!pasteCheck.alreadyExcluded.length" @click="applyPaste(false)">
                   Remove pasted
                 </v-btn>
               </div>
-              <v-alert v-if="pasteResult" density="compact" variant="tonal" :type="pasteResult.unknown.length ? 'warning' : 'success'" class="mt-2">
-                {{ pasteResult.summary }}
-                <div v-if="pasteResult.unknown.length" class="text-caption mt-1">
-                  Not found: {{ pasteResult.unknown.join(', ') }}
-                </div>
+              <v-alert v-if="pasteResult && !pasteText" density="compact" variant="tonal" type="success" class="mt-2">
+                {{ pasteResult }}
               </v-alert>
             </div>
           </v-expand-transition>
@@ -132,13 +161,13 @@ const selected = ref([])
 const draft = ref(new Set())
 const pasteOpen = ref(false)
 const pasteText = ref('')
-const pasteResult = ref(null)
+const pasteResult = ref('')
 
 const hasSubtitle = computed(() => props.items.some(i => i.subtitle))
 const headers = computed(() => [
   { title: 'Name', key: 'title' },
   ...(hasSubtitle.value ? [{ title: 'SKU', key: 'subtitle' }] : []),
-  { title: 'Status', key: 'status', sortable: false, width: 120 },
+  ...(statusFilter.value === 'all' ? [{ title: 'Status', key: 'status', sortable: false, width: 120 }] : []),
 ])
 
 const tableItems = computed(() => {
@@ -154,7 +183,7 @@ function openDialog() {
   search.value = ''
   statusFilter.value = 'all'
   pasteText.value = ''
-  pasteResult.value = null
+  pasteResult.value = ''
   dialog.value = true
 }
 
@@ -169,29 +198,68 @@ function applySelected(exclude) {
   selected.value = []
 }
 
-function applyPaste(exclude) {
-  const tokens = [...new Set(pasteText.value.split(/[\s,;]+/).map(t => t.trim()).filter(Boolean))]
+const itemLookup = computed(() => {
   const lookup = new Map()
   props.items.forEach(i => {
     lookup.set(String(i.value).toLowerCase(), i.value)
     if (i.subtitle) lookup.set(String(i.subtitle).toLowerCase(), i.value)
   })
-  const found = []
-  const unknown = []
-  tokens.forEach(t => {
-    const v = lookup.get(t.toLowerCase())
-    if (v === undefined) unknown.push(t)
-    else found.push(v)
+  return lookup
+})
+
+const pasteTokens = computed(() => pasteText.value.split(/[\s,;|]+/).map(t => t.trim()).filter(Boolean))
+
+const pasteCheck = computed(() => {
+  const seen = new Set()
+  const repeated = []
+  const notFound = []
+  const alreadyExcluded = []
+  const fresh = []
+  pasteTokens.value.forEach(t => {
+    const key = t.toLowerCase()
+    if (seen.has(key)) {
+      if (!repeated.includes(t)) repeated.push(t)
+      return
+    }
+    seen.add(key)
+    const v = itemLookup.value.get(key)
+    if (v === undefined) notFound.push(t)
+    else if (draft.value.has(v)) alreadyExcluded.push(t)
+    else fresh.push(v)
   })
-  const changed = found.filter(v => draft.value.has(v) !== exclude).length
-  const unchanged = found.length - changed
-  setExcluded(found, exclude)
-  const verb = exclude ? 'excluded' : 'removed'
-  pasteResult.value = {
-    unknown,
-    summary: `${changed} ${verb}, ${unchanged} already ${exclude ? 'excluded' : 'eligible'}, ${unknown.length} not found.`,
-  }
-  if (!unknown.length) pasteText.value = ''
+  return { total: pasteTokens.value.length, repeated, notFound, alreadyExcluded, fresh }
+})
+
+const pasteGroups = computed(() => [
+  { key: 'notFound', type: 'error', title: `SKU${pasteCheck.value.notFound.length === 1 ? '' : 's'} not found`, values: pasteCheck.value.notFound },
+  { key: 'alreadyExcluded', type: 'warning', title: `already excluded`, values: pasteCheck.value.alreadyExcluded },
+  { key: 'repeated', type: 'warning', title: `repeated in the list`, values: pasteCheck.value.repeated },
+].filter(g => g.values.length))
+
+function dropFromPaste(values) {
+  const drop = new Set(values.map(v => v.toLowerCase()))
+  const keep = []
+  const seen = new Set()
+  const isRepeatedGroup = values === pasteCheck.value.repeated
+  pasteTokens.value.forEach(t => {
+    const key = t.toLowerCase()
+    if (isRepeatedGroup) {
+      if (seen.has(key)) return
+      seen.add(key)
+      keep.push(t)
+    } else if (!drop.has(key)) {
+      keep.push(t)
+    }
+  })
+  pasteText.value = keep.join('\n')
+}
+
+function applyPaste(exclude) {
+  const { fresh, alreadyExcluded } = pasteCheck.value
+  const values = exclude ? fresh : alreadyExcluded.map(t => itemLookup.value.get(t.toLowerCase()))
+  setExcluded(values, exclude)
+  pasteResult.value = `${values.length} SKU${values.length === 1 ? '' : 's'} ${exclude ? 'excluded' : 'removed from the exclusion list'}.`
+  pasteText.value = ''
 }
 
 function apply() {
@@ -212,6 +280,10 @@ function apply() {
 .excluded-tabs :deep(.v-tab--selected) {
   background: rgba(var(--v-theme-primary), 0.12);
   color: rgb(var(--v-theme-primary));
+}
+.paste-chips {
+  max-height: 96px;
+  overflow-y: auto;
 }
 .tab-count {
   display: inline-block;
