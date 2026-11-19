@@ -170,8 +170,10 @@ const pasteResult = ref('')
 
 const hasSubtitle = computed(() => props.items.some(i => i.subtitle))
 const headers = computed(() => [
-  { title: 'Name', key: 'title' },
-  ...(hasSubtitle.value ? [{ title: 'SKU', key: 'subtitle' }] : []),
+  ...(props.mvp ? [{ title: 'SKU', key: 'value' }] : [
+    { title: 'Name', key: 'title' },
+    ...(hasSubtitle.value ? [{ title: 'SKU', key: 'subtitle' }] : []),
+  ]),
   ...(statusFilter.value === 'all' ? [{ title: 'Status', key: 'status', sortable: false, width: 120 }] : []),
 ])
 
