@@ -81,11 +81,11 @@
                   {{ pasteCheck.fresh.length }} new SKU{{ pasteCheck.fresh.length === 1 ? '' : 's' }} ready to exclude
                 </div>
               </template>
-              <div class="d-flex flex-wrap align-center justify-center ga-2 mt-2">
-                <v-btn size="large" color="success" :block="mobile" :disabled="!pasteCheck.fresh.length" @click="applyPaste(true)">
+              <div class="d-flex flex-wrap align-center ga-2 mt-2 px-2">
+                <v-btn size="large" class="bulk-btn" color="success" :block="mobile" :disabled="!pasteCheck.fresh.length" @click="applyPaste(true)">
                   Exclude pasted
                 </v-btn>
-                <v-btn size="large" color="black" variant="text" :block="mobile" :disabled="!pasteCheck.alreadyExcluded.length" @click="applyPaste(false)">
+                <v-btn size="large" class="bulk-btn" color="black" variant="text" :block="mobile" :disabled="!pasteCheck.alreadyExcluded.length" @click="applyPaste(false)">
                   Remove pasted
                 </v-btn>
               </div>
@@ -95,9 +95,9 @@
             </div>
           </v-expand-transition>
 
-          <div v-if="selected.length" class="d-flex flex-wrap align-center justify-center ga-2 mb-2 pa-2 bg-grey-lighten-4 rounded">
-            <v-btn size="large" color="success" :block="mobile" @click="applySelected(true)">Exclude selected</v-btn>
-            <v-btn size="large" color="black" variant="text" :block="mobile" @click="applySelected(false)">Remove selected</v-btn>
+          <div v-if="selected.length" class="d-flex flex-wrap align-center ga-2 mb-2 pa-2 bg-grey-lighten-4 rounded">
+            <v-btn size="large" class="bulk-btn" color="success" :block="mobile" @click="applySelected(true)">Exclude selected</v-btn>
+            <v-btn size="large" class="bulk-btn" color="black" variant="text" :block="mobile" @click="applySelected(false)">Remove selected</v-btn>
             <span class="text-body-2" :class="mobile ? 'mx-auto' : 'ml-2'">{{ selected.length }} selected</span>
           </div>
 
@@ -288,6 +288,9 @@ function apply() {
 .excluded-tabs :deep(.v-tab--selected) {
   background: rgba(var(--v-theme-primary), 0.12);
   color: rgb(var(--v-theme-primary));
+}
+.bulk-btn {
+  min-width: 190px;
 }
 .search-field {
   flex: 1 1 220px;
