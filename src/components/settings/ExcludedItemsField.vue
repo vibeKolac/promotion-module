@@ -20,9 +20,8 @@
         </v-card-title>
 
         <v-card-text class="pt-2">
-          <div class="d-flex flex-wrap align-center ga-3 mb-4">
+          <div v-if="!mvp" class="d-flex flex-wrap align-center ga-3 mb-4">
             <v-text-field
-              v-if="!mvp"
               v-model="search"
               :placeholder="`Search in all columns`"
               prepend-inner-icon="mdi-magnify"
@@ -32,7 +31,6 @@
               clearable
               class="search-field"
             />
-            <v-spacer v-if="mvp" />
             <v-btn v-if="bulk" variant="text" color="primary" prepend-icon="mdi-content-paste" class="flex-shrink-0" @click="pasteOpen = !pasteOpen">
               Paste list
             </v-btn>
@@ -132,7 +130,7 @@
         <v-card-actions>
           <v-spacer />
           <v-btn variant="text" color="black" @click="dialog = false">Cancel</v-btn>
-          <v-btn color="success" prepend-icon="mdi-check" @click="apply">Apply</v-btn>
+          <v-btn color="success" size="large" min-width="140" @click="apply">Apply</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -290,7 +288,7 @@ function apply() {
   color: rgb(var(--v-theme-primary));
 }
 .bulk-btn {
-  min-width: 190px;
+  width: 190px;
 }
 .search-field {
   flex: 1 1 220px;
