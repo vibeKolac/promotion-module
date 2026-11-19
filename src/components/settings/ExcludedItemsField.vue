@@ -22,6 +22,7 @@
         <v-card-text class="pt-2">
           <div class="d-flex flex-wrap align-center ga-3 mb-4">
             <v-text-field
+              v-if="!mvp"
               v-model="search"
               :placeholder="`Search in all columns`"
               prepend-inner-icon="mdi-magnify"
@@ -31,6 +32,7 @@
               clearable
               class="search-field"
             />
+            <v-spacer v-if="mvp" />
             <v-btn v-if="bulk" variant="text" color="primary" prepend-icon="mdi-content-paste" class="flex-shrink-0" @click="pasteOpen = !pasteOpen">
               Paste list
             </v-btn>
@@ -100,7 +102,7 @@
           </div>
 
           <div class="border rounded" :class="mobile ? 'pa-1' : 'pa-3'">
-          <v-tabs v-model="statusFilter" hide-slider show-arrows :grow="mobile" density="comfortable" class="excluded-tabs mb-2">
+          <v-tabs v-if="!mvp" v-model="statusFilter" hide-slider show-arrows :grow="mobile" density="comfortable" class="excluded-tabs mb-2">
             <v-tab v-for="t in tabs" :key="t.value" :value="t.value" :ripple="false">
               {{ t.title }}
               <span class="tab-count ml-2">{{ t.count }}</span>
@@ -147,13 +149,14 @@ const props = defineProps({
   label: { type: String, required: true },
   noun: { type: String, required: true },
   bulk: { type: Boolean, default: false },
+  mvp: { type: Boolean, default: false },
 })
 const emit = defineEmits(['update:modelValue'])
 
 const { mobile } = useDisplay()
 const dialog = ref(false)
 const search = ref('')
-const statusFilter = ref('all')
+const statusFilter = ref(props.mvp ? 'excluded' : 'all')
 const tabs = computed(() => [
   { value: 'all', title: 'All', count: props.items.length },
   { value: 'eligible', title: 'Eligible', count: props.items.length - draft.value.size },
@@ -183,7 +186,8 @@ function openDialog() {
   draft.value = new Set(props.modelValue)
   selected.value = []
   search.value = ''
-  statusFilter.value = 'all'
+  statusFilter.value = props.mvp ? 'excluded' : 'all'
+  pasteOpen.value = props.mvp
   pasteText.value = ''
   pasteResult.value = ''
   dialog.value = true

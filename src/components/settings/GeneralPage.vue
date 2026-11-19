@@ -46,11 +46,19 @@
             </v-radio>
           </v-radio-group>
         </v-card>
+        </template>
 
         <!-- Ineligible products -->
+        <div v-if="serbiaMode" class="text-overline text-medium-emphasis mb-3">Products &amp; stock</div>
         <v-card border elevation="0" class="pa-5 mb-6">
           <div class="text-body-1 font-weight-bold mb-1">Products not eligible for promotions</div>
-          <p class="text-caption text-medium-emphasis mb-4">
+          <p v-if="serbiaMode" class="text-caption text-medium-emphasis mb-4">
+            Anything listed below is excluded from every promotion. Use Configure to paste a list of SKUs.
+            Excluded items show as
+            <v-chip size="x-small" color="error" variant="tonal" label class="mx-1">Not allowed</v-chip>
+            when selecting conditions or gift products in a rule.
+          </p>
+          <p v-else class="text-caption text-medium-emphasis mb-4">
             Anything listed below is excluded from every promotion. Use Configure to see every item with
             its status, search, select several at once or paste a list of SKUs. Excluded items show as
             <v-chip size="x-small" color="error" variant="tonal" label class="mx-1">Not allowed</v-chip>
@@ -58,6 +66,7 @@
           </p>
 
           <ExcludedItemsField
+            v-if="!serbiaMode"
             v-model="form.excludedCategories"
             :items="categoryItems"
             label="Categories"
@@ -66,6 +75,7 @@
           />
 
           <ExcludedItemsField
+            v-if="!serbiaMode"
             v-model="form.excludedBrands"
             :items="brandItems"
             label="Brands"
@@ -74,6 +84,7 @@
           />
 
           <ExcludedItemsField
+            v-if="!serbiaMode"
             v-model="form.excludedProductLines"
             :items="productLineItems"
             label="Product lines"
@@ -87,9 +98,9 @@
             label="Product SKUs"
             noun="SKUs"
             bulk
+            :mvp="serbiaMode"
           />
         </v-card>
-        </template>
 
         <!-- Prioritization & combinability -->
         <template v-if="!uxTestMode">
