@@ -135,9 +135,13 @@
       </v-card>
     </v-dialog>
 
-    <ConfirmModal ref="discardRef" confirm-text="Discard" confirm-color="error">
+    <ConfirmModal ref="discardRef">
       <template #header>Discard unsaved changes?</template>
       <template #body>Your pasted and excluded SKUs have not been applied and will be lost.</template>
+      <template #actions="{ cancel, confirm }">
+        <v-btn variant="text" color="black" @click="cancel">Cancel</v-btn>
+        <v-btn color="success" @click="confirm">Discard</v-btn>
+      </template>
     </ConfirmModal>
   </div>
 </template>
