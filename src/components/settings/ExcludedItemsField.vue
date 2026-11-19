@@ -13,7 +13,7 @@
       </v-btn>
     </div>
 
-    <v-dialog v-model="dialog" max-width="900" scrollable :fullscreen="mobile">
+    <v-dialog :model-value="dialog" max-width="900" scrollable :fullscreen="mobile" @update:model-value="v => (v ? (dialog = true) : requestClose())">
       <v-card>
         <v-card-title class="d-flex align-center pt-4">
           Configure excluded {{ noun }}
@@ -129,17 +129,23 @@
 
         <v-card-actions>
           <v-spacer />
-          <v-btn variant="text" color="black" @click="dialog = false">Cancel</v-btn>
+          <v-btn variant="text" color="black" @click="requestClose">Cancel</v-btn>
           <v-btn color="success" size="large" min-width="140" @click="apply">Apply</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
+
+    <ConfirmModal ref="discardRef" confirm-text="Discard" confirm-color="error">
+      <template #header>Discard unsaved changes?</template>
+      <template #body>Your pasted and excluded SKUs have not been applied and will be lost.</template>
+    </ConfirmModal>
   </div>
 </template>
 
 <script setup>
 import { computed, ref } from 'vue'
 import { useDisplay } from 'vuetify'
+import ConfirmModal from '../_common/ConfirmModal.vue'
 
 const props = defineProps({
   modelValue: { type: Array, default: () => [] },
@@ -176,6 +182,7 @@ const headers = computed(() => [
 ])
 
 const tableItems = computed(() => {
+  if (props.mvp) return [...draft.value].map(v => ({ value: v, title: v, subtitle: v, excluded: true }))
   const rows = props.items.map(i => ({ ...i, excluded: draft.value.has(i.value) }))
   if (statusFilter.value === 'excluded') return rows.filter(r => r.excluded)
   if (statusFilter.value === 'eligible') return rows.filter(r => !r.excluded)
@@ -228,7 +235,7 @@ const pasteCheck = computed(() => {
       return
     }
     seen.add(key)
-    const v = itemLookup.value.get(key)
+    const v = props.mvp ? t : itemLookup.value.get(key)
     if (v === undefined) notFound.push(t)
     else if (draft.value.has(v)) alreadyExcluded.push(t)
     else fresh.push(v)
@@ -236,7 +243,7 @@ const pasteCheck = computed(() => {
   return { total: pasteTokens.value.length, repeated, notFound, alreadyExcluded, fresh }
 })
 
-const pasteGroups = computed(() => [
+const pasteGroups = computed(() => props.mvp ? [] : [
   { key: 'notFound', type: 'error', title: `SKU${pasteCheck.value.notFound.length === 1 ? '' : 's'} not found`, values: pasteCheck.value.notFound },
   { key: 'alreadyExcluded', type: 'warning', title: `already excluded`, values: pasteCheck.value.alreadyExcluded },
   { key: 'repeated', type: 'warning', title: `repeated in the list`, values: pasteCheck.value.repeated },
@@ -262,14 +269,28 @@ function dropFromPaste(values) {
 
 function applyPaste(exclude) {
   const { fresh, alreadyExcluded } = pasteCheck.value
-  const values = exclude ? fresh : alreadyExcluded.map(t => itemLookup.value.get(t.toLowerCase()))
+  const values = exclude ? fresh : alreadyExcluded.map(t => (props.mvp ? t : itemLookup.value.get(t.toLowerCase())))
   setExcluded(values, exclude)
   pasteResult.value = `${values.length} SKU${values.length === 1 ? '' : 's'} ${exclude ? 'excluded' : 'removed from the exclusion list'}.`
   pasteText.value = ''
 }
 
+const discardRef = ref(null)
+
+const dirty = computed(() => {
+  if (pasteText.value.trim()) return true
+  const saved = new Set(props.modelValue)
+  return saved.size !== draft.value.size || [...draft.value].some(v => !saved.has(v))
+})
+
+async function requestClose() {
+  if (dirty.value && !(await discardRef.value.open())) return
+  dialog.value = false
+}
+
 function apply() {
-  emit('update:modelValue', props.items.filter(i => draft.value.has(i.value)).map(i => i.value))
+  if (pasteCheck.value.fresh.length) setExcluded(pasteCheck.value.fresh, true)
+  emit('update:modelValue', props.mvp ? [...draft.value] : props.items.filter(i => draft.value.has(i.value)).map(i => i.value))
   dialog.value = false
 }
 </script>
