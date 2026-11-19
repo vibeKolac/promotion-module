@@ -81,7 +81,7 @@
                   {{ pasteCheck.fresh.length }} new SKU{{ pasteCheck.fresh.length === 1 ? '' : 's' }} ready to exclude
                 </div>
               </template>
-              <div class="d-flex flex-wrap align-center ga-2 mt-2">
+              <div class="d-flex flex-wrap align-center justify-center ga-2 mt-2">
                 <v-btn size="large" color="success" :block="mobile" :disabled="!pasteCheck.fresh.length" @click="applyPaste(true)">
                   Exclude pasted
                 </v-btn>
@@ -95,7 +95,7 @@
             </div>
           </v-expand-transition>
 
-          <div v-if="selected.length" class="d-flex flex-wrap align-center ga-2 mb-2 pa-2 bg-grey-lighten-4 rounded">
+          <div v-if="selected.length" class="d-flex flex-wrap align-center justify-center ga-2 mb-2 pa-2 bg-grey-lighten-4 rounded">
             <v-btn size="large" color="success" :block="mobile" @click="applySelected(true)">Exclude selected</v-btn>
             <v-btn size="large" color="black" variant="text" :block="mobile" @click="applySelected(false)">Remove selected</v-btn>
             <span class="text-body-2" :class="mobile ? 'mx-auto' : 'ml-2'">{{ selected.length }} selected</span>
