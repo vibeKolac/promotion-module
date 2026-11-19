@@ -94,13 +94,13 @@
           </v-expand-transition>
 
           <div v-if="selected.length" class="d-flex flex-wrap align-center ga-2 mb-2 pa-2 bg-grey-lighten-4 rounded">
-            <v-btn size="large" class="bulk-btn" color="success" :block="mobile" @click="applySelected(true)">Exclude selected</v-btn>
+            <v-btn v-if="!mvp" size="large" class="bulk-btn" color="success" :block="mobile" @click="applySelected(true)">Exclude selected</v-btn>
             <v-btn size="large" class="bulk-btn" color="black" variant="text" :block="mobile" @click="applySelected(false)">Remove selected</v-btn>
             <span class="text-body-2" :class="mobile ? 'mx-auto' : 'ml-2'">{{ selected.length }} selected</span>
           </div>
 
           <div class="border rounded" :class="mobile ? 'pa-1' : 'pa-3'">
-          <v-tabs v-if="!mvp" v-model="statusFilter" hide-slider show-arrows :grow="mobile" density="comfortable" class="excluded-tabs mb-2">
+          <v-tabs v-model="statusFilter" hide-slider show-arrows :grow="mobile" density="comfortable" class="excluded-tabs mb-2">
             <v-tab v-for="t in tabs" :key="t.value" :value="t.value" :ripple="false">
               {{ t.title }}
               <span class="tab-count ml-2">{{ t.count }}</span>
@@ -135,6 +135,31 @@
       </v-card>
     </v-dialog>
 
+    <ConfirmModal ref="pendingRef">
+      <template #header>Unprocessed SKUs</template>
+      <template #body>
+        There are SKUs in the paste box that have not been processed. Exclude them, remove them from the list, or go back to the dialog.
+      </template>
+      <template #actions="{ cancel, confirm }">
+        <v-btn variant="text" color="black" @click="cancel">Back</v-btn>
+        <v-btn
+          variant="text"
+          color="black"
+          :disabled="!pasteCheck.alreadyExcluded.length"
+          @click="pasteChoice = 'remove'; confirm()"
+        >
+          Remove ({{ pasteCheck.alreadyExcluded.length }})
+        </v-btn>
+        <v-btn
+          color="success"
+          :disabled="!pasteCheck.fresh.length"
+          @click="pasteChoice = 'exclude'; confirm()"
+        >
+          Exclude ({{ pasteCheck.fresh.length }})
+        </v-btn>
+      </template>
+    </ConfirmModal>
+
     <ConfirmModal ref="discardRef">
       <template #header>Discard unsaved changes?</template>
       <template #body>Your pasted and excluded SKUs have not been applied and will be lost.</template>
@@ -165,7 +190,7 @@ const { mobile } = useDisplay()
 const dialog = ref(false)
 const search = ref('')
 const statusFilter = ref(props.mvp ? 'excluded' : 'all')
-const tabs = computed(() => [
+const tabs = computed(() => props.mvp ? [{ value: 'excluded', title: 'Excluded', count: draft.value.size }] : [
   { value: 'all', title: 'All', count: props.items.length },
   { value: 'eligible', title: 'Eligible', count: props.items.length - draft.value.size },
   { value: 'excluded', title: 'Excluded', count: draft.value.size },
@@ -292,8 +317,15 @@ async function requestClose() {
   dialog.value = false
 }
 
-function apply() {
-  if (pasteCheck.value.fresh.length) setExcluded(pasteCheck.value.fresh, true)
+const pendingRef = ref(null)
+const pasteChoice = ref(null)
+
+async function apply() {
+  if (pasteCheck.value.total) {
+    pasteChoice.value = null
+    if (!(await pendingRef.value.open())) return
+    applyPaste(pasteChoice.value === 'exclude')
+  }
   emit('update:modelValue', props.mvp ? [...draft.value] : props.items.filter(i => draft.value.has(i.value)).map(i => i.value))
   dialog.value = false
 }
