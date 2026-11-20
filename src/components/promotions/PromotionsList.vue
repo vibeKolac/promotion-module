@@ -30,13 +30,58 @@
       </template>
     </ContentHeader>
 
-    <TextInput
-      v-model="search"
-      prepend-inner-icon="mdi-magnify"
-      placeholder="Search in all columns"
-      hide-details
-      class="list-search mb-6"
-    />
+    <div class="d-flex align-center flex-wrap search-row">
+      <div class="list-search">
+        <TextInput
+          v-model="search"
+          prepend-inner-icon="mdi-magnify"
+          placeholder="Search in all columns"
+          hide-details
+        />
+      </div>
+      <v-btn
+        variant="outlined"
+        :append-icon="filtersOpen ? 'mdi-chevron-up' : 'mdi-chevron-down'"
+        data-testid="toggle-filters"
+        @click="filtersOpen = !filtersOpen"
+      >
+        Filters
+        <v-chip v-if="appliedConditions.length" size="x-small" class="ml-2 tab-count">{{ appliedConditions.length }}</v-chip>
+      </v-btn>
+      <a
+        class="mr-2 clickable-link"
+        :class="canSaveFilter ? 'text-primary' : 'text-disabled'"
+        data-testid="save-filter"
+        @click="openSaveFilter"
+      >Save filter</a>
+      <v-chip
+        v-if="appliedSavedFilter"
+        class="mr-1"
+        color="primary"
+        closable
+        size="small"
+        data-testid="applied-saved-filter"
+        @click:close="applySavedFilter(null)"
+      >{{ appliedSavedFilter.name }}</v-chip>
+      <v-tooltip location="bottom" text="Apply filter">
+        <template #activator="{ props: tipProps }">
+          <v-btn
+            v-bind="tipProps"
+            icon="mdi-tag-multiple-outline"
+            variant="plain"
+            aria-label="Apply filter"
+            data-testid="apply-filter"
+            @click="selectFilterOpen = true"
+          />
+        </template>
+      </v-tooltip>
+    </div>
+
+    <v-expand-transition>
+      <div v-if="filtersOpen" class="mb-6">
+        <PromotionFilterBuilder v-model="conditions" :fields="filterFields" />
+      </div>
+    </v-expand-transition>
 
     <v-card border elevation="0" class="list-card pa-4 pa-sm-6">
       <v-tabs v-model="activeTab" color="primary" density="comfortable" hide-slider class="status-tabs mb-4">
@@ -46,93 +91,6 @@
         <v-tab value="ended">Ended <v-chip size="x-small" class="ml-2 tab-count">{{ endedItems.length }}</v-chip></v-tab>
         <v-tab v-if="!uxTestMode" value="archived">Archived <v-chip size="x-small" class="ml-2 tab-count">{{ archivedItems.length }}</v-chip></v-tab>
       </v-tabs>
-
-    <!-- Filter row -->
-    <div v-if="!serbiaMode" class="d-flex align-center flex-wrap filter-row">
-      <v-select
-        v-model="stackingGroupFilter"
-        :items="stackingGroupFilterItems"
-        item-title="title"
-        item-value="value"
-        label="Group"
-        variant="outlined"
-        density="compact"
-        hide-details
-        style="max-width: 220px"
-      />
-      <v-select
-        v-model="typeFilter"
-        :items="typeFilterItems"
-        item-title="label"
-        item-value="value"
-        label="Type"
-        variant="outlined"
-        density="compact"
-        hide-details
-        multiple
-        style="max-width: 200px"
-      />
-      <v-select
-        v-model="createdByFilter"
-        :items="createdByFilterItems"
-        item-title="title"
-        item-value="value"
-        label="Created by"
-        variant="outlined"
-        density="compact"
-        hide-details
-        style="max-width: 180px"
-      />
-      <v-select
-        v-model="tagFilter"
-        :items="tagFilterItems"
-        item-title="label"
-        item-value="value"
-        label="Action Labels"
-        variant="outlined"
-        density="compact"
-        hide-details
-        multiple
-        style="max-width: 220px"
-      />
-      <v-select
-        v-model="internalTagFilter"
-        :items="internalTagFilterItems"
-        item-title="label"
-        item-value="value"
-        label="Internal Tags"
-        variant="outlined"
-        density="compact"
-        hide-details
-        multiple
-        style="max-width: 200px"
-      />
-      <v-select
-        v-model="dateFilter"
-        :items="dateFilterItems"
-        item-title="title"
-        item-value="value"
-        label="Date"
-        variant="outlined"
-        density="compact"
-        hide-details
-        style="max-width: 175px"
-      />
-      <template v-if="dateFilter === 'custom'">
-        <v-text-field v-model="customDateFrom" type="date" label="From" variant="outlined" density="compact" hide-details style="max-width: 175px" />
-        <v-text-field v-model="customDateTo" type="date" label="To" variant="outlined" density="compact" hide-details style="max-width: 175px" />
-      </template>
-      <v-btn
-        v-if="hasActiveFilters"
-        variant="text"
-        size="small"
-        color="primary"
-        @click="clearFilters"
-      >
-        <v-icon size="16" class="mr-1">mdi-close-circle</v-icon>
-        Clear filters
-      </v-btn>
-    </div>
 
     <!-- Bulk actions toolbar -->
     <v-card
@@ -212,6 +170,23 @@
         hover
         class="rules-table"
       >
+        <template v-if="!mobile" #top>
+          <div class="d-flex align-center">
+            <v-tooltip location="bottom" text="Choose columns">
+              <template #activator="{ props: tipProps }">
+                <v-btn
+                  v-bind="tipProps"
+                  icon="mdi-view-column-outline"
+                  variant="plain"
+                  aria-label="Choose columns"
+                  data-testid="choose-columns"
+                  @click="columnDialogOpen = true"
+                />
+              </template>
+            </v-tooltip>
+          </div>
+        </template>
+
         <template #item.name="{ item }">
           <div class="d-flex align-center gap-2">
             <RouterLink :to="`${basePath}/promotions/${item.id}/edit`" class="rule-name-link font-weight-medium">{{ item.name }}</RouterLink>
@@ -423,6 +398,29 @@
         This action cannot be undone. The end date of the selected {{ selected.length }} rule{{ selected.length > 1 ? 's' : '' }} will be automatically changed to today.
       </template>
     </ConfirmModal>
+    <ColumnSelectDialog
+      v-model="columnDialogOpen"
+      :columns="selectableHeaders"
+      :selected="selectedSelectableKeys"
+      @submit="applyColumns"
+    />
+
+    <SavedFilterSelectDialog
+      v-model="selectFilterOpen"
+      :mine="savedFilters.mine.value"
+      :shared="savedFilters.shared.value"
+      :selected-id="appliedSavedFilter?.id ?? null"
+      @submit="applySavedFilter"
+      @edit="openEditFilter"
+      @remove="removeSavedFilter"
+    />
+    <SavedFilterFormDialog
+      v-model="saveFilterOpen"
+      :filter="editingFilter"
+      :groups="SHAREABLE_GROUPS"
+      @submit="submitSavedFilter"
+    />
+
     <CsvImportDialog v-if="!uxTestMode" v-model="csvImportOpen" @import="onCSVImport" />
 
     <!-- New rule dialog -->
@@ -542,6 +540,13 @@ import TextInput from '../_common/TextInput.vue'
 import { detectConflicts } from '../../utils/ruleConflictDetector'
 import { findCollisions, withConditionOverrides } from '../../utils/promotionCollisions'
 import { serbiaConditionOverrides } from '../../mock/seed'
+import ColumnSelectDialog from '../_common/ColumnSelectDialog.vue'
+import { useColumnSelect } from '../../composables/useColumnSelect'
+import PromotionFilterBuilder from './PromotionFilterBuilder.vue'
+import SavedFilterFormDialog from './SavedFilterFormDialog.vue'
+import SavedFilterSelectDialog from './SavedFilterSelectDialog.vue'
+import { useSavedFilters, SHAREABLE_GROUPS } from '../../composables/useSavedFilters'
+import { isConditionComplete, matchesConditions } from '../../utils/promotionFilters'
 import ConflictBadge from './ConflictBadge.vue'
 import CsvImportDialog from './CsvImportDialog.vue'
 import { downloadCSV, exportRulesToCSV } from '../../utils/csvRuleImportExport'
@@ -654,14 +659,9 @@ const activeTab = ref(
     ? route.query.tab
     : 'active'
 )
-const stackingGroupFilter = ref('all')
-const typeFilter = ref([])
-const tagFilter = ref([])
-const internalTagFilter = ref([])
-const createdByFilter = ref('')
-const dateFilter = ref('any')
-const customDateFrom = ref(null)
-const customDateTo = ref(null)
+const filtersOpen = ref(false)
+const conditions = ref([])
+const appliedConditions = computed(() => conditions.value.filter(isConditionComplete))
 const deleteModal = ref(null)
 const bulkDeleteModal = ref(null)
 const deletingItem = ref(null)
@@ -707,13 +707,8 @@ const archivedItems = computed(() =>
   applyFiltersAll(scopedItems.value.filter(r => r.status === 'archived'))
 )
 
-function applyStackingFilter(rules) {
-  if (stackingGroupFilter.value === 'all') return rules
-  return rules.filter(r => r.stackingGroupId === stackingGroupFilter.value)
-}
-
 function applyFiltersAll(rules) {
-  return applyFilters(applyStackingFilter(rules))
+  return applyFilters(rules)
 }
 
 const tabItems = computed(() => {
@@ -723,11 +718,6 @@ const tabItems = computed(() => {
   if (activeTab.value === 'archived') return archivedItems.value
   return activeItems.value
 })
-
-const stackingGroupFilterItems = computed(() => [
-  { value: 'all', title: 'All groups' },
-  ...sgStore.items.map(g => ({ value: g.id, title: g.name })),
-])
 
 // ── Extra filters ──────────────────────────────────────────────────────────
 
@@ -746,75 +736,38 @@ const TYPE_ICONS = {
 function typeLabel(t) { return TYPE_LABELS[t] ?? t }
 function typeIcon(t)  { return TYPE_ICONS[t]  ?? 'mdi-tag-outline' }
 
-const availableTypes = computed(() =>
-  [...new Set(store.items.map(r => r.type))].sort()
-)
+const STATUS_LABELS = {
+  active: 'Active',
+  scheduled: 'Scheduled',
+  paused: 'Paused',
+  draft: 'Draft',
+  ended: 'Ended',
+  archived: 'Archived',
+}
 
-const typeFilterItems = computed(() =>
-  availableTypes.value.map(t => ({ label: typeLabel(t), value: t }))
-)
-const tagFilterItems = computed(() =>
-  tagsStore.items.map(t => ({ label: t.name, value: t.id }))
-)
-const internalTagFilterItems = computed(() =>
-  internalTagsStore.items.map(t => ({ label: t.name, value: t.id }))
-)
-
-const createdByFilterItems = computed(() => [
-  { value: '', title: 'All creators' },
-  ...[...new Set(store.items.map(r => r.createdBy).filter(Boolean))].sort()
-    .map(c => ({ value: c, title: c })),
+const filterFields = computed(() => [
+  { key: 'date', label: 'Date', operator: 'is', type: 'date' },
+  {
+    key: 'createdBy',
+    label: 'Created by',
+    operator: 'is any of',
+    items: [...new Set(store.items.map(r => r.createdBy).filter(Boolean))].sort().map(c => ({ title: c, value: c })),
+  },
+  {
+    key: 'status',
+    label: 'Status',
+    operator: 'is any of',
+    items: Object.entries(STATUS_LABELS)
+      .filter(([value]) => scopedItems.value.some(r => r.status === value))
+      .map(([value, title]) => ({ title, value })),
+  },
+  {
+    key: 'type',
+    label: 'Type',
+    operator: 'is any of',
+    items: [...new Set(store.items.map(r => r.type))].sort().map(t => ({ title: typeLabel(t), value: t })),
+  },
 ])
-
-const dateFilterItems = [
-  { value: 'any',    title: 'Any date' },
-  { value: 'last_7', title: 'Last 7 days' },
-  { value: 'last_14', title: 'Last 14 days' },
-  { value: 'last_30', title: 'Last 30 days' },
-  { value: 'custom', title: 'Custom period' },
-]
-
-function toggleType(t) {
-  const idx = typeFilter.value.indexOf(t)
-  if (idx === -1) typeFilter.value.push(t)
-  else typeFilter.value.splice(idx, 1)
-}
-
-function toggleTag(id) {
-  const idx = tagFilter.value.indexOf(id)
-  if (idx === -1) tagFilter.value.push(id)
-  else tagFilter.value.splice(idx, 1)
-}
-
-function toggleInternalTag(id) {
-  const idx = internalTagFilter.value.indexOf(id)
-  if (idx === -1) internalTagFilter.value.push(id)
-  else internalTagFilter.value.splice(idx, 1)
-}
-
-const hasActiveFilters = computed(() =>
-  typeFilter.value.length > 0 || tagFilter.value.length > 0 || internalTagFilter.value.length > 0 || createdByFilter.value !== '' || dateFilter.value !== 'any' || !!customDateFrom.value || !!customDateTo.value
-)
-
-const activeFilterCount = computed(() => {
-  let n = 0
-  if (typeFilter.value.length) n++
-  if (tagFilter.value.length) n++
-  if (internalTagFilter.value.length) n++
-  if (createdByFilter.value) n++
-  if (dateFilter.value !== 'any') n++
-  return n
-})
-
-function clearFilters() {
-  typeFilter.value = []
-  tagFilter.value = []
-  internalTagFilter.value = []
-  createdByFilter.value = ''
-  dateFilter.value = 'any'
-  customDateFrom.value = null
-  customDateTo.value = null
-}
 
 function applyFilters(rules) {
   let result = rules
@@ -838,36 +791,76 @@ function applyFilters(rules) {
       )
     })
   }
-  if (typeFilter.value.length) {
-    result = result.filter(r => typeFilter.value.includes(r.type))
+  if (!appliedConditions.value.length) return result
+  return result.filter(r => matchesConditions(r, appliedConditions.value))
+}
+
+// ── Saved filters ──────────────────────────────────────────────────────────
+const savedFilters = useSavedFilters({
+  storageKey: computed(() => `promotion-rules-list${basePath.value}_filters`),
+})
+const appliedSavedFilter = ref(null)
+const selectFilterOpen = ref(false)
+const saveFilterOpen = ref(false)
+const editingFilter = ref(null)
+
+const canSaveFilter = computed(() => !!search.value.trim() || appliedConditions.value.length > 0)
+
+watch([search, appliedConditions], () => {
+  if (!canSaveFilter.value) appliedSavedFilter.value = null
+})
+
+function currentFilterOptions() {
+  return {
+    search: search.value.trim(),
+    conditions: appliedConditions.value.map(({ field, values, dateMode, from, to }) => ({
+      field, values: [...values], dateMode, from, to,
+    })),
   }
-  if (tagFilter.value.length) {
-    result = result.filter(r => tagFilter.value.every(tid => (r.tags ?? []).includes(tid)))
+}
+
+function applySavedFilter(filter) {
+  appliedSavedFilter.value = filter ?? null
+  if (!filter) {
+    search.value = ''
+    conditions.value = []
+    return
   }
-  if (internalTagFilter.value.length) {
-    result = result.filter(r => internalTagFilter.value.every(tid => (r.internalTags ?? []).includes(tid)))
-  }
-  if (createdByFilter.value) {
-    result = result.filter(r => r.createdBy === createdByFilter.value)
-  }
-  if (dateFilter.value !== 'any') {
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
-    if (dateFilter.value === 'last_7' || dateFilter.value === 'last_14' || dateFilter.value === 'last_30') {
-      const days = dateFilter.value === 'last_7' ? 7 : dateFilter.value === 'last_14' ? 14 : 30
-      const from = new Date(today)
-      from.setDate(from.getDate() - days)
-      const fromIso = from.toISOString().split('T')[0]
-      const todayIso = today.toISOString().split('T')[0]
-      result = result.filter(r =>
-        (!r.startDate || r.startDate <= todayIso) && (!r.endDate || r.endDate >= fromIso)
-      )
-    } else if (dateFilter.value === 'custom') {
-      if (customDateFrom.value) result = result.filter(r => !r.endDate || r.endDate >= customDateFrom.value)
-      if (customDateTo.value) result = result.filter(r => !r.startDate || r.startDate <= customDateTo.value)
-    }
-  }
-  return result
+  const available = filterFields.value.map(f => f.key)
+  search.value = filter.options.search ?? ''
+  conditions.value = filter.options.conditions
+    .filter(c => available.includes(c.field))
+    .map((c, i) => ({ ...c, id: `saved-${filter.id}-${i}` }))
+  filtersOpen.value = conditions.value.length > 0
+}
+
+function openSaveFilter() {
+  if (!canSaveFilter.value) return
+  editingFilter.value = null
+  saveFilterOpen.value = true
+}
+
+function openEditFilter(filter) {
+  editingFilter.value = filter
+  saveFilterOpen.value = true
+}
+
+function submitSavedFilter({ name, sharedGroups }) {
+  const payload = { name, sharedGroups, options: currentFilterOptions() }
+  const saved = editingFilter.value
+    ? savedFilters.update(editingFilter.value.id, payload)
+    : savedFilters.save(payload)
+  if (saved) appliedSavedFilter.value = saved
+  editingFilter.value = null
+  bulkSnackText.value = 'Filter saved'
+  bulkSnack.value = true
+}
+
+function removeSavedFilter(filter) {
+  savedFilters.remove(filter.id)
+  if (appliedSavedFilter.value?.id === filter.id) appliedSavedFilter.value = null
+  bulkSnackText.value = 'Filter removed'
+  bulkSnack.value = true
 }
 
 function exportCSV() {
@@ -884,8 +877,8 @@ async function onCSVImport(rules) {
 
 const errorSnack = computed({ get: () => !!store.error, set: () => {} })
 
-const headers = computed(() => [
-  { title: 'Name', key: 'name', sortable: true },
+const allHeaders = computed(() => [
+  { title: 'Name', key: 'name', sortable: true, hiddenForColumnSelect: true },
   ...(mobile.value ? [] : [
     { title: 'Type', key: 'type', width: '72px' },
     { title: 'Status', key: 'status' },
@@ -899,8 +892,14 @@ const headers = computed(() => [
     { title: 'Starts', key: 'startDate' },
     { title: 'Ends', key: 'endDate' },
   ]),
-  { title: '', key: 'actions', sortable: false, width: 60 },
+  { title: '', key: 'actions', sortable: false, width: 60, hiddenForColumnSelect: true },
 ])
+
+const columnDialogOpen = ref(false)
+const { selectableHeaders, visibleHeaders: headers, selectedSelectableKeys, applyColumns } = useColumnSelect({
+  storageKey: computed(() => `promotion-rules-list${basePath.value}_columns`),
+  headers: allHeaders,
+})
 
 
 function formatDate(iso) {
@@ -1089,8 +1088,13 @@ async function openBulkArchive() {
 }
 
 
+.search-row {
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
 .list-search {
-  max-width: 780px;
+  flex: 0 1 300px;
 }
 
 .list-card {
@@ -1114,11 +1118,6 @@ async function openBulkArchive() {
   min-width: 24px;
   justify-content: center;
   border-radius: 12px;
-}
-
-.filter-row {
-  gap: 16px;
-  padding: 8px 0 20px;
 }
 
 .rules-table :deep(th) {

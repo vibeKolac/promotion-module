@@ -46,8 +46,11 @@ describe('PromotionsList', () => {
     expect(w.findAll('[data-testid="row-actions"]').length + w.findAll('button').length).toBeGreaterThan(0)
   })
 
-  it('shows stacking group filter', () => {
+  it('opens the filter panel with one empty condition row', async () => {
     const w = mountList([activeRule])
-    expect(w.text()).toContain('All groups')
+    expect(w.find('[data-testid="filter-builder"]').exists()).toBe(false)
+    await w.find('[data-testid="toggle-filters"]').trigger('click')
+    expect(w.find('[data-testid="filter-builder"]').exists()).toBe(true)
+    expect(w.findAll('[data-testid="filter-row"]')).toHaveLength(1)
   })
 })
