@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { isConditionComplete, matchesConditions } from '../../src/utils/promotionFilters'
+import { groupFieldOptions, isConditionComplete, matchesConditions, pushRecent } from '../../src/utils/promotionFilters'
 
 const rule = {
   type: 'discount',
@@ -56,5 +56,25 @@ describe('matchesConditions', () => {
     expect(matchesConditions({ ...rule, endDate: '2026-10-01' }, [row('date', { dateMode: 'last_7' })], now)).toBe(false)
     expect(matchesConditions(rule, [row('date', { dateMode: 'custom', from: '2027-01-01' })], now)).toBe(false)
     expect(matchesConditions(rule, [row('date', { dateMode: 'custom', to: '2026-11-15' })], now)).toBe(true)
+  })
+})
+
+describe('recently used fields', () => {
+  const fields = [{ key: 'date', label: 'Date' }, { key: 'type', label: 'Type' }, { key: 'status', label: 'Status' }]
+
+  it('lists recent fields first without repeating them', () => {
+    const out = groupFieldOptions(fields, ['status', 'gone', 'date'])
+    expect(out.map(i => i.value ?? i.type)).toEqual(['subheader', 'status', 'date', 'divider', 'subheader', 'type'])
+  })
+
+  it('shows a plain list when nothing was used yet', () => {
+    expect(groupFieldOptions(fields, [])).toEqual([
+      { title: 'Date', value: 'date' }, { title: 'Type', value: 'type' }, { title: 'Status', value: 'status' },
+    ])
+  })
+
+  it('keeps the latest three, most recent first', () => {
+    expect(pushRecent(['a', 'b', 'c'], 'd')).toEqual(['d', 'a', 'b'])
+    expect(pushRecent(['a', 'b', 'c'], 'b')).toEqual(['b', 'a', 'c'])
   })
 })

@@ -40,3 +40,22 @@ export function matchesConditions(rule, conditions, now = new Date()) {
     return true
   })
 }
+
+export const RECENT_LIMIT = 3
+
+export function groupFieldOptions(fields, recentKeys) {
+  const items = fields.map(f => ({ title: f.label, value: f.key }))
+  const recent = recentKeys.map(k => items.find(i => i.value === k)).filter(Boolean)
+  if (!recent.length) return items
+  return [
+    { type: 'subheader', title: 'Recently used' },
+    ...recent,
+    { type: 'divider' },
+    { type: 'subheader', title: 'All filters' },
+    ...items.filter(i => !recent.includes(i)),
+  ]
+}
+
+export function pushRecent(recentKeys, key) {
+  return [key, ...recentKeys.filter(k => k !== key)].slice(0, RECENT_LIMIT)
+}

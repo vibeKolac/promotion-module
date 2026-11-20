@@ -12,8 +12,6 @@
       <v-select
         :model-value="row.field"
         :items="fieldOptions(row)"
-        item-title="label"
-        item-value="key"
         label="Filter by"
         variant="outlined"
         density="compact"
@@ -83,12 +81,13 @@
 </template>
 
 <script setup>
-import { computed, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import DatePicker from '../_common/DatePicker.vue'
-import { DATE_MODES, isConditionComplete } from '../../utils/promotionFilters'
+import { DATE_MODES, groupFieldOptions, isConditionComplete, pushRecent } from '../../utils/promotionFilters'
 
 const props = defineProps({
   fields: { type: Array, required: true },
+  recentKey: { type: String, default: null },
 })
 const model = defineModel({ type: Array, default: () => [] })
 
@@ -101,9 +100,20 @@ function fieldDef(key) {
   return props.fields.find(f => f.key === key)
 }
 
+const recent = ref(loadRecent())
+
+function loadRecent() {
+  try {
+    const keys = props.recentKey ? JSON.parse(localStorage.getItem(props.recentKey)) : null
+    return Array.isArray(keys) ? keys : []
+  } catch {
+    return []
+  }
+}
+
 function fieldOptions(row) {
   const usedElsewhere = model.value.filter(r => r !== row).map(r => r.field)
-  return props.fields.filter(f => !usedElsewhere.includes(f.key))
+  return groupFieldOptions(props.fields.filter(f => !usedElsewhere.includes(f.key)), recent.value)
 }
 
 function patch(row, changes) {
@@ -111,6 +121,14 @@ function patch(row, changes) {
 }
 
 function setField(row, field) {
+  if (field) {
+    recent.value = pushRecent(recent.value, field)
+    try {
+      if (props.recentKey) localStorage.setItem(props.recentKey, JSON.stringify(recent.value))
+    } catch {
+      // recently used lasts for this session only
+    }
+  }
   patch(row, { field, values: [], dateMode: null, from: null, to: null })
 }
 

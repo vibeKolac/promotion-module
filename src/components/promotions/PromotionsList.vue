@@ -79,7 +79,11 @@
 
     <v-expand-transition>
       <div v-if="filtersOpen" class="mb-6">
-        <PromotionFilterBuilder v-model="conditions" :fields="filterFields" />
+        <PromotionFilterBuilder
+          v-model="conditions"
+          :fields="filterFields"
+          :recent-key="`promotion-rules-list${basePath}_recent_filters`"
+        />
       </div>
     </v-expand-transition>
 
