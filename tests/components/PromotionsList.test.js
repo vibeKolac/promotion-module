@@ -46,6 +46,13 @@ describe('PromotionsList', () => {
     expect(w.findAll('[data-testid="row-actions"]').length + w.findAll('button').length).toBeGreaterThan(0)
   })
 
+  it('has an All tab without a count, and Active stays the landing tab', () => {
+    const w = mountList([activeRule, pausedRule])
+    const tabs = w.findAll('.v-tab')
+    expect(tabs[0].text()).toBe('All')
+    expect(tabs.find(t => t.classes('v-tab--selected')).text()).toContain('Active')
+  })
+
   it('opens the filter panel with one empty condition row', async () => {
     const w = mountList([activeRule])
     expect(w.find('[data-testid="filter-builder"]').exists()).toBe(false)

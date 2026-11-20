@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest'
 import { groupFieldOptions, isConditionComplete, matchesConditions, pushRecent } from '../../src/utils/promotionFilters'
 
 const rule = {
+  createdAt: '2026-11-18T10:00:00Z',
   type: 'discount',
   createdBy: 'anna',
   stackingGroupId: 'g1',
@@ -21,10 +22,10 @@ describe('isConditionComplete', () => {
   })
 
   it('needs a period for date, and a bound when custom', () => {
-    expect(isConditionComplete(row('date'))).toBe(false)
-    expect(isConditionComplete(row('date', { dateMode: 'last_7' }))).toBe(true)
-    expect(isConditionComplete(row('date', { dateMode: 'custom' }))).toBe(false)
-    expect(isConditionComplete(row('date', { dateMode: 'custom', from: '2026-11-01' }))).toBe(true)
+    expect(isConditionComplete(row('validIn'))).toBe(false)
+    expect(isConditionComplete(row('validIn', { dateMode: 'last_7' }))).toBe(true)
+    expect(isConditionComplete(row('validIn', { dateMode: 'custom' }))).toBe(false)
+    expect(isConditionComplete(row('validIn', { dateMode: 'custom', from: '2026-11-01' }))).toBe(true)
   })
 })
 
@@ -51,11 +52,18 @@ describe('matchesConditions', () => {
     expect(matchesConditions({ ...rule, status: 'active' }, [row('status', { values: ['active', 'paused'] })], now)).toBe(true)
   })
 
-  it('filters by date period and custom range', () => {
-    expect(matchesConditions(rule, [row('date', { dateMode: 'last_7' })], now)).toBe(true)
-    expect(matchesConditions({ ...rule, endDate: '2026-10-01' }, [row('date', { dateMode: 'last_7' })], now)).toBe(false)
-    expect(matchesConditions(rule, [row('date', { dateMode: 'custom', from: '2027-01-01' })], now)).toBe(false)
-    expect(matchesConditions(rule, [row('date', { dateMode: 'custom', to: '2026-11-15' })], now)).toBe(true)
+  it('filters by created at period and custom range', () => {
+    expect(matchesConditions(rule, [row('createdAt', { dateMode: 'last_7' })], now)).toBe(true)
+    expect(matchesConditions({ ...rule, createdAt: '2026-10-01T10:00:00Z' }, [row('createdAt', { dateMode: 'last_7' })], now)).toBe(false)
+    expect(matchesConditions(rule, [row('createdAt', { dateMode: 'custom', from: '2026-11-19' })], now)).toBe(false)
+    expect(matchesConditions(rule, [row('createdAt', { dateMode: 'custom', from: '2026-11-18', to: '2026-11-18' })], now)).toBe(true)
+  })
+
+  it('filters by date valid period and custom range', () => {
+    expect(matchesConditions(rule, [row('validIn', { dateMode: 'last_7' })], now)).toBe(true)
+    expect(matchesConditions({ ...rule, endDate: '2026-10-01' }, [row('validIn', { dateMode: 'last_7' })], now)).toBe(false)
+    expect(matchesConditions(rule, [row('validIn', { dateMode: 'custom', from: '2027-01-01' })], now)).toBe(false)
+    expect(matchesConditions(rule, [row('validIn', { dateMode: 'custom', to: '2026-11-15' })], now)).toBe(true)
   })
 })
 

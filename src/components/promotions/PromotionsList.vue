@@ -89,6 +89,7 @@
 
     <v-card border elevation="0" class="list-card pa-4 pa-sm-6">
       <v-tabs v-model="activeTab" color="primary" density="comfortable" hide-slider class="status-tabs mb-4">
+        <v-tab value="all">All</v-tab>
         <v-tab value="active">Active <v-chip size="x-small" class="ml-2 tab-count">{{ activeItems.length }}</v-chip></v-tab>
         <v-tab v-if="!serbiaMode" value="paused">Paused <v-chip size="x-small" class="ml-2 tab-count">{{ pausedItems.length }}</v-chip></v-tab>
         <v-tab value="draft">Draft <v-chip size="x-small" class="ml-2 tab-count">{{ draftItems.length }}</v-chip></v-tab>
@@ -655,7 +656,7 @@ const collisionsMap = computed(() => {
 })
 
 const search = ref('')
-const VALID_TABS = ['active', 'paused', 'draft', 'ended', 'archived']
+const VALID_TABS = ['all', 'active', 'paused', 'draft', 'ended', 'archived']
 const activeTab = ref(
   VALID_TABS.includes(route.query.tab) &&
   !(route.path.startsWith('/serbia') && route.query.tab === 'paused') &&
@@ -715,7 +716,29 @@ function applyFiltersAll(rules) {
   return applyFilters(rules)
 }
 
+const statusFilterIncludesArchived = computed(() =>
+  appliedConditions.value.some(c => c.field === 'status' && c.values.includes('archived')),
+)
+const allItems = computed(() =>
+  applyFiltersAll(scopedItems.value.filter(r => r.status !== 'archived' || statusFilterIncludesArchived.value)),
+)
+
+const TAB_STATUSES = {
+  active: ['active', 'scheduled'],
+  paused: ['paused'],
+  draft: ['draft'],
+  ended: ['ended'],
+  archived: ['archived'],
+}
+
+watch(appliedConditions, () => {
+  if (activeTab.value === 'all') return
+  const status = appliedConditions.value.find(c => c.field === 'status')
+  if (status && status.values.some(v => !TAB_STATUSES[activeTab.value].includes(v))) activeTab.value = 'all'
+})
+
 const tabItems = computed(() => {
+  if (activeTab.value === 'all') return allItems.value
   if (activeTab.value === 'paused') return pausedItems.value
   if (activeTab.value === 'draft') return draftItems.value
   if (activeTab.value === 'ended') return endedItems.value
@@ -750,7 +773,8 @@ const STATUS_LABELS = {
 }
 
 const filterFields = computed(() => [
-  { key: 'date', label: 'Date', operator: 'is', type: 'date' },
+  { key: 'createdAt', label: 'Created at', operator: 'is', type: 'date' },
+  { key: 'validIn', label: 'Date valid', operator: 'is', type: 'date' },
   {
     key: 'createdBy',
     label: 'Created by',
@@ -789,6 +813,8 @@ function applyFilters(rules) {
         (r.createdBy ?? '').toLowerCase().includes(q) ||
         (r.startDate ?? '').includes(q) ||
         (r.endDate ?? '').includes(q) ||
+        (r.startDate ? formatDate(r.startDate) : '').includes(q.replaceAll('.', '/')) ||
+        (r.endDate ? formatDate(r.endDate) : '').includes(q.replaceAll('.', '/')) ||
         tagNames.toLowerCase().includes(q) ||
         internalTagNames.toLowerCase().includes(q) ||
         groupName.toLowerCase().includes(q)

@@ -6,16 +6,29 @@ export const DATE_MODES = [
 ]
 
 const SINGLE_VALUE_FIELDS = { group: 'stackingGroupId', type: 'type', createdBy: 'createdBy', status: 'status' }
+const DATE_FIELDS = ['validIn', 'createdAt']
 const LIST_FIELDS = { tags: 'tags', internalTags: 'internalTags' }
 
 export function isConditionComplete(c) {
   if (!c.field) return false
-  if (c.field === 'date') return c.dateMode === 'custom' ? !!(c.from || c.to) : !!c.dateMode
+  if (DATE_FIELDS.includes(c.field)) return c.dateMode === 'custom' ? !!(c.from || c.to) : !!c.dateMode
   return c.values.length > 0
 }
 
 function isoDate(d) {
   return d.toISOString().split('T')[0]
+}
+
+function matchesCreated(rule, c, now) {
+  const created = (rule.createdAt ?? '').slice(0, 10)
+  if (!created) return false
+  if (c.dateMode === 'custom') return (!c.from || created >= c.from) && (!c.to || created <= c.to)
+  const days = DATE_MODES.find(m => m.value === c.dateMode)?.days
+  const today = new Date(now)
+  today.setHours(0, 0, 0, 0)
+  const from = new Date(today)
+  from.setDate(from.getDate() - days)
+  return created >= isoDate(from) && created <= isoDate(today)
 }
 
 function matchesDate(rule, c, now) {
@@ -34,7 +47,8 @@ function matchesDate(rule, c, now) {
 
 export function matchesConditions(rule, conditions, now = new Date()) {
   return conditions.filter(isConditionComplete).every(c => {
-    if (c.field === 'date') return matchesDate(rule, c, now)
+    if (c.field === 'validIn') return matchesDate(rule, c, now)
+    if (c.field === 'createdAt') return matchesCreated(rule, c, now)
     if (SINGLE_VALUE_FIELDS[c.field]) return c.values.includes(rule[SINGLE_VALUE_FIELDS[c.field]])
     if (LIST_FIELDS[c.field]) return c.values.every(v => (rule[LIST_FIELDS[c.field]] ?? []).includes(v))
     return true

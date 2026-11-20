@@ -19,7 +19,7 @@ export const SEED_FILTERS = [
     name: 'Running in the last 30 days',
     user: { id: 'u-martin', name: 'Martin P.' },
     sharedGroups: ['Marketing', 'Ecommerce'],
-    options: { search: '', conditions: [condition('date', { dateMode: 'last_30' })] },
+    options: { search: '', conditions: [condition('validIn', { dateMode: 'last_30' })] },
   },
   {
     id: 'seed-private',
